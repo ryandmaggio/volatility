@@ -27,13 +27,19 @@
 import volatility.obj as obj
 import volatility.plugins.mac.common as common
 
+
 class mac_version(common.AbstractMacCommand):
     """ Prints the Mac version """
 
     def calculate(self):
         common.set_plugin_members(self)
-        yield obj.Object("String", offset = self.addr_space.profile.get_symbol("_version"), vm = self.addr_space, length = 256)
- 
+        yield obj.Object(
+            "String",
+            offset=self.addr_space.profile.get_symbol("_version"),
+            vm=self.addr_space,
+            length=256,
+        )
+
     def render_text(self, outfd, data):
         for version in data:
             outfd.write("{0}\n".format(version))

@@ -26,7 +26,7 @@
 
 import struct
 import sys
-import volatility.plugins.common as common 
+import volatility.plugins.common as common
 import volatility.win32 as win32
 import volatility.utils as utils
 import volatility.obj as obj
@@ -34,9 +34,10 @@ import volatility.plugins.taskmods as taskmods
 import volatility.scan as scan
 
 try:
-    import distorm3 #pylint: disable-msg=F0401
+    import distorm3  # pylint: disable-msg=F0401
 except ImportError:
     pass
+
 
 class volshell(common.AbstractWindowsCommand):
     """Shell in the memory image"""
@@ -55,15 +56,30 @@ class volshell(common.AbstractWindowsCommand):
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
 
-        config.add_option('OFFSET', short_option = 'o', default = None,
-                          help = 'EPROCESS Offset (in hex) in kernel address space',
-                          action = 'store', type = 'int')
-        config.add_option('IMNAME', short_option = 'n', default = None,
-                          help = 'Operate on this Process name',
-                          action = 'store', type = 'str')
-        config.add_option('PID', short_option = 'p', default = None,
-                          help = 'Operate on these Process IDs (comma-separated)',
-                          action = 'store', type = 'str')
+        config.add_option(
+            'OFFSET',
+            short_option='o',
+            default=None,
+            help='EPROCESS Offset (in hex) in kernel address space',
+            action='store',
+            type='int',
+        )
+        config.add_option(
+            'IMNAME',
+            short_option='n',
+            default=None,
+            help='Operate on this Process name',
+            action='store',
+            type='str',
+        )
+        config.add_option(
+            'PID',
+            short_option='p',
+            default=None,
+            help='Operate on these Process IDs (comma-separated)',
+            action='store',
+            type='str',
+        )
 
         self._addrspace = None
         self._proc = None
@@ -75,33 +91,52 @@ class volshell(common.AbstractWindowsCommand):
         return win32.modules.lsmod(self._addrspace)
 
     def context_display(self):
-        print("Current context: {0} @ {1:#x}, pid={2}, ppid={3} DTB={4:#x}".format(self._proc.ImageFileName,
-                                                                                  self._proc.obj_offset,
-                                                                                  self._proc.UniqueProcessId.v(),
-                                                                                  self._proc.InheritedFromUniqueProcessId.v(),
-                                                                                  self._proc.Pcb.DirectoryTableBase.v()))
+        print(
+            "Current context: {0} @ {1:#x}, pid={2}, ppid={3} DTB={4:#x}".format(
+                self._proc.ImageFileName,
+                self._proc.obj_offset,
+                self._proc.UniqueProcessId.v(),
+                self._proc.InheritedFromUniqueProcessId.v(),
+                self._proc.Pcb.DirectoryTableBase.v(),
+            )
+        )
 
-    def ps(self, procs = None):
-        print("{0:16} {1:6} {2:6} {3:8}".format("Name", "PID", "PPID", "Offset"))
+    def ps(self, procs=None):
+        print(
+            "{0:16} {1:6} {2:6} {3:8}".format("Name", "PID", "PPID", "Offset")
+        )
         for eproc in procs or self.getpidlist():
-            print("{0:16} {1:<6} {2:<6} {3:#08x}".format(eproc.ImageFileName,
-                                                       eproc.UniqueProcessId.v(),
-                                                       eproc.InheritedFromUniqueProcessId.v(),
-                                                       eproc.obj_offset))
+            print(
+                "{0:16} {1:<6} {2:<6} {3:#08x}".format(
+                    eproc.ImageFileName,
+                    eproc.UniqueProcessId.v(),
+                    eproc.InheritedFromUniqueProcessId.v(),
+                    eproc.obj_offset,
+                )
+            )
 
-    def modules(self, modules = None):
-        if self._addrspace.profile.metadata.get('memory_model', '32bit') == '32bit':
+    def modules(self, modules=None):
+        if (
+            self._addrspace.profile.metadata.get('memory_model', '32bit')
+            == '32bit'
+        ):
             print("{0:10} {1:10} {2}".format("Offset", "Base", "Name"))
         else:
             print("{0:18} {1:18} {2}".format("Offset", "Base", "Name"))
         for module in modules or self.getmodules():
-            print("{0:#08x} {1:#08x} {2}".format(module.obj_offset, 
-                                                 module.DllBase,
-                                                 module.FullDllName or module.BaseDllName or ''))
+            print(
+                "{0:#08x} {1:#08x} {2}".format(
+                    module.obj_offset,
+                    module.DllBase,
+                    module.FullDllName or module.BaseDllName or '',
+                )
+            )
 
-    def set_context(self, offset = None, pid = None, name = None, physical = False):
+    def set_context(self, offset=None, pid=None, name=None, physical=False):
         if physical and offset != None:
-            offset = taskmods.DllList.virtual_process_from_physical_offset(self._addrspace, offset).obj_offset
+            offset = taskmods.DllList.virtual_process_from_physical_offset(
+                self._addrspace, offset
+            ).obj_offset
         elif pid is not None:
             offsets = []
             for p in self.getpidlist():
@@ -111,7 +146,11 @@ class volshell(common.AbstractWindowsCommand):
                 print("Unable to find process matching pid {0}".format(pid))
                 return
             elif len(offsets) > 1:
-                print("Multiple processes match {0}, please specify by offset".format(pid))
+                print(
+                    "Multiple processes match {0}, please specify by offset".format(
+                        pid
+                    )
+                )
                 print("Matching processes:")
                 self.ps(offsets)
                 return
@@ -126,7 +165,11 @@ class volshell(common.AbstractWindowsCommand):
                 print("Unable to find process matching name {0}".format(name))
                 return
             elif len(offsets) > 1:
-                print("Multiple processes match name {0}, please specify by PID or offset".format(name))
+                print(
+                    "Multiple processes match name {0}, please specify by PID or offset".format(
+                        name
+                    )
+                )
                 print("Matching processes:")
                 self.ps(offsets)
                 return
@@ -136,7 +179,7 @@ class volshell(common.AbstractWindowsCommand):
             print("Must provide one of: offset, name, or pid as a argument.")
             return
 
-        self._proc = obj.Object("_EPROCESS", offset = offset, vm = self._addrspace)
+        self._proc = obj.Object("_EPROCESS", offset=offset, vm=self._addrspace)
 
         self.context_display()
 
@@ -144,7 +187,7 @@ class volshell(common.AbstractWindowsCommand):
         self._addrspace = utils.load_as(self._config)
 
         if not self._config.OFFSET is None:
-            self.set_context(offset = self._config.OFFSET)
+            self.set_context(offset=self._config.OFFSET)
 
             self.context_display()
 
@@ -152,22 +195,22 @@ class volshell(common.AbstractWindowsCommand):
             # FIXME: volshell is really not intended to switch into multiple
             # process contexts at once, so it doesn't make sense to use a csv
             # pid list. However, the linux and mac volshell call the respective
-            # linux_pslist and mac_pslist which require a csv pidlist. After 
-            # the 2.3 release we should close this along with issue 375. 
+            # linux_pslist and mac_pslist which require a csv pidlist. After
+            # the 2.3 release we should close this along with issue 375.
             pidlist = [int(p) for p in self._config.PID.split(',')]
             for p in pidlist:
-                self.set_context(pid = p)
+                self.set_context(pid=p)
                 break
         elif self._config.IMNAME is not None:
-            self.set_context(name = self._config.IMNAME)
+            self.set_context(name=self._config.IMNAME)
         else:
             # Just use the first process, whatever it is
             for p in self.getpidlist():
-                self.set_context(offset = p.v())
+                self.set_context(offset=p.v())
                 break
 
         # Functions inside the shell
-        def cc(offset = None, pid = None, name = None, physical = False):
+        def cc(offset=None, pid=None, name=None, physical=False):
             """Change current shell context.
 
             This function changes the current shell context to to the process
@@ -177,15 +220,17 @@ class volshell(common.AbstractWindowsCommand):
             If multiple processes match the given PID or name, you will be shown a
             list of matching processes, and will have to specify by offset.
             """
-            self.set_context(offset = offset, pid = pid, name = name, physical = physical)
+            self.set_context(
+                offset=offset, pid=pid, name=name, physical=physical
+            )
 
-        def db(address, length = 0x80, space = None):
+        def db(address, length=0x80, space=None):
             """Print bytes as canonical hexdump.
-            
+
             This function prints bytes at the given virtual address as a canonical
             hexdump. The address will be translated in the current process context
             (see help on cc for information on how to change contexts).
-            
+
             The length parameter (default: 0x80) specifies how many bytes to print,
             the width parameter (default: 16) allows you to change how many bytes per
             line should be displayed, and the space parameter allows you to
@@ -193,7 +238,7 @@ class volshell(common.AbstractWindowsCommand):
             """
             if not space:
                 space = self._proc.get_process_address_space()
-            #if length % 4 != 0:
+            # if length % 4 != 0:
             #    length = (length+4) - (length%4)
             data = space.read(address, length)
             if not data:
@@ -201,16 +246,20 @@ class volshell(common.AbstractWindowsCommand):
                 return
 
             for offset, hexchars, chars in utils.Hexdump(data):
-                print("{0:#010x}  {1:<48}  {2}".format(address + offset, hexchars, ''.join(chars)))
+                print(
+                    "{0:#010x}  {1:<48}  {2}".format(
+                        address + offset, hexchars, ''.join(chars)
+                    )
+                )
 
-        def dd(address, length = 0x80, space = None):
+        def dd(address, length=0x80, space=None):
             """Print dwords at address.
 
             This function prints the data at the given address, interpreted as
             a series of dwords (unsigned four-byte integers) in hexadecimal.
             The address will be translated in the current process context
             (see help on cc for information on how to change contexts).
-            
+
             The optional length parameter (default: 0x80) controls how many bytes
             to display, and space allows you to optionally specify the address space
             to read the data from.
@@ -226,25 +275,30 @@ class volshell(common.AbstractWindowsCommand):
                 return
             dwords = []
             for i in range(0, length, 4):
-                (dw,) = struct.unpack("<L", data[i:i + 4])
+                (dw,) = struct.unpack("<L", data[i : i + 4])
                 dwords.append(dw)
 
-            if len(dwords) % 4 == 0: lines = len(dwords) / 4
-            else: lines = len(dwords) / 4 + 1
+            if len(dwords) % 4 == 0:
+                lines = len(dwords) / 4
+            else:
+                lines = len(dwords) / 4 + 1
 
             for i in range(lines):
                 ad = address + i * 0x10
-                lwords = dwords[i * 4:i * 4 + 4]
-                print(("{0:08x}  ".format(ad)) + " ".join("{0:08x}".format(l) for l in lwords))
+                lwords = dwords[i * 4 : i * 4 + 4]
+                print(
+                    ("{0:08x}  ".format(ad))
+                    + " ".join("{0:08x}".format(l) for l in lwords)
+                )
 
-        def dq(address, length = 0x80, space = None):
+        def dq(address, length=0x80, space=None):
             """Print qwords at address.
 
             This function prints the data at the given address, interpreted as
             a series of qwords (unsigned eight-byte integers) in hexadecimal.
             The address will be translated in the current process context
             (see help on cc for information on how to change contexts).
-            
+
             The optional length parameter (default: 0x80) controls how many bytes
             to display, and space allows you to optionally specify the address space
             to read the data from.
@@ -252,12 +306,17 @@ class volshell(common.AbstractWindowsCommand):
             if not space:
                 space = self._proc.get_process_address_space()
 
-            # round up 
+            # round up
             if length % 8 != 0:
                 length = (length + 8) - (length % 8)
 
-            qwords = obj.Object("Array", targetType = "unsigned long long",
-                offset = address, count = length / 8, vm = space)
+            qwords = obj.Object(
+                "Array",
+                targetType="unsigned long long",
+                offset=address,
+                count=length / 8,
+                vm=space,
+            )
 
             if not qwords:
                 print("Memory unreadable at {0:08x}".format(address))
@@ -274,24 +333,24 @@ class volshell(common.AbstractWindowsCommand):
             self.ps()
 
         def addrspace():
-            """Get the current kernel/virtual address space. 
+            """Get the current kernel/virtual address space.
 
-            This returns the current address space. 
+            This returns the current address space.
             """
             return self._addrspace
 
         def proc():
             """Get the current process object.
-            
-            This returns the current process object. 
+
+            This returns the current process object.
             """
-            return self._proc 
+            return self._proc
 
         def getprocs():
             """Generator of process objects (scripting).
 
             This returns a list of active process objects.
-            """    
+            """
             return self.getpidlist()
 
         def getmods():
@@ -310,12 +369,14 @@ class volshell(common.AbstractWindowsCommand):
 
         def sc():
             """Show the current context.
-            
+
             Show the current process information.
             """
             self.context_display()
 
-        def list_entry(head, objname, offset = -1, fieldname = None, forward = True, space = None):
+        def list_entry(
+            head, objname, offset=-1, fieldname=None, forward=True, space=None
+        ):
             """Traverse a _LIST_ENTRY.
 
             Traverses a _LIST_ENTRY starting at virtual address head made up of
@@ -329,7 +390,7 @@ class volshell(common.AbstractWindowsCommand):
 
             if fieldname:
                 offset = vm.profile.get_obj_offset(objname, fieldname)
-                #if typ != "_LIST_ENTRY":
+                # if typ != "_LIST_ENTRY":
                 #    print ("WARN: given field is not a LIST_ENTRY, attempting to "
                 #           "continue anyway.")
 
@@ -354,7 +415,7 @@ class volshell(common.AbstractWindowsCommand):
                 nobj = obj.Object(objname, lst.obj_offset - offset, vm)
                 yield nobj
 
-        def dt(objct, address = None, space = None, recursive = False, depth = 0):
+        def dt(objct, address=None, space=None, recursive=False, depth=0):
             """Describe an object or show type info.
 
             Show the names and values of a complex object (struct). If the name of a
@@ -375,27 +436,48 @@ class volshell(common.AbstractWindowsCommand):
             profile = (space or self._proc.obj_vm).profile
 
             if address is not None:
-                objct = obj.Object(objct, address, space or self._proc.get_process_address_space())
+                objct = obj.Object(
+                    objct,
+                    address,
+                    space or self._proc.get_process_address_space(),
+                )
 
             try:
                 if isinstance(objct, str):
-                        size = profile.get_obj_size(objct)
-                        membs = [ (profile.get_obj_offset(objct, m), m, profile.vtypes[objct][1][m][1]) for m in profile.vtypes[objct][1] ]
-                        print("{0}".format("..." * depth), repr(objct), "({0} bytes)".format(size))
-                        for o, m, t in sorted(membs):
-                            print("{0}{1:6}: {2:30} {3}".format("..." * depth, hex(o), m, t))
-                            if recursive: 
-                                if t[0] in profile.vtypes:
-                                    dt(t[0], recursive = recursive, depth = depth + 1)
+                    size = profile.get_obj_size(objct)
+                    membs = [
+                        (
+                            profile.get_obj_offset(objct, m),
+                            m,
+                            profile.vtypes[objct][1][m][1],
+                        )
+                        for m in profile.vtypes[objct][1]
+                    ]
+                    print(
+                        "{0}".format("..." * depth),
+                        repr(objct),
+                        "({0} bytes)".format(size),
+                    )
+                    for o, m, t in sorted(membs):
+                        print(
+                            "{0}{1:6}: {2:30} {3}".format(
+                                "..." * depth, hex(o), m, t
+                            )
+                        )
+                        if recursive:
+                            if t[0] in profile.vtypes:
+                                dt(t[0], recursive=recursive, depth=depth + 1)
                 elif isinstance(objct, obj.BaseObject):
-                    membs = [ (o, m) for m, (o, _c) in list(objct.members.items()) ]
+                    membs = [
+                        (o, m) for m, (o, _c) in list(objct.members.items())
+                    ]
                     if not recursive:
                         print(repr(objct))
                     offsets = []
                     for o, m in sorted(membs):
                         val = getattr(objct, m)
                         if isinstance(val, list):
-                            val = [ str(v) for v in val ]
+                            val = [str(v) for v in val]
 
                         # Handle a potentially callable offset
                         if callable(o):
@@ -404,16 +486,24 @@ class volshell(common.AbstractWindowsCommand):
                         offsets.append((o, m, val))
 
                     # Deal with potentially out of order offsets
-                    offsets.sort(key = lambda x: x[0])
+                    offsets.sort(key=lambda x: x[0])
 
                     for o, m, val in offsets:
                         try:
-                            print("{0}{1:6}: {2:30} {3}".format("..." * depth, hex(o), m, val))
+                            print(
+                                "{0}{1:6}: {2:30} {3}".format(
+                                    "..." * depth, hex(o), m, val
+                                )
+                            )
                         except UnicodeDecodeError:
-                            print("{0}{1:6}: {2:30} -".format("..." * depth, hex(o), m))
+                            print(
+                                "{0}{1:6}: {2:30} -".format(
+                                    "..." * depth, hex(o), m
+                                )
+                            )
                         if recursive:
                             if val.obj_type in profile.vtypes:
-                                dt(val, recursive = recursive, depth = depth + 1)
+                                dt(val, recursive=recursive, depth=depth + 1)
                 elif isinstance(objct, obj.NoneObject):
                     print("ERROR: could not instantiate object")
                     print()
@@ -427,9 +517,12 @@ class volshell(common.AbstractWindowsCommand):
             except TypeError:
                 print("Error: could not instantiate object")
                 print()
-                print("Reason: ", "displaying types with dynamic attributes is currently not supported")
+                print(
+                    "Reason: ",
+                    "displaying types with dynamic attributes is currently not supported",
+                )
 
-        def dis(address, length = 128, space = None, mode = None):
+        def dis(address, length=128, space=None, mode=None):
             """Disassemble code at a given address.
 
             Disassembles code starting at address for a number of bytes
@@ -439,7 +532,7 @@ class volshell(common.AbstractWindowsCommand):
                 http://www.ragestorm.net/distorm/
 
             The mode is '16bit', '32bit' or '64bit'. If not supplied, the disasm
-            mode is taken from the profile. 
+            mode is taken from the profile.
             """
             if "distorm3" not in sys.modules:
                 print("ERROR: Disassembly unavailable, distorm not found")
@@ -450,7 +543,11 @@ class volshell(common.AbstractWindowsCommand):
             if mode == None:
                 mode = space.profile.metadata.get('memory_model', '32bit')
             # we'll actually allow the possiblility that someone passed a correct mode
-            if mode not in [distorm3.Decode16Bits, distorm3.Decode32Bits, distorm3.Decode64Bits]:
+            if mode not in [
+                distorm3.Decode16Bits,
+                distorm3.Decode32Bits,
+                distorm3.Decode64Bits,
+            ]:
                 if mode == '16bit':
                     mode = distorm3.Decode16Bits
                 elif mode == '32bit':
@@ -462,9 +559,11 @@ class volshell(common.AbstractWindowsCommand):
             data = space.read(address, length)
             iterable = distorm3.DecodeGenerator(address, data, distorm_mode)
             for (offset, _size, instruction, hexdump) in iterable:
-                print("{0:<#8x} {1:<32} {2}".format(offset, hexdump, instruction))
+                print(
+                    "{0:<#8x} {1:<32} {2}".format(offset, hexdump, instruction)
+                )
 
-        def find(needle, max = 1, shift = 0, skip = 0, count = False, length = 0x80):
+        def find(needle, max=1, shift=0, skip=0, count=False, length=0x80):
             """Find bytes in the current process's memory
             needle - string or list/tuple of strings to find
             max    - number of results to return; 0 means find all
@@ -473,11 +572,15 @@ class volshell(common.AbstractWindowsCommand):
             count  - if True, displays a message reporting how many hits found; only really useful for max == 0
             length - output this many bytes for each hit
             """
-            
+
             if isinstance(needle, str):
-                needle = [ needle ]
-            elif not isinstance(needle, (list, tuple)) or not all([isinstance(x, str) for x in needle]):
-                print('Error: needle must be a string or a list/tuple of strings')
+                needle = [needle]
+            elif not isinstance(needle, (list, tuple)) or not all(
+                [isinstance(x, str) for x in needle]
+            ):
+                print(
+                    'Error: needle must be a string or a list/tuple of strings'
+                )
                 return
 
             hit_count = 0
@@ -492,22 +595,49 @@ class volshell(common.AbstractWindowsCommand):
                 print('-' * 16)
                 print('Found {} matches.'.format(hit_count - skip))
 
-        shell_funcs = {'find': find, 'cc': cc, 'dd': dd, 'db': db, 'ps': ps, 'dt': dt, 'list_entry': list_entry, 'dis': dis, 'dq': dq, 'modules': modules, 'sc': sc, 'addrspace': addrspace, 'proc': proc, 'getprocs': getprocs, 'getmods': getmods}
-        def hh(cmd = None):
+        shell_funcs = {
+            'find': find,
+            'cc': cc,
+            'dd': dd,
+            'db': db,
+            'ps': ps,
+            'dt': dt,
+            'list_entry': list_entry,
+            'dis': dis,
+            'dq': dq,
+            'modules': modules,
+            'sc': sc,
+            'addrspace': addrspace,
+            'proc': proc,
+            'getprocs': getprocs,
+            'getmods': getmods,
+        }
+
+        def hh(cmd=None):
             """Get help on a command."""
             shell_funcs['hh'] = hh
             import pydoc
             from inspect import getargspec, formatargspec
+
             if not cmd:
                 print("\nUse addrspace() for Kernel/Virtual AS")
                 print("Use addrspace().base for Physical AS")
                 print("Use proc() to get the current process object")
-                print("  and proc().get_process_address_space() for the current process AS")
-                print("  and proc().get_load_modules() for the current process DLLs\n")
+                print(
+                    "  and proc().get_process_address_space() for the current process AS"
+                )
+                print(
+                    "  and proc().get_load_modules() for the current process DLLs\n"
+                )
                 for f in sorted(shell_funcs):
                     doc = pydoc.getdoc(shell_funcs[f])
                     synop, _full = pydoc.splitdoc(doc)
-                    print("{0:40} : {1}".format(f + formatargspec(*getargspec(shell_funcs[f])), synop))
+                    print(
+                        "{0:40} : {1}".format(
+                            f + formatargspec(*getargspec(shell_funcs[f])),
+                            synop,
+                        )
+                    )
                 print("\nFor help on a specific command, type 'hh(<command>)'")
             elif type(cmd) == str:
                 try:
@@ -521,16 +651,19 @@ class volshell(common.AbstractWindowsCommand):
                 print(doc)
 
         # Break into shell
-        banner = "Welcome to volshell! Current memory image is:\n{0}\n".format(self._config.LOCATION)
+        banner = "Welcome to volshell! Current memory image is:\n{0}\n".format(
+            self._config.LOCATION
+        )
         banner += "To get help, type 'hh()'"
         try:
             import IPython
+
             try:
                 # New versions of IPython
                 IPython.embed()
             except AttributeError:
                 # Old versions of IPythom
-                shell = IPython.Shell.IPShellEmbed([], banner = banner)
+                shell = IPython.Shell.IPShellEmbed([], banner=banner)
                 shell()
         except (AttributeError, ImportError):
             import code, inspect
@@ -539,7 +672,8 @@ class volshell(common.AbstractWindowsCommand):
 
             # Try to enable tab completion
             try:
-                import rlcompleter, readline #pylint: disable-msg=W0612
+                import rlcompleter, readline  # pylint: disable-msg=W0612
+
                 readline.parse_and_bind("tab: complete")
             except ImportError:
                 pass
@@ -548,4 +682,4 @@ class volshell(common.AbstractWindowsCommand):
             namespace = frame.f_globals.copy()
             namespace.update(frame.f_locals)
 
-            code.interact(banner = banner, local = namespace)
+            code.interact(banner=banner, local=namespace)

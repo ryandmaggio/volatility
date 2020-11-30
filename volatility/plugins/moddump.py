@@ -32,6 +32,7 @@ import volatility.win32.tasks as tasks
 import volatility.utils as utils
 import volatility.debug as debug
 
+
 class ModDump(procdump.ProcDump):
     """Dump a kernel driver to an executable file sample"""
 
@@ -40,17 +41,34 @@ class ModDump(procdump.ProcDump):
         config.remove_option("PID")
         config.remove_option("OFFSET")
         config.remove_option("NAME")
-        config.add_option('REGEX', short_option = 'r',
-                      help = 'Dump modules matching REGEX',
-                      action = 'store', type = 'string')
-        config.add_option('IGNORE-CASE', short_option = 'i',
-                      help = 'Ignore case in pattern match',
-                      action = 'store_true', default = False)
-        config.add_option('BASE', short_option = 'b', default = None,
-                          help = 'Dump driver with BASE address (in hex)',
-                          action = 'store', type = 'int')
+        config.add_option(
+            'REGEX',
+            short_option='r',
+            help='Dump modules matching REGEX',
+            action='store',
+            type='string',
+        )
+        config.add_option(
+            'IGNORE-CASE',
+            short_option='i',
+            help='Ignore case in pattern match',
+            action='store_true',
+            default=False,
+        )
+        config.add_option(
+            'BASE',
+            short_option='b',
+            default=None,
+            help='Dump driver with BASE address (in hex)',
+            action='store',
+            type='int',
+        )
 
-    @cache.CacheDecorator(lambda self: "tests/moddump/regex={0}/ignore-case={1}/base={2}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.BASE))
+    @cache.CacheDecorator(
+        lambda self: "tests/moddump/regex={0}/ignore-case={1}/base={2}".format(
+            self._config.REGEX, self._config.IGNORE_CASE, self._config.BASE
+        )
+    )
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
@@ -63,7 +81,9 @@ class ModDump(procdump.ProcDump):
             except re.error as e:
                 debug.error('Error parsing regular expression: {0}'.format(e))
 
-        mods = dict((mod.DllBase.v(), mod) for mod in modules.lsmod(addr_space))
+        mods = dict(
+            (mod.DllBase.v(), mod) for mod in modules.lsmod(addr_space)
+        )
         # We need the process list to find spaces for some drivers. Enumerate them here
         # instead of inside the find_space function, so we only have to do it once.
         procs = list(tasks.pslist(addr_space))
@@ -77,7 +97,9 @@ class ModDump(procdump.ProcDump):
         else:
             for mod in list(mods.values()):
                 if self._config.REGEX:
-                    if not mod_re.search(str(mod.FullDllName or '')) and not mod_re.search(str(mod.BaseDllName or '')):
+                    if not mod_re.search(
+                        str(mod.FullDllName or '')
+                    ) and not mod_re.search(str(mod.BaseDllName or '')):
                         continue
                 yield addr_space, procs, mod.DllBase.v(), mod.BaseDllName
 
@@ -89,9 +111,7 @@ class ModDump(procdump.ProcDump):
             else:
                 dump_file = "driver.{0:x}.sys".format(mod_base)
                 result = self.dump_pe(space, mod_base, dump_file)
-            yield (0, [Address(mod_base),
-                          str(mod_name),
-                          str(result)])
+            yield (0, [Address(mod_base), str(mod_name), str(result)])
 
     def unified_output(self, data):
         if self._config.DUMP_DIR == None:
@@ -99,10 +119,10 @@ class ModDump(procdump.ProcDump):
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        tg = renderers.TreeGrid([("Module Base", Address),
-                                 ("Module Name", str),
-                                 ("Result", str)],
-                                self.generator(data))
+        tg = renderers.TreeGrid(
+            [("Module Base", Address), ("Module Name", str), ("Result", str)],
+            self.generator(data),
+        )
         return tg
 
     def render_text(self, outfd, data):
@@ -111,9 +131,14 @@ class ModDump(procdump.ProcDump):
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        self.table_header(outfd, [("Module Base", "[addrpad]"),
-                           ("Module Name", "20"),
-                           ("Result", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Module Base", "[addrpad]"),
+                ("Module Name", "20"),
+                ("Result", ""),
+            ],
+        )
 
         for addr_space, procs, mod_base, mod_name in data:
             space = tasks.find_space(addr_space, procs, mod_base)

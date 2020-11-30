@@ -24,8 +24,9 @@
 @organization: Volatility Foundation
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 import volatility.win32.tasks as tasks
+
 
 def lsmod(addr_space):
     """ A Generator for modules """

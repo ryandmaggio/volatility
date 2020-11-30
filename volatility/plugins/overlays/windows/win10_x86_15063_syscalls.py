@@ -455,7 +455,7 @@ syscalls = [
         "NtCreateRegistryTransaction",
         "NtOpenRegistryTransaction",
         "NtCommitRegistryTransaction",
-        "NtRollbackRegistryTransaction"
+        "NtRollbackRegistryTransaction",
     ],
     [
         "NtUserGetOwnerTransformedMonitorRect",
@@ -1589,6 +1589,6 @@ syscalls = [
         "NtMITDisableMouseIntercept",
         "NtMITSynthesizeTouchInput",
         "NtMITSynthesizeMouseInput",
-        "NtMITSynthesizeMouseWheel"
-    ]
+        "NtMITSynthesizeMouseWheel",
+    ],
 ]

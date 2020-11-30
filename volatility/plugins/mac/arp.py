@@ -1,6 +1,6 @@
 # Volatility
 # Copyright (C) 2007-2013 Volatility Foundation
-# 
+#
 # This file is part of Volatility.
 #
 # Volatility is free software; you can redistribute it and/or modify
@@ -28,15 +28,16 @@ import volatility.obj as obj
 import volatility.plugins.mac.common as common
 import volatility.plugins.mac.route as route
 
+
 class mac_arp(route.mac_route):
     """ Prints the arp table """
-    
+
     def calculate(self):
         common.set_plugin_members(self)
 
         arp_addr = self.addr_space.profile.get_symbol("_llinfo_arp")
-        ptr = obj.Object("Pointer", offset = arp_addr, vm = self.addr_space)
-        ent = ptr.dereference_as("llinfo_arp") 
+        ptr = obj.Object("Pointer", offset=arp_addr, vm=self.addr_space)
+        ent = ptr.dereference_as("llinfo_arp")
 
         while ent:
             yield ent.la_rt

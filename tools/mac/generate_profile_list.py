@@ -26,12 +26,13 @@ Run it from the Mac directory of the Volatility profiles repo
 import os, sys, re
 import zipfile
 
+
 def parse_dsymutil(data, module):
     """Parse the symbol file."""
     sys_map = {}
     sys_map[module] = {}
 
-    want_lower = ["_IdlePML4"]        
+    want_lower = ["_IdlePML4"]
 
     type_map = {}
     type_map[module] = {}
@@ -40,12 +41,15 @@ def parse_dsymutil(data, module):
     for line in data.splitlines():
         ents = line.split()
 
-        match = re.search("\[.*?\(([^\)]+)\)\s+[0-9A-Fa-z]+\s+\d+\s+([0-9A-Fa-f]+)\s'(\w+)'", line)
+        match = re.search(
+            "\[.*?\(([^\)]+)\)\s+[0-9A-Fa-z]+\s+\d+\s+([0-9A-Fa-f]+)\s'(\w+)'",
+            line,
+        )
 
         if match:
             (sym_type, addr, name) = match.groups()
             sym_type = sym_type.strip()
-    
+
             addr = int(addr, 16)
 
             if addr == 0 or name == "":
@@ -53,19 +57,20 @@ def parse_dsymutil(data, module):
 
             if not name in sys_map[module]:
                 sys_map[module][name] = [(addr, sym_type)]
-                
+
             # every symbol is in the symbol table twice
-            # except for the entries in 'want_lower', we need the higher address for all 
+            # except for the entries in 'want_lower', we need the higher address for all
             oldaddr = sys_map[module][name][0][0]
             if addr < oldaddr and name in want_lower:
                 sys_map[module][name] = [(addr, sym_type)]
-        
+
             if not addr in type_map[module]:
                 type_map[module][addr] = (name, [sym_type])
 
             type_map[module][addr][1].append(sym_type)
 
     return sys_map["kernel"]
+
 
 print("profiles = [")
 
@@ -77,8 +82,10 @@ for path in set("."):
 
                 for f in profpkg.filelist:
                     if 'symbol.dsymutil' in f.filename.lower():
-                        data = parse_dsymutil(profpkg.read(f.filename), "kernel")
-           
+                        data = parse_dsymutil(
+                            profpkg.read(f.filename), "kernel"
+                        )
+
                         if "_lowGlo" in data:
                             lg = data["_lowGlo"][0][0]
                         else:
@@ -97,7 +104,9 @@ for path in set("."):
                         else:
                             name = name + "x86"
 
-                        print("[\"%s\", %s, %s, %d]," % (name, data["_version"][0][0], lg, aslr))
+                        print(
+                            "[\"%s\", %s, %s, %d],"
+                            % (name, data["_version"][0][0], lg, aslr)
+                        )
 
 print("]")
-

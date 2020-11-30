@@ -443,7 +443,7 @@ syscalls = [
         "NtAccessCheckByTypeAndAuditAlarm",
         "NtAccessCheckByType",
         "NtAccessCheckAndAuditAlarm",
-        "NtSetInformationSymbolicLink"
+        "NtSetInformationSymbolicLink",
     ],
     [
         "NtUserGetOwnerTransformedMonitorRect",
@@ -1578,6 +1578,6 @@ syscalls = [
         "NtUserSetCoreWindow",
         "NtUserSetCoreWindowPartner",
         "NtUserNavigateFocus",
-        "NtHWCursorUpdatePointer"
-    ]
+        "NtHWCursorUpdatePointer",
+    ],
 ]

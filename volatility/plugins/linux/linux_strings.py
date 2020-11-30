@@ -10,7 +10,7 @@
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
@@ -21,6 +21,7 @@ import volatility.plugins.linux.pslist as linux_pslist
 import volatility.plugins.strings as strings
 import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.lsmod as linux_lsmod
+
 
 class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
     """Match physical offsets to virtual addresses (may take a while, VERY verbose)"""
@@ -34,9 +35,9 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
 
         :param      addr_space | <addrspace.AbstractVirtualAddressSpace>
 
-        :returns    <list> 
+        :returns    <list>
         """
-       
+
         tasks = linux_pslist.linux_pslist(self._config).calculate()
 
         try:
@@ -49,11 +50,11 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
         return tasks
 
     @classmethod
-    def get_modules(cls, addr_space):    
-        """Enumerate the kernel modules. 
+    def get_modules(cls, addr_space):
+        """Enumerate the kernel modules.
 
         :param      addr_space | <addrspace.AbstractVirtualAddressSpace>
-        
+
         :returns    <tuple>
         """
 
@@ -62,18 +63,18 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
         modules = linux_lsmod.linux_lsmod(config).calculate()
         mods = dict((mask(mod[0].module_core), mod[0]) for mod in modules)
         mod_addrs = sorted(mods.keys())
-         
+
         return (mods, mod_addrs)
 
     @classmethod
     def find_module(cls, modlist, mod_addrs, addr_space, vpage):
-        """Determine which module owns a virtual page. 
+        """Determine which module owns a virtual page.
 
         :param      modlist     | <list>
                     mod_addrs   | <list>
                     addr_space  | <addrspace.AbstractVirtualAddressSpace>
-                    vpage       | <int> 
-        
+                    vpage       | <int>
+
         :returns    <module> || None
         """
 
@@ -83,8 +84,10 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
         mod = modlist[mod_addrs[pos]]
 
         compare = mod.obj_vm.address_compare
-        if (compare(vpage, mod.module_core) != -1 and
-                compare(vpage, mod.module_core + mod.core_size) == -1):
+        if (
+            compare(vpage, mod.module_core) != -1
+            and compare(vpage, mod.module_core + mod.core_size) == -1
+        ):
             return mod
         else:
             return None
@@ -94,7 +97,7 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
         """Get the name of a kernel module.
 
         :param      module      | <module>
-        
+
         :returns    <str>
         """
 
@@ -102,11 +105,10 @@ class linux_strings(strings.Strings, linux_common.AbstractLinuxCommand):
 
     @classmethod
     def get_task_pid(cls, task):
-        """Get the PID of a process. 
+        """Get the PID of a process.
 
         :param      task   | <task>
-        
+
         :returns    <int>
         """
         return task.pid
- 

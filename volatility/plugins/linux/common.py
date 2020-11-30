@@ -35,26 +35,30 @@ MAX_STRING_LENGTH = 256
 
 nsecs_per = 1000000000
 
-class vol_timespec:
 
+class vol_timespec:
     def __init__(self, secs, nsecs):
-        self.tv_sec  = secs
+        self.tv_sec = secs
         self.tv_nsec = nsecs
+
 
 def set_plugin_members(obj_ref):
     if obj_ref._config.SHIFT:
-        debug.error("Linux uses --virtual_shift and --physical_shift. Please run linux_aslr_shift to obtain the values.")
+        debug.error(
+            "Linux uses --virtual_shift and --physical_shift. Please run linux_aslr_shift to obtain the values."
+        )
 
     obj_ref.addr_space = utils.load_as(obj_ref._config)
 
     if not obj_ref.is_valid_profile(obj_ref.addr_space.profile):
         debug.error("This command does not support the selected profile.")
 
+
 class AbstractLinuxCommand(commands.Command):
     def __init__(self, *args, **kwargs):
         self.addr_space = None
         self.known_addrs = {}
-        self.known_fops  = {}
+        self.known_fops = {}
         commands.Command.__init__(self, *args, **kwargs)
 
     @property
@@ -72,8 +76,18 @@ class AbstractLinuxCommand(commands.Command):
 
     @staticmethod
     def register_options(config):
-        config.add_option("PHYSICAL_SHIFT", type = 'int', default = 0, help = "Linux kernel physical shift address")
-        config.add_option("VIRTUAL_SHIFT", type = 'int', default = 0, help = "Linux kernel virtual shift address")
+        config.add_option(
+            "PHYSICAL_SHIFT",
+            type='int',
+            default=0,
+            help="Linux kernel physical shift address",
+        )
+        config.add_option(
+            "VIRTUAL_SHIFT",
+            type='int',
+            default=0,
+            help="Linux kernel virtual shift address",
+        )
 
     def is_known_address(self, addr, modules):
         addr = int(addr)
@@ -81,18 +95,24 @@ class AbstractLinuxCommand(commands.Command):
         text = self.profile.get_symbol("_text")
         etext = self.profile.get_symbol("_etext")
 
-        return (self.addr_space.address_compare(addr, text) != -1 and self.addr_space.address_compare(addr, etext) == -1) or self.address_in_module(addr, modules)
+        return (
+            self.addr_space.address_compare(addr, text) != -1
+            and self.addr_space.address_compare(addr, etext) == -1
+        ) or self.address_in_module(addr, modules)
 
     def address_in_module(self, addr, modules):
-    
+
         for (_, start, end) in modules:
-            if self.addr_space.address_compare(addr, start) != -1 and self.addr_space.address_compare(addr, end) == -1:
+            if (
+                self.addr_space.address_compare(addr, start) != -1
+                and self.addr_space.address_compare(addr, end) == -1
+            ):
                 return True
-    
+
         return False
 
     def verify_ops(self, ops, op_members, modules):
-        ops_addr = ops.v()        
+        ops_addr = ops.v()
         ops_list = []
 
         if ops_addr in self.known_fops:
@@ -114,34 +134,42 @@ class AbstractLinuxCommand(commands.Command):
                 else:
                     known = self.is_known_address(addr, modules)
                     self.known_addrs[addr] = known
-                
+
                 if known == 0:
                     yield (check, addr)
                     ops_list.append((check, addr))
 
         self.known_fops[ops_addr] = ops_list
 
+
 class AbstractLinuxIntelCommand(AbstractLinuxCommand):
     @staticmethod
     def is_valid_profile(profile):
-        return AbstractLinuxCommand.is_valid_profile(profile) \
-        and (profile.metadata.get('arch').lower() == 'x86' \
-        or profile.metadata.get('arch').lower() == 'x64')
+        return AbstractLinuxCommand.is_valid_profile(profile) and (
+            profile.metadata.get('arch').lower() == 'x86'
+            or profile.metadata.get('arch').lower() == 'x64'
+        )
+
 
 class AbstractLinuxARMCommand(AbstractLinuxCommand):
     @staticmethod
     def is_valid_profile(profile):
-        return AbstractLinuxCommand.is_valid_profile(profile) \
-        and (profile.metadata.get('arch').lower() == 'arm')                   
- 
-def walk_internal_list(struct_name, list_member, list_start, addr_space = None):
+        return AbstractLinuxCommand.is_valid_profile(profile) and (
+            profile.metadata.get('arch').lower() == 'arm'
+        )
+
+
+def walk_internal_list(struct_name, list_member, list_start, addr_space=None):
     if not addr_space:
         addr_space = list_start.obj_vm
 
     while list_start:
-        list_struct = obj.Object(struct_name, vm = addr_space, offset = list_start.v())
+        list_struct = obj.Object(
+            struct_name, vm=addr_space, offset=list_start.v()
+        )
         yield list_struct
         list_start = getattr(list_struct, list_member)
+
 
 # based on __d_path
 def do_get_path(rdentry, rmnt, dentry, vfsmnt):
@@ -152,7 +180,9 @@ def do_get_path(rdentry, rmnt, dentry, vfsmnt):
     if not rdentry.is_valid() or not dentry.is_valid():
         return []
 
-    while (dentry != rdentry or vfsmnt != rmnt) and dentry.d_name.name.is_valid():
+    while (
+        dentry != rdentry or vfsmnt != rmnt
+    ) and dentry.d_name.name.is_valid():
         if dentry == vfsmnt.mnt_root or dentry == dentry.d_parent:
             ret_path.append('')
             if vfsmnt.mnt_parent == vfsmnt.v():
@@ -160,8 +190,10 @@ def do_get_path(rdentry, rmnt, dentry, vfsmnt):
             dentry = vfsmnt.mnt_mountpoint
             vfsmnt = vfsmnt.mnt_parent
             continue
-        
-        dname = dentry.d_name.name.dereference_as("String", length = MAX_STRING_LENGTH)
+
+        dname = dentry.d_name.name.dereference_as(
+            "String", length=MAX_STRING_LENGTH
+        )
         ret_path.append(dname.strip('/'))
 
         parent = dentry.d_parent
@@ -185,28 +217,34 @@ def do_get_path(rdentry, rmnt, dentry, vfsmnt):
 
     return ret_val
 
+
 def _get_path_file(task, filp):
     rdentry = task.fs.get_root_dentry()
-    rmnt    = task.fs.get_root_mnt()
-    dentry  = filp.dentry
-    vfsmnt  = filp.vfsmnt
-   
+    rmnt = task.fs.get_root_mnt()
+    dentry = filp.dentry
+    vfsmnt = filp.vfsmnt
+
     key = "%x|%x|%x|%x" % (rdentry.v(), rmnt.v(), dentry.v(), vfsmnt.v())
 
     if not key in task.obj_vm.profile.dentry_cache:
-        task.obj_vm.profile.dentry_cache[key] = do_get_path(rdentry, rmnt, dentry, vfsmnt)
+        task.obj_vm.profile.dentry_cache[key] = do_get_path(
+            rdentry, rmnt, dentry, vfsmnt
+        )
 
     return task.obj_vm.profile.dentry_cache[key]
+
 
 def get_new_sock_pipe_path(task, filp):
     dentry = filp.dentry
 
-    sym = dentry.obj_vm.profile.get_symbol_by_address("kernel", dentry.d_op.d_dname)
-    
+    sym = dentry.obj_vm.profile.get_symbol_by_address(
+        "kernel", dentry.d_op.d_dname
+    )
+
     if sym:
         if sym == "sockfs_dname":
-            pre_name = "socket"    
-    
+            pre_name = "socket"
+
         elif sym == "anon_inodefs_dname":
             pre_name = "anon_inode"
 
@@ -227,6 +265,7 @@ def get_new_sock_pipe_path(task, filp):
 
     return ret
 
+
 def get_path(task, filp):
     dentry = filp.dentry
 
@@ -237,51 +276,59 @@ def get_path(task, filp):
 
     return ret
 
+
 def write_elf_file(dump_dir, task, elf_addr):
     file_name = re.sub("[./\\\]", "", str(task.comm))
 
-    file_path = os.path.join(dump_dir, "%s.%d.%#8x" % (file_name, task.pid, elf_addr))
+    file_path = os.path.join(
+        dump_dir, "%s.%d.%#8x" % (file_name, task.pid, elf_addr)
+    )
 
     file_contents = task.get_elf(elf_addr)
 
     fd = open(file_path, "wb")
     fd.write(file_contents)
-    fd.close()       
+    fd.close()
 
-    return file_path 
+    return file_path
+
 
 def get_time_vars(obj_vm):
-    '''
+    """
     Sometime in 3.[3-5], Linux switched to a global timekeeper structure
     This just figures out which is in use and returns the correct variables
-    '''
-    wall_addr       = obj_vm.profile.get_symbol("wall_to_monotonic")
-    sleep_addr      = obj_vm.profile.get_symbol("total_sleep_time")
+    """
+    wall_addr = obj_vm.profile.get_symbol("wall_to_monotonic")
+    sleep_addr = obj_vm.profile.get_symbol("total_sleep_time")
     timekeeper_addr = obj_vm.profile.get_symbol("timekeeper")
-    tkcore_addr     = obj_vm.profile.get_symbol("tk_core") 
+    tkcore_addr = obj_vm.profile.get_symbol("tk_core")
 
-    wall  = None
+    wall = None
     timeo = None
 
     # old way
     if wall_addr and sleep_addr:
-        wall = obj.Object("timespec", offset = wall_addr, vm = obj_vm)
-        timeo = obj.Object("timespec", offset = sleep_addr, vm = obj_vm)
+        wall = obj.Object("timespec", offset=wall_addr, vm=obj_vm)
+        timeo = obj.Object("timespec", offset=sleep_addr, vm=obj_vm)
 
     elif wall_addr:
-        wall  = obj.Object("timespec", offset = wall_addr, vm = obj_vm)
+        wall = obj.Object("timespec", offset=wall_addr, vm=obj_vm)
         timeo = vol_timespec(0, 0)
 
     # timekeeper way
     elif timekeeper_addr:
-        timekeeper = obj.Object("timekeeper", offset = timekeeper_addr, vm = obj_vm)
+        timekeeper = obj.Object(
+            "timekeeper", offset=timekeeper_addr, vm=obj_vm
+        )
         wall = timekeeper.wall_to_monotonic
         timeo = timekeeper.total_sleep_time
 
     # 3.17(ish) - 3.19(ish) way
     elif tkcore_addr and hasattr("timekeeper", "total_sleep_time"):
         # skip seqcount
-        timekeeper = obj.Object("timekeeper", offset = tkcore_addr + 4, vm = obj_vm)
+        timekeeper = obj.Object(
+            "timekeeper", offset=tkcore_addr + 4, vm=obj_vm
+        )
         wall = timekeeper.wall_to_monotonic
         timeo = timekeeper.total_sleep_time
 
@@ -289,22 +336,23 @@ def get_time_vars(obj_vm):
     # getboottime from 3.19.x
     elif tkcore_addr:
         # skip seqcount
-        timekeeper = obj.Object("timekeeper", offset = tkcore_addr + 8, vm = obj_vm)
+        timekeeper = obj.Object(
+            "timekeeper", offset=tkcore_addr + 8, vm=obj_vm
+        )
         wall = timekeeper.wall_to_monotonic
 
         oreal = timekeeper.offs_real
         oboot = timekeeper.offs_boot
 
-        if hasattr(oreal,"tv64"):
-            tv64 = (oreal.tv64 & 0xffffffff) - (oboot.tv64 & 0xffffffff)
+        if hasattr(oreal, "tv64"):
+            tv64 = (oreal.tv64 & 0xFFFFFFFF) - (oboot.tv64 & 0xFFFFFFFF)
         else:
-            tv64 = (oreal & 0xffffffff) - (oboot & 0xffffffff)
-            
+            tv64 = (oreal & 0xFFFFFFFF) - (oboot & 0xFFFFFFFF)
+
         if tv64:
             tv64 = (tv64 / 100000000) * -1
-            timeo = vol_timespec(tv64, 0) 
+            timeo = vol_timespec(tv64, 0)
         else:
             timeo = None
 
     return (wall, timeo)
-

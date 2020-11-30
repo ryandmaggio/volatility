@@ -449,7 +449,7 @@ syscalls = [
         "NtCreateRegistryTransaction",
         "NtOpenRegistryTransaction",
         "NtCommitRegistryTransaction",
-        "NtRollbackRegistryTransaction"
+        "NtRollbackRegistryTransaction",
     ],
     [
         "NtUserGetOwnerTransformedMonitorRect",
@@ -1587,6 +1587,6 @@ syscalls = [
         "NtUserSetInteractiveControlFocus",
         "NtUserInteractiveControlQueryUsage",
         "NtUserSetInteractiveCtrlRotationAngle",
-        "NtUserSetProcessInteractionFlags"
-    ]
+        "NtUserSetProcessInteractionFlags",
+    ],
 ]

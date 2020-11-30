@@ -28,16 +28,19 @@
 import volatility.obj as obj
 import volatility.plugins.linux.common as linux_common
 
+
 class linux_iomem(linux_common.AbstractLinuxCommand):
     """Provides output similar to /proc/iomem"""
 
-    def yield_resource(self, io_res, depth = 0):
+    def yield_resource(self, io_res, depth=0):
 
         if not io_res:
-            #print "null"
+            # print "null"
             return []
 
-        name = io_res.name.dereference_as("String", length = linux_common.MAX_STRING_LENGTH)
+        name = io_res.name.dereference_as(
+            "String", length=linux_common.MAX_STRING_LENGTH
+        )
         start = io_res.start
         end = io_res.end
 
@@ -51,7 +54,7 @@ class linux_iomem(linux_common.AbstractLinuxCommand):
         linux_common.set_plugin_members(self)
 
         io_ptr = self.addr_space.profile.get_symbol("iomem_resource")
-        io_res = obj.Object("resource", offset = io_ptr, vm = self.addr_space)
+        io_res = obj.Object("resource", offset=io_ptr, vm=self.addr_space)
 
         for r in self.yield_resource(io_res.child):
             yield r
@@ -60,4 +63,8 @@ class linux_iomem(linux_common.AbstractLinuxCommand):
 
         for output in data:
             depth, name, start, end = output
-            outfd.write("{0:35s}\t0x{1:<16X}\t0x{2:<16X}\n".format(("  " * depth) + name, start, end))
+            outfd.write(
+                "{0:35s}\t0x{1:<16X}\t0x{2:<16X}\n".format(
+                    ("  " * depth) + name, start, end
+                )
+            )

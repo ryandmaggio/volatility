@@ -35,7 +35,7 @@ import volatility.plugins.overlays.basic as basic
 import volatility.timefmt as timefmt
 from volatility.renderers import TreeGrid
 import struct
-import datetime 
+import datetime
 
 '''
 Some references for further reading, all of which were used for building this plugin:
@@ -54,9 +54,9 @@ http://code.google.com/p/regripper/wiki/ShellBags
 
 
 EXT_VERSIONS = {
-    "0x0003":"Windows XP",
-    "0x0007":"Windows Vista",
-    "0x0008":"Windows 7",
+    "0x0003": "Windows XP",
+    "0x0007": "Windows Vista",
+    "0x0008": "Windows 7",
 }
 
 # http://support.microsoft.com/kb/813711
@@ -75,25 +75,25 @@ USERDAT_KEYS = [
 # These are abbreviated only because there can be more than one in output
 # so it gets cluttered
 FILE_ATTRS = {
-    0x00000001:"RO",        #Is read-Only
-    0x00000002:"HID",       #Is hidden
-    0x00000004:"SYS",       #Is a system file or directory
-    0x00000008:"VOL",       #Is a volume label
-    0x00000010:"DIR",       #Is a directory
-    0x00000020:"ARC",       #Should be archived
-    0x00000040:"DEV",       #Is a device
-    0x00000080:"NORM",      #Is normal None of the other flags should be set
-    0x00000100:"TEMP",      #Is temporary
-    0x00000200:"SPARSE",    #Is a sparse file
-    0x00000400:"RP",        #Is a reparse point or symbolic link
-    0x00000800:"COM",       #Is compressed
-    0x00001000:"OFFLINE",   #Is offline The data of the file is stored on an offline storage.
-    0x00002000:"NI",        #Do not index content The content of the file or directory should not be indexed by the indexing service.
-    0x00004000:"ENC",       #Is encrypted
-    0x00010000:"VIR",       #Is virtual
+    0x00000001: "RO",  # Is read-Only
+    0x00000002: "HID",  # Is hidden
+    0x00000004: "SYS",  # Is a system file or directory
+    0x00000008: "VOL",  # Is a volume label
+    0x00000010: "DIR",  # Is a directory
+    0x00000020: "ARC",  # Should be archived
+    0x00000040: "DEV",  # Is a device
+    0x00000080: "NORM",  # Is normal None of the other flags should be set
+    0x00000100: "TEMP",  # Is temporary
+    0x00000200: "SPARSE",  # Is a sparse file
+    0x00000400: "RP",  # Is a reparse point or symbolic link
+    0x00000800: "COM",  # Is compressed
+    0x00001000: "OFFLINE",  # Is offline The data of the file is stored on an offline storage.
+    0x00002000: "NI",  # Do not index content The content of the file or directory should not be indexed by the indexing service.
+    0x00004000: "ENC",  # Is encrypted
+    0x00010000: "VIR",  # Is virtual
 }
 
-# GUIDs and FOLDER_IDs copied from Will Ballenthin's shellbags parser: 
+# GUIDs and FOLDER_IDs copied from Will Ballenthin's shellbags parser:
 # https://github.com/williballenthin/shellbags
 
 KNOWN_GUIDS = {
@@ -135,7 +135,7 @@ KNOWN_GUIDS = {
     "dfdf76a2-c82a-4d63-906a-5644ac457385": "Public",
     "de974d24-d9c6-4d3e-bf91-f4455120b917": "Common Files",
     "ed228fdf-9ea8-4870-83b1-96b02cfe0d52": "My Games",
-    "f02c1a0d-be21-4350-88b0-7367fc96ef3c": "Network", 
+    "f02c1a0d-be21-4350-88b0-7367fc96ef3c": "Network",
     "f38bf404-1d43-42f2-9305-67de0b28fc23": "Windows",
     "f3ce0f7c-4901-4acc-8648-d5d44b04ef8f": "Users Files",
     "fdd39ad0-238f-46af-adb4-6c85480369c7": "Documents",
@@ -227,41 +227,41 @@ KNOWN_GUIDS = {
 }
 
 FOLDER_IDS = {
-    0x00:"EXPLORER",
-    0x42:"LIBRARIES",
-    0x44:"USERS",
-    0x48:"MY_DOCUMENTS",
-    0x50:"MY_COMPUTER",
-    0x58:"NETWORK",
-    0x60:"RECYCLE_BIN",
-    0x68:"EXPLORER",
-    0x70:"UKNOWN",
-    0x78:"RECYCLE_BIN",
-    0x80:"MY_GAMES",
+    0x00: "EXPLORER",
+    0x42: "LIBRARIES",
+    0x44: "USERS",
+    0x48: "MY_DOCUMENTS",
+    0x50: "MY_COMPUTER",
+    0x58: "NETWORK",
+    0x60: "RECYCLE_BIN",
+    0x68: "EXPLORER",
+    0x70: "UKNOWN",
+    0x78: "RECYCLE_BIN",
+    0x80: "MY_GAMES",
 }
 
 SHELL_ITEM_TYPES = {
-    0x00:"UNKNOWN_00",              #Varied
-    0x01:"UNKNOWN_01",
-    0x2e:"UNKNOWN_2E",              # DEVICE from ShellBagMRU.py in RegistryDecoder
-    0x31:"FILE_ENTRY",              # Folder
-    0x32:"FILE_ENTRY",              # Zip file
-    0xb1:"FILE_ENTRY",              # Hidden folder
-    0x1f:"FOLDER_ENTRY",            # System folder
-    0x2f:"VOLUME_NAME",
-    0x41:"NETWORK_VOLUME_NAME",     # Windows Domain
-    0x42:"NETWORK_VOLUME_NAME",     # Computer Name
-    0x46:"NETWORK_VOLUME_NAME",     # MS Windows Network
-    0x47:"NETWORK_VOLUME_NAME",     # Entire Network
-    0xc3:"NETWORK_SHARE",           # Remote Share
-    0x61:"URI",
-    0x71:"CONTROL_PANEL",
-    0x74:"UNKNOWN_74",              # System protected folder
+    0x00: "UNKNOWN_00",  # Varied
+    0x01: "UNKNOWN_01",
+    0x2E: "UNKNOWN_2E",  # DEVICE from ShellBagMRU.py in RegistryDecoder
+    0x31: "FILE_ENTRY",  # Folder
+    0x32: "FILE_ENTRY",  # Zip file
+    0xB1: "FILE_ENTRY",  # Hidden folder
+    0x1F: "FOLDER_ENTRY",  # System folder
+    0x2F: "VOLUME_NAME",
+    0x41: "NETWORK_VOLUME_NAME",  # Windows Domain
+    0x42: "NETWORK_VOLUME_NAME",  # Computer Name
+    0x46: "NETWORK_VOLUME_NAME",  # MS Windows Network
+    0x47: "NETWORK_VOLUME_NAME",  # Entire Network
+    0xC3: "NETWORK_SHARE",  # Remote Share
+    0x61: "URI",
+    0x71: "CONTROL_PANEL",
+    0x74: "UNKNOWN_74",  # System protected folder
 }
 
 FLAGS = {
-    0x02:"has network volume name",
-    0x80:"has unknown 16-bit value",
+    0x02: "has network volume name",
+    0x80: "has unknown 16-bit value",
 }
 
 #####  Type overrides for output below #####
@@ -276,10 +276,23 @@ FLAGS = {
     'Data4' : [ 0x8, ['array', 8, ['unsigned char']]],
 '''
 
+
 class _GUID(obj.CType):
     def __str__(self):
-        return "{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}".format(self.Data1, self.Data2, self.Data3,
-                self.Data4[0], self.Data4[1], self.Data4[2], self.Data4[3], self.Data4[4], self.Data4[5], self.Data4[6], self.Data4[7])
+        return "{0:08x}-{1:04x}-{2:04x}-{3:02x}{4:02x}-{5:02x}{6:02x}{7:02x}{8:02x}{9:02x}{10:02x}".format(
+            self.Data1,
+            self.Data2,
+            self.Data3,
+            self.Data4[0],
+            self.Data4[1],
+            self.Data4[2],
+            self.Data4[3],
+            self.Data4[4],
+            self.Data4[5],
+            self.Data4[6],
+            self.Data4[7],
+        )
+
 
 class ITEMPOS(obj.CType):
     def get_file_attrs(self):
@@ -293,21 +306,24 @@ class ITEMPOS(obj.CType):
 
     def body(self, details):
         return "0|[{6}SHELLBAGS ITEMPOS] Name: {3}/Attrs: {4}/{5}|0|---------------|0|0|0|{0}|{1}|{2}|{2}\n".format(
-            self.Attributes.AccessDate.v(), 
+            self.Attributes.AccessDate.v(),
             self.Attributes.ModifiedDate.v(),
             self.Attributes.CreatedDate.v(),
-            str(self.Attributes.UnicodeFilename), 
-            self.get_file_attrs(), 
+            str(self.Attributes.UnicodeFilename),
+            self.get_file_attrs(),
             details,
-            self.obj_vm._config.MACHINE)
+            self.obj_vm._config.MACHINE,
+        )
 
     def __str__(self):
-        return "{0:<14} {1:30} {2:30} {3:30} {4:25} {5}".format(self.Attributes.FileName,
-                str(self.Attributes.ModifiedDate),
-                str(self.Attributes.CreatedDate),
-                str(self.Attributes.AccessDate),
-                self.get_file_attrs(),
-                str(self.Attributes.UnicodeFilename))
+        return "{0:<14} {1:30} {2:30} {3:30} {4:25} {5}".format(
+            self.Attributes.FileName,
+            str(self.Attributes.ModifiedDate),
+            str(self.Attributes.CreatedDate),
+            str(self.Attributes.AccessDate),
+            self.get_file_attrs(),
+            str(self.Attributes.UnicodeFilename),
+        )
 
     def get_items(self):
         items = {}
@@ -320,13 +336,15 @@ class ITEMPOS(obj.CType):
         return items
 
     def get_header(self):
-        return [("File Name", "14s"),
-                ("Modified Date", "30"),
-                ("Create Date", "30"),
-                ("Access Date", "30"),
-                ("File Attr", "25"),
-                ("Unicode Name", ""),
-               ]
+        return [
+            ("File Name", "14s"),
+            ("Modified Date", "30"),
+            ("Create Date", "30"),
+            ("Access Date", "30"),
+            ("File Attr", "25"),
+            ("Unicode Name", ""),
+        ]
+
 
 class FILE_ENTRY(ITEMPOS):
     def get_file_attrs(self):
@@ -339,20 +357,23 @@ class FILE_ENTRY(ITEMPOS):
 
     def body(self, details):
         return "0|[{6}SHELLBAGS FILE_ENTRY] Name: {3}/Attrs: {4}/{5}|0|---------------|0|0|0|{0}|{1}|{2}|{2}\n".format(
-            self.Attributes.AccessDate.v(), 
+            self.Attributes.AccessDate.v(),
             self.Attributes.ModifiedDate.v(),
             self.Attributes.CreatedDate.v(),
             str(self.Attributes.UnicodeFilename),
             self.get_file_attrs(),
             details,
-            self.obj_vm._config.MACHINE)
+            self.obj_vm._config.MACHINE,
+        )
 
     def __str__(self):
-        return "{0:<14} {1:30} {2:30} {3:30} {4:25}".format(self.Attributes.FileName,
-                str(self.Attributes.ModifiedDate),
-                str(self.Attributes.CreatedDate),
-                str(self.Attributes.AccessDate),
-                self.get_file_attrs())
+        return "{0:<14} {1:30} {2:30} {3:30} {4:25}".format(
+            self.Attributes.FileName,
+            str(self.Attributes.ModifiedDate),
+            str(self.Attributes.CreatedDate),
+            str(self.Attributes.AccessDate),
+            self.get_file_attrs(),
+        )
 
     def get_items(self):
         items = {}
@@ -364,13 +385,15 @@ class FILE_ENTRY(ITEMPOS):
         return items
 
     def get_header(self):
-        return [("File Name", "14s"),
-                ("Modified Date", "30"),
-                ("Create Date", "30"),
-                ("Access Date", "30"),
-                ("File Attr", "25"),
-                ("Path", ""),
-               ]
+        return [
+            ("File Name", "14s"),
+            ("Modified Date", "30"),
+            ("Create Date", "30"),
+            ("Access Date", "30"),
+            ("File Attr", "25"),
+            ("Path", ""),
+        ]
+
 
 class FOLDER_ENTRY(obj.CType):
     def get_folders(self):
@@ -382,46 +405,56 @@ class FOLDER_ENTRY(obj.CType):
         return folder_ids
 
     def __str__(self):
-        return "{0:<14} {1:40} {2:20} {3}".format("Folder Entry", 
-               str(self.GUID),
-               KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
-               self.get_folders())
+        return "{0:<14} {1:40} {2:20} {3}".format(
+            "Folder Entry",
+            str(self.GUID),
+            KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
+            self.get_folders(),
+        )
 
     def get_header(self):
-        return [("Entry Type", "14s"),
-                ("GUID", "40"),
-                ("GUID Description", "20"),
-                ("Folder IDs", ""),
-               ]
+        return [
+            ("Entry Type", "14s"),
+            ("GUID", "40"),
+            ("GUID Description", "20"),
+            ("Folder IDs", ""),
+        ]
+
 
 class _VOLUSER_ASSIST_TYPES(obj.CType):
     def get_header(self):
         if hasattr(self, "Count") and hasattr(self, "FocusCount"):
-            return [("Entry Type", "14s"),
-                    ("Count", "5"),
-                    ("Focus Count", "5"),
-                    ("Time Focused", "20"),
-                    ("Last Update", ""),
-                   ]
+            return [
+                ("Entry Type", "14s"),
+                ("Count", "5"),
+                ("Focus Count", "5"),
+                ("Time Focused", "20"),
+                ("Last Update", ""),
+            ]
         else:
-            return [("Entry Type", "14s"),
-                    ("ID", "10"),
-                    ("Count", "10"),
-                    ("Last Update", ""),
-                   ]
+            return [
+                ("Entry Type", "14s"),
+                ("ID", "10"),
+                ("Count", "10"),
+                ("Last Update", ""),
+            ]
 
     def __str__(self):
         if hasattr(self, "Count") and hasattr(self, "FocusCount"):
-            return "{0:<14} {1:5} {2:5} {3:20} {4}".format("UserAssist",
-                   self.Count,
-                   self.FocusCount,
-                   self.FocusTime,
-                   self.LastUpdated)
+            return "{0:<14} {1:5} {2:5} {3:20} {4}".format(
+                "UserAssist",
+                self.Count,
+                self.FocusCount,
+                self.FocusTime,
+                self.LastUpdated,
+            )
         else:
-            return "{0:<14} {1:5} {2:5} {3}".format("UserAssist",
-                   self.ID,
-                   self.CountStartingAtFive,
-                   self.LastUpdated)
+            return "{0:<14} {1:5} {2:5} {3}".format(
+                "UserAssist",
+                self.ID,
+                self.CountStartingAtFive,
+                self.LastUpdated,
+            )
 
     def body(self, reg, key, subname, lastwrite):
         ID = "N/A"
@@ -433,51 +466,80 @@ class _VOLUSER_ASSIST_TYPES(obj.CType):
         if hasattr(self, "Count"):
             count = "{0}".format(self.Count)
         else:
-            count = "{0}".format(self.CountStartingAtFive if self.CountStartingAtFive < 5 else self.CountStartingAtFive - 5)
+            count = "{0}".format(
+                self.CountStartingAtFive
+                if self.CountStartingAtFive < 5
+                else self.CountStartingAtFive - 5
+            )
         if hasattr(self, "FocusCount"):
             seconds = (self.FocusTime + 500) / 1000.0
-            time = datetime.timedelta(seconds = seconds) if seconds > 0 else self.FocusTime
+            time = (
+                datetime.timedelta(seconds=seconds)
+                if seconds > 0
+                else self.FocusTime
+            )
             fc = "{0}".format(self.FocusCount)
             tf = "{0}".format(time)
 
         subname = subname.replace("|", "%7c")
 
         return "0|[SHELLBAGS USERASSIST] Registry: {1}/Key: {7}/Value: {2}/LW: {8}/ID: {3}/Count: {4}/FocusCount: {5}/TimeFocused: {6}|0|---------------|0|0|0|{0}|{0}|{0}|{0}\n".format(
-            self.LastUpdated.v(), reg, subname, ID, count, fc, tf, key, lastwrite)
+            self.LastUpdated.v(),
+            reg,
+            subname,
+            ID,
+            count,
+            fc,
+            tf,
+            key,
+            lastwrite,
+        )
+
 
 class CONTROL_PANEL(FOLDER_ENTRY):
     def __str__(self):
-        return "{0:<14} {1:40} {2:20} {3}".format("Control Panel",
-               str(self.GUID),
-               KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
-               self.get_folders())
+        return "{0:<14} {1:40} {2:20} {3}".format(
+            "Control Panel",
+            str(self.GUID),
+            KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
+            self.get_folders(),
+        )
+
 
 # taken from http://code.google.com/p/registrydecoder/source/browse/trunk/templates/template_files/ShellBagMRU.py#388
 class UNKNOWN_00(FOLDER_ENTRY):
     def __str__(self):
-        if self.DataSize == 0x1a:
-            return "{0:<14} {1:40} {2:20} {3}".format("Folder",
-               str(self.GUID),
-               KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
-               self.get_folders())
-        #elif self.DataSize in [0xa4, 0xb4, 0x7a, 0xc4, 0x9a, 0x30]:
+        if self.DataSize == 0x1A:
+            return "{0:<14} {1:40} {2:20} {3}".format(
+                "Folder",
+                str(self.GUID),
+                KNOWN_GUIDS.get(str(self.GUID), "Unknown GUID"),
+                self.get_folders(),
+            )
+        # elif self.DataSize in [0xa4, 0xb4, 0x7a, 0xc4, 0x9a, 0x30]:
         # TODO: this is not clear yet
         #    return "{0:<14} {1:40} {2:20} {3}".format("Device Property",
         #       str(self.Name), "", "")
-        # TODO: fix this for other types like "AugM" and 1SPS 
+        # TODO: fix this for other types like "AugM" and 1SPS
         else:
-            return "{0:<14} {1:40} {2:20} {3}".format("Folder (unsupported)",
-                "This property is not yet supported", "", "")
+            return "{0:<14} {1:40} {2:20} {3}".format(
+                "Folder (unsupported)",
+                "This property is not yet supported",
+                "",
+                "",
+            )
+
 
 class VOLUME_NAME(obj.CType):
     def __str__(self):
         return "{0:14} {1}".format("Volume Name", self.Name)
 
-
     def get_header(self):
-        return [("Entry Type", "14s"),
-                ("Path", ""),
-               ]
+        return [
+            ("Entry Type", "14s"),
+            ("Path", ""),
+        ]
+
 
 class NETWORK_VOLUME_NAME(obj.CType):
     def get_flags(self):
@@ -489,308 +551,554 @@ class NETWORK_VOLUME_NAME(obj.CType):
         return flags
 
     def __str__(self):
-        return "{0:25} {1:20} {2} |".format("Network Volume Name", self.Description, self.Name)
-
+        return "{0:25} {1:20} {2} |".format(
+            "Network Volume Name", self.Description, self.Name
+        )
 
     def get_header(self):
-        return [("Entry Type", "25s"),
-                ("Description", "20"),
-                ("Name | Full Path", ""),
-               ]
+        return [
+            ("Entry Type", "25s"),
+            ("Description", "20"),
+            ("Name | Full Path", ""),
+        ]
 
 
 class NETWORK_SHARE(NETWORK_VOLUME_NAME):
     def __str__(self):
-        return "{0:25} {1:20} {2}".format("Network Volume Share", self.Description, self.Name)
+        return "{0:25} {1:20} {2}".format(
+            "Network Volume Share", self.Description, self.Name
+        )
 
 
 #####  End Type Overrides #####
 
-        
+
 class NullString(basic.String):
     def __str__(self):
-        result = self.obj_vm.zread(self.obj_offset, self.length).split("\x00\x00")[0].replace("\x00", "")
+        result = (
+            self.obj_vm.zread(self.obj_offset, self.length)
+            .split("\x00\x00")[0]
+            .replace("\x00", "")
+        )
         if not result:
             result = ""
         return result
 
     def v(self):
-        result = self.obj_vm.zread(self.obj_offset, self.length).split("\x00\x00")[0].replace("\x00", "") 
+        result = (
+            self.obj_vm.zread(self.obj_offset, self.length)
+            .split("\x00\x00")[0]
+            .replace("\x00", "")
+        )
         if not result:
-            return obj.NoneObject("Cannot read string length {0} at {1:#x}".format(self.length, self.obj_offset))
+            return obj.NoneObject(
+                "Cannot read string length {0} at {1:#x}".format(
+                    self.length, self.obj_offset
+                )
+            )
         return result
 
 
 shell_item_types = {
-    'SHELLITEM': [ None, {
-        'Size' : [ 0x0, ['unsigned short']],
-        'Type' : [ 0x2, ['unsigned char']], # SHELL_ITEM_TYPES
-    } ],
-    'FOLDER_ENTRY': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],  # FOLDER_IDS
-        'GUID': [ 0x4, ['_GUID']],
-    } ],
-    'VOLUME_NAME': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Name': [ 0x3, ['String', dict(length = 22)]],
-    } ],
-    'NETWORK_VOLUME_NAME': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x4, ['unsigned char']],
-        'Name': [ 0x5, ['String', dict(length = 255)]],
-        'Description': [ lambda x: x.Name.obj_offset + len(x.Name), ['String', dict(length = 4096)]],
-    } ],
-    'URI': [ None, {
-        'Flags': [ 0x3, ['unsigned char']],
-        'UString': [ 0x8, ['String', dict(length = 4096)]],
-        # other stuff here not filled in...
-    } ],
-    'CONTROL_PANEL': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],
-        'GUID': [ 0xe, ['_GUID']],
-    } ],
-    'NETWORK_SHARE': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x4, ['unsigned char']],
-        'Name': [ 0x5, ['String', dict(length = 255)]], 
-        'Description': [ lambda x: x.Name.obj_offset + len(x.Name), ['String', dict(length = 4096)]],
-    } ],
+    'SHELLITEM': [
+        None,
+        {
+            'Size': [0x0, ['unsigned short']],
+            'Type': [0x2, ['unsigned char']],  # SHELL_ITEM_TYPES
+        },
+    ],
+    'FOLDER_ENTRY': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],  # FOLDER_IDS
+            'GUID': [0x4, ['_GUID']],
+        },
+    ],
+    'VOLUME_NAME': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Name': [0x3, ['String', dict(length=22)]],
+        },
+    ],
+    'NETWORK_VOLUME_NAME': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x4, ['unsigned char']],
+            'Name': [0x5, ['String', dict(length=255)]],
+            'Description': [
+                lambda x: x.Name.obj_offset + len(x.Name),
+                ['String', dict(length=4096)],
+            ],
+        },
+    ],
+    'URI': [
+        None,
+        {
+            'Flags': [0x3, ['unsigned char']],
+            'UString': [0x8, ['String', dict(length=4096)]],
+            # other stuff here not filled in...
+        },
+    ],
+    'CONTROL_PANEL': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],
+            'GUID': [0xE, ['_GUID']],
+        },
+    ],
+    'NETWORK_SHARE': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x4, ['unsigned char']],
+            'Name': [0x5, ['String', dict(length=255)]],
+            'Description': [
+                lambda x: x.Name.obj_offset + len(x.Name),
+                ['String', dict(length=4096)],
+            ],
+        },
+    ],
     # These "OTHER" types are really not clear yet...
-    'UNKNOWN_00': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],
-        'DataSize': [ 0x4, ['unsigned short']], #size of the following data
-        'FolderAugM': [ 0x4, ['String', dict(length = 4)]],
-        'PropertyList': [ 0xa, ['unsigned short']],
-        'IdentifierSize': [ 0xc, ['unsigned short']],
-        'GUID': [ 0xe, ['_GUID']],
-        #'NameLength': [ 0x42, ['unsigned short']], # size of following data
-        #'Name': [ 0x4a, ['String', dict(length = lambda x: x.NameLength * 2)]],
-    } ],
-    'UNKNOWN_01': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],
-        'Unknown': [ 0x4, ['unsigned int']],
-    } ],
-    'UNKNOWN_2E': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],
-        'GUID': [ 0x4, ['_GUID']],
-    } ],
-    'UNKNOWN_74': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']],
-        'Flags': [ 0x3, ['unsigned char']],
-        'Attributes' : [12, ['ATTRIBUTES']],
-    } ],
+    'UNKNOWN_00': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],
+            'DataSize': [
+                0x4,
+                ['unsigned short'],
+            ],  # size of the following data
+            'FolderAugM': [0x4, ['String', dict(length=4)]],
+            'PropertyList': [0xA, ['unsigned short']],
+            'IdentifierSize': [0xC, ['unsigned short']],
+            'GUID': [0xE, ['_GUID']],
+            #'NameLength': [ 0x42, ['unsigned short']], # size of following data
+            #'Name': [ 0x4a, ['String', dict(length = lambda x: x.NameLength * 2)]],
+        },
+    ],
+    'UNKNOWN_01': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],
+            'Unknown': [0x4, ['unsigned int']],
+        },
+    ],
+    'UNKNOWN_2E': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],
+            'GUID': [0x4, ['_GUID']],
+        },
+    ],
+    'UNKNOWN_74': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],
+            'Flags': [0x3, ['unsigned char']],
+            'Attributes': [12, ['ATTRIBUTES']],
+        },
+    ],
 }
 
 itempos_types_XP = {
-    'ATTRIBUTES': [ None, {
-        'ModifiedDate': [ 0x0, ['DosDate', dict(is_utc = True)]], 
-        'FileAttrs': [ 0x4, ['unsigned short']],
-        'FileName': [ 0x6, ['String', dict(length = 255)]], # 8.3 File name although sometimes it's longer than 14 chars
-        'FDataSize': [ lambda x: x.FileName.obj_offset + len(x.FileName) + (1 if len(x.FileName) % 2 == 1 else 2), ['unsigned short']],
-        'EVersion': [ lambda x: x.FDataSize.obj_offset + 2, ['unsigned short']],
-        'Unknown1': [ lambda x: x.EVersion.obj_offset + 2, ['unsigned short']],
-        'Unknown2': [ lambda x: x.Unknown1.obj_offset + 2, ['unsigned short']], # 0xBEEF
-        'CreatedDate': [ lambda x: x.Unknown2.obj_offset + 2, ['DosDate', dict(is_utc = True)]],
-        'AccessDate': [ lambda x: x.CreatedDate.obj_offset + 4, ['DosDate', dict(is_utc = True)]],
-        'Unknown3': [ lambda x: x.AccessDate.obj_offset + 4, ['unsigned int']],
-        'UnicodeFilename': [ lambda x: x.Unknown3.obj_offset + 4, ['NullString', dict(length = 4096, encoding = 'utf8')]],
-    } ],
-    'ITEMPOS' : [ None, {
-        'Size' : [ 0x0, ['unsigned short']],
-        'Flags' : [ 0x2, ['unsigned short']],
-        'FileSize' : [ 0x4, ['short']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
-    'FILE_ENTRY': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']], # Type: 0x31, 0x32, 0xb1
-        'Flags': [ 0x3, ['unsigned char']],
-        'FileSize': [ 0x4, ['int']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
+    'ATTRIBUTES': [
+        None,
+        {
+            'ModifiedDate': [0x0, ['DosDate', dict(is_utc=True)]],
+            'FileAttrs': [0x4, ['unsigned short']],
+            'FileName': [
+                0x6,
+                ['String', dict(length=255)],
+            ],  # 8.3 File name although sometimes it's longer than 14 chars
+            'FDataSize': [
+                lambda x: x.FileName.obj_offset
+                + len(x.FileName)
+                + (1 if len(x.FileName) % 2 == 1 else 2),
+                ['unsigned short'],
+            ],
+            'EVersion': [
+                lambda x: x.FDataSize.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown1': [
+                lambda x: x.EVersion.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown2': [
+                lambda x: x.Unknown1.obj_offset + 2,
+                ['unsigned short'],
+            ],  # 0xBEEF
+            'CreatedDate': [
+                lambda x: x.Unknown2.obj_offset + 2,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'AccessDate': [
+                lambda x: x.CreatedDate.obj_offset + 4,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'Unknown3': [
+                lambda x: x.AccessDate.obj_offset + 4,
+                ['unsigned int'],
+            ],
+            'UnicodeFilename': [
+                lambda x: x.Unknown3.obj_offset + 4,
+                ['NullString', dict(length=4096, encoding='utf8')],
+            ],
+        },
+    ],
+    'ITEMPOS': [
+        None,
+        {
+            'Size': [0x0, ['unsigned short']],
+            'Flags': [0x2, ['unsigned short']],
+            'FileSize': [0x4, ['short']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
+    'FILE_ENTRY': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],  # Type: 0x31, 0x32, 0xb1
+            'Flags': [0x3, ['unsigned char']],
+            'FileSize': [0x4, ['int']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
 }
+
 
 class ShellBagsTypesXP(obj.ProfileModification):
     before = ['WindowsObjectClasses']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 5}
+    conditions = {'os': lambda x: x == 'windows', 'major': lambda x: x == 5}
+
     def modification(self, profile):
-        profile.object_classes.update({
-            'NullString': NullString,
-            '_GUID':_GUID,
-            'ITEMPOS':ITEMPOS,
-            'FILE_ENTRY':FILE_ENTRY,
-            'FOLDER_ENTRY':FOLDER_ENTRY,
-            'CONTROL_PANEL':CONTROL_PANEL,
-            'VOLUME_NAME':VOLUME_NAME,
-            'NETWORK_VOLUME_NAME':NETWORK_VOLUME_NAME,
-            'NETWORK_SHARE':NETWORK_SHARE,
-            'UNKNOWN_00':UNKNOWN_00,
-            '_VOLUSER_ASSIST_TYPES':_VOLUSER_ASSIST_TYPES,
-        })
+        profile.object_classes.update(
+            {
+                'NullString': NullString,
+                '_GUID': _GUID,
+                'ITEMPOS': ITEMPOS,
+                'FILE_ENTRY': FILE_ENTRY,
+                'FOLDER_ENTRY': FOLDER_ENTRY,
+                'CONTROL_PANEL': CONTROL_PANEL,
+                'VOLUME_NAME': VOLUME_NAME,
+                'NETWORK_VOLUME_NAME': NETWORK_VOLUME_NAME,
+                'NETWORK_SHARE': NETWORK_SHARE,
+                'UNKNOWN_00': UNKNOWN_00,
+                '_VOLUSER_ASSIST_TYPES': _VOLUSER_ASSIST_TYPES,
+            }
+        )
         profile.vtypes.update(shell_item_types)
         profile.vtypes.update(itempos_types_XP)
 
 
 itempos_types_Vista = {
-    'ATTRIBUTES' : [ None, {
-        'ModifiedDate': [ 0x0, ['DosDate', dict(is_utc = True)]],
-        'FileAttrs': [ 0x4, ['unsigned short']],
-        'FileName': [ 0x6, ['String', dict(length = 255)]], 
-        'FDataSize': [ lambda x: x.FileName.obj_offset + len(x.FileName) + (1 if len(x.FileName) % 2 == 1 else 2), ['unsigned short']],
-        'EVersion': [ lambda x: x.FDataSize.obj_offset + 2, ['unsigned short']],
-        'Unknown1': [ lambda x: x.EVersion.obj_offset + 2, ['unsigned short']],
-        'Unknown2': [ lambda x: x.Unknown1.obj_offset + 2, ['unsigned short']], # 0xBEEF
-        'CreatedDate': [ lambda x: x.Unknown2.obj_offset + 2, ['DosDate', dict(is_utc = True)]],
-        'AccessDate': [ lambda x: x.CreatedDate.obj_offset + 4, ['DosDate', dict(is_utc = True)]],
-        'Unknown3': [ lambda x: x.AccessDate.obj_offset + 4, ['unsigned int']],
-        'FileReference': [ lambda x: x.Unknown3.obj_offset + 4, ['unsigned long long']], #MFT entry index 0-6, Sequence number 6-7
-        'Unknown4': [ lambda x: x.FileReference.obj_offset + 8, ['unsigned long long']],
-        'LongStringSize': [ lambda x: x.Unknown4.obj_offset + 8, ['unsigned short']],
-        'UnicodeFilename': [ lambda x: x.LongStringSize.obj_offset + 2, ['NullString', dict(length = 4096, encoding = 'utf8')]],
-        'AdditionalLongString': [ lambda x: x.UnicodeFilename.obj_offset + len(x.UnicodeFilename), ['NullString', dict(length = (lambda k: k.LongStringSize), encoding = 'utf8')]],
-    } ], 
-    'ITEMPOS' : [ None, {
-        'Size' : [ 0x0, ['unsigned short']],
-        'Flags' : [ 0x2, ['unsigned short']],
-        'FileSize' : [ 0x4, ['short']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
-    'FILE_ENTRY': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']], # Type: 0x31, 0x32, 0xb1
-        'Flags': [ 0x3, ['unsigned char']],
-        'FileSize': [ 0x4, ['int']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
+    'ATTRIBUTES': [
+        None,
+        {
+            'ModifiedDate': [0x0, ['DosDate', dict(is_utc=True)]],
+            'FileAttrs': [0x4, ['unsigned short']],
+            'FileName': [0x6, ['String', dict(length=255)]],
+            'FDataSize': [
+                lambda x: x.FileName.obj_offset
+                + len(x.FileName)
+                + (1 if len(x.FileName) % 2 == 1 else 2),
+                ['unsigned short'],
+            ],
+            'EVersion': [
+                lambda x: x.FDataSize.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown1': [
+                lambda x: x.EVersion.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown2': [
+                lambda x: x.Unknown1.obj_offset + 2,
+                ['unsigned short'],
+            ],  # 0xBEEF
+            'CreatedDate': [
+                lambda x: x.Unknown2.obj_offset + 2,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'AccessDate': [
+                lambda x: x.CreatedDate.obj_offset + 4,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'Unknown3': [
+                lambda x: x.AccessDate.obj_offset + 4,
+                ['unsigned int'],
+            ],
+            'FileReference': [
+                lambda x: x.Unknown3.obj_offset + 4,
+                ['unsigned long long'],
+            ],  # MFT entry index 0-6, Sequence number 6-7
+            'Unknown4': [
+                lambda x: x.FileReference.obj_offset + 8,
+                ['unsigned long long'],
+            ],
+            'LongStringSize': [
+                lambda x: x.Unknown4.obj_offset + 8,
+                ['unsigned short'],
+            ],
+            'UnicodeFilename': [
+                lambda x: x.LongStringSize.obj_offset + 2,
+                ['NullString', dict(length=4096, encoding='utf8')],
+            ],
+            'AdditionalLongString': [
+                lambda x: x.UnicodeFilename.obj_offset
+                + len(x.UnicodeFilename),
+                [
+                    'NullString',
+                    dict(length=(lambda k: k.LongStringSize), encoding='utf8'),
+                ],
+            ],
+        },
+    ],
+    'ITEMPOS': [
+        None,
+        {
+            'Size': [0x0, ['unsigned short']],
+            'Flags': [0x2, ['unsigned short']],
+            'FileSize': [0x4, ['short']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
+    'FILE_ENTRY': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],  # Type: 0x31, 0x32, 0xb1
+            'Flags': [0x3, ['unsigned char']],
+            'FileSize': [0x4, ['int']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
 }
+
 
 class ShellBagsTypesVista(obj.ProfileModification):
     before = ['WindowsObjectClasses']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6, 
-                  'minor': lambda x: x == 0}
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x == 0,
+    }
+
     def modification(self, profile):
-        profile.object_classes.update({
-            'NullString': NullString,
-            '_GUID':_GUID,
-            'ITEMPOS':ITEMPOS,
-            'FILE_ENTRY':FILE_ENTRY,
-            'FOLDER_ENTRY':FOLDER_ENTRY,
-            'CONTROL_PANEL':CONTROL_PANEL,
-            'VOLUME_NAME':VOLUME_NAME,
-            'NETWORK_VOLUME_NAME':NETWORK_VOLUME_NAME,
-            'NETWORK_SHARE':NETWORK_SHARE,
-            'UNKNOWN_00':UNKNOWN_00,
-            '_VOLUSER_ASSIST_TYPES':_VOLUSER_ASSIST_TYPES,
-        })
+        profile.object_classes.update(
+            {
+                'NullString': NullString,
+                '_GUID': _GUID,
+                'ITEMPOS': ITEMPOS,
+                'FILE_ENTRY': FILE_ENTRY,
+                'FOLDER_ENTRY': FOLDER_ENTRY,
+                'CONTROL_PANEL': CONTROL_PANEL,
+                'VOLUME_NAME': VOLUME_NAME,
+                'NETWORK_VOLUME_NAME': NETWORK_VOLUME_NAME,
+                'NETWORK_SHARE': NETWORK_SHARE,
+                'UNKNOWN_00': UNKNOWN_00,
+                '_VOLUSER_ASSIST_TYPES': _VOLUSER_ASSIST_TYPES,
+            }
+        )
         profile.vtypes.update(shell_item_types)
         profile.vtypes.update(itempos_types_Vista)
 
 
 itempos_types_Win7 = {
-    'ATTRIBUTES': [ None, {
-        'ModifiedDate': [ 0x0, ['DosDate', dict(is_utc = True)]],
-        'FileAttrs': [ 0x4, ['unsigned short']],
-        'FileName': [ 0x6, ['String', dict(length = 255)]], 
-        'FDataSize': [ lambda x: x.FileName.obj_offset + len(x.FileName) + (1 if len(x.FileName) % 2 == 1 else 2), ['unsigned short']],
-        'EVersion': [ lambda x: x.FDataSize.obj_offset + 2, ['unsigned short']],
-        'Unknown1': [ lambda x: x.EVersion.obj_offset + 2, ['unsigned short']],
-        'Unknown2': [ lambda x: x.Unknown1.obj_offset + 2, ['unsigned short']], # 0xBEEF
-        'CreatedDate': [ lambda x: x.Unknown2.obj_offset + 2, ['DosDate', dict(is_utc = True)]],
-        'AccessDate': [ lambda x: x.CreatedDate.obj_offset + 4, ['DosDate', dict(is_utc = True)]],
-        'Unknown3': [ lambda x: x.AccessDate.obj_offset + 4, ['unsigned int']],
-        'FileReference': [ lambda x: x.Unknown3.obj_offset + 4, ['unsigned long long']], #MFT entry index 0-6, Sequence number 6-7
-        'Unknown4': [ lambda x: x.FileReference.obj_offset + 8, ['unsigned long long']],
-        'LongStringSize': [ lambda x: x.Unknown4.obj_offset + 8, ['unsigned short']],
-        'Unknown5': [ lambda x: x.LongStringSize.obj_offset + 2, ['unsigned int']],
-        'UnicodeFilename': [ lambda x: x.Unknown5.obj_offset + 4, ['NullString', dict(length = 4096, encoding = 'utf8')]],
-        'AdditionalLongString': [ lambda x: x.UnicodeFilename.obj_offset + len(x.UnicodeFilename), ['NullString', dict(length = (lambda k: k.LongStringSize), encoding = 'utf8')]],
-    } ],
-    'ITEMPOS' : [ None, {
-        'Size' : [ 0x0, ['unsigned short']],
-        'Flags' : [ 0x2, ['unsigned short']],
-        'FileSize' : [ 0x4, ['short']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
-    'FILE_ENTRY': [ None, {
-        'ShellItem': [ 0x0, ['SHELLITEM']], # Type: 0x31, 0x32, 0xb1
-        'Flags': [ 0x3, ['unsigned char']],
-        'FileSize': [ 0x4, ['int']],
-        'Attributes' : [ 0x8, ['ATTRIBUTES']],
-    } ],
+    'ATTRIBUTES': [
+        None,
+        {
+            'ModifiedDate': [0x0, ['DosDate', dict(is_utc=True)]],
+            'FileAttrs': [0x4, ['unsigned short']],
+            'FileName': [0x6, ['String', dict(length=255)]],
+            'FDataSize': [
+                lambda x: x.FileName.obj_offset
+                + len(x.FileName)
+                + (1 if len(x.FileName) % 2 == 1 else 2),
+                ['unsigned short'],
+            ],
+            'EVersion': [
+                lambda x: x.FDataSize.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown1': [
+                lambda x: x.EVersion.obj_offset + 2,
+                ['unsigned short'],
+            ],
+            'Unknown2': [
+                lambda x: x.Unknown1.obj_offset + 2,
+                ['unsigned short'],
+            ],  # 0xBEEF
+            'CreatedDate': [
+                lambda x: x.Unknown2.obj_offset + 2,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'AccessDate': [
+                lambda x: x.CreatedDate.obj_offset + 4,
+                ['DosDate', dict(is_utc=True)],
+            ],
+            'Unknown3': [
+                lambda x: x.AccessDate.obj_offset + 4,
+                ['unsigned int'],
+            ],
+            'FileReference': [
+                lambda x: x.Unknown3.obj_offset + 4,
+                ['unsigned long long'],
+            ],  # MFT entry index 0-6, Sequence number 6-7
+            'Unknown4': [
+                lambda x: x.FileReference.obj_offset + 8,
+                ['unsigned long long'],
+            ],
+            'LongStringSize': [
+                lambda x: x.Unknown4.obj_offset + 8,
+                ['unsigned short'],
+            ],
+            'Unknown5': [
+                lambda x: x.LongStringSize.obj_offset + 2,
+                ['unsigned int'],
+            ],
+            'UnicodeFilename': [
+                lambda x: x.Unknown5.obj_offset + 4,
+                ['NullString', dict(length=4096, encoding='utf8')],
+            ],
+            'AdditionalLongString': [
+                lambda x: x.UnicodeFilename.obj_offset
+                + len(x.UnicodeFilename),
+                [
+                    'NullString',
+                    dict(length=(lambda k: k.LongStringSize), encoding='utf8'),
+                ],
+            ],
+        },
+    ],
+    'ITEMPOS': [
+        None,
+        {
+            'Size': [0x0, ['unsigned short']],
+            'Flags': [0x2, ['unsigned short']],
+            'FileSize': [0x4, ['short']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
+    'FILE_ENTRY': [
+        None,
+        {
+            'ShellItem': [0x0, ['SHELLITEM']],  # Type: 0x31, 0x32, 0xb1
+            'Flags': [0x3, ['unsigned char']],
+            'FileSize': [0x4, ['int']],
+            'Attributes': [0x8, ['ATTRIBUTES']],
+        },
+    ],
 }
+
 
 class ShellBagsTypesWin7(obj.ProfileModification):
     before = ['WindowsObjectClasses']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6, 
-                  'minor': lambda x: x >= 1}
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 1,
+    }
+
     def modification(self, profile):
-        profile.object_classes.update({
-            'NullString': NullString,
-            '_GUID':_GUID,
-            'ITEMPOS':ITEMPOS,
-            'FILE_ENTRY':FILE_ENTRY,
-            'FOLDER_ENTRY':FOLDER_ENTRY,
-            'CONTROL_PANEL':CONTROL_PANEL,
-            'VOLUME_NAME':VOLUME_NAME,
-            'NETWORK_VOLUME_NAME':NETWORK_VOLUME_NAME,
-            'NETWORK_SHARE':NETWORK_SHARE,
-            'UNKNOWN_00':UNKNOWN_00,
-            '_VOLUSER_ASSIST_TYPES':_VOLUSER_ASSIST_TYPES,
-        })
+        profile.object_classes.update(
+            {
+                'NullString': NullString,
+                '_GUID': _GUID,
+                'ITEMPOS': ITEMPOS,
+                'FILE_ENTRY': FILE_ENTRY,
+                'FOLDER_ENTRY': FOLDER_ENTRY,
+                'CONTROL_PANEL': CONTROL_PANEL,
+                'VOLUME_NAME': VOLUME_NAME,
+                'NETWORK_VOLUME_NAME': NETWORK_VOLUME_NAME,
+                'NETWORK_SHARE': NETWORK_SHARE,
+                'UNKNOWN_00': UNKNOWN_00,
+                '_VOLUSER_ASSIST_TYPES': _VOLUSER_ASSIST_TYPES,
+            }
+        )
         profile.vtypes.update(shell_item_types)
         profile.vtypes.update(itempos_types_Win7)
 
 
-
 class ShellBags(common.AbstractWindowsCommand):
     """Prints ShellBags info"""
+
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
-        config.add_option("MACHINE", default = "",
-                        help = "Machine name to add to timeline header")
-        self.supported = ["FILE_ENTRY", "FOLDER_ENTRY", "CONTROL_PANEL", "VOLUME_NAME", "NETWORK_VOLUME_NAME", "NETWORK_SHARE", "UNKNOWN_00"]
+        config.add_option(
+            "MACHINE",
+            default="",
+            help="Machine name to add to timeline header",
+        )
+        self.supported = [
+            "FILE_ENTRY",
+            "FOLDER_ENTRY",
+            "CONTROL_PANEL",
+            "VOLUME_NAME",
+            "NETWORK_VOLUME_NAME",
+            "NETWORK_SHARE",
+            "UNKNOWN_00",
+        ]
         self.paths = {}
 
     def rreplace(self, s, old, new, occurrence):
         li = s.rsplit(old, occurrence)
         return new.join(li)
 
-    def parse_key(self, regapi, reg, thekey, given_root = None):
-        items = {} # a dictionary of shellbag objects indexed by value name
-        for value, data in regapi.reg_yield_values(None, thekey, thetype = 'REG_BINARY', given_root = given_root):
-            if data == None or thekey.find("S-") != -1 or str(value).startswith("LastKnownState") or thekey.lower().find("cmi-create") != -1:
+    def parse_key(self, regapi, reg, thekey, given_root=None):
+        items = {}  # a dictionary of shellbag objects indexed by value name
+        for value, data in regapi.reg_yield_values(
+            None, thekey, thetype='REG_BINARY', given_root=given_root
+        ):
+            if (
+                data == None
+                or thekey.find("S-") != -1
+                or str(value).startswith("LastKnownState")
+                or thekey.lower().find("cmi-create") != -1
+            ):
                 continue
             if str(value).startswith("ItemPos"):
                 items[str(value)] = []
-                bufferas = addrspace.BufferAddressSpace(self._config, data = data)
+                bufferas = addrspace.BufferAddressSpace(
+                    self._config, data=data
+                )
                 i = 0x18
                 while i < len(data) - 0x10:
-                    item = obj.Object("ITEMPOS", offset = i, vm = bufferas)
+                    item = obj.Object("ITEMPOS", offset=i, vm=bufferas)
                     if item != None and item.Size >= 0x15:
                         items[str(value)].append(item)
                     i += item.Size + 0x8
             elif str(value).lower().startswith("mrulistex"):
                 list = {}
-                bufferas = addrspace.BufferAddressSpace(self._config, data = data)
+                bufferas = addrspace.BufferAddressSpace(
+                    self._config, data=data
+                )
                 i = 0
                 while i < len(data) - 4:
-                    list[obj.Object("int", offset = i, vm = bufferas).v()] = (i / 4)
+                    list[obj.Object("int", offset=i, vm=bufferas).v()] = i / 4
                     i += 4
                 items["MruListEx"] = list
-            elif len(data) >= 0x10: 
-                bufferas = addrspace.BufferAddressSpace(self._config, data = data)
-                item = obj.Object("SHELLITEM", offset = 0, vm = bufferas)
+            elif len(data) >= 0x10:
+                bufferas = addrspace.BufferAddressSpace(
+                    self._config, data=data
+                )
+                item = obj.Object("SHELLITEM", offset=0, vm=bufferas)
                 thetype = SHELL_ITEM_TYPES.get(int(item.Type), None)
                 if thetype != None:
-                    if thetype == "UNKNOWN_00" and len(data) == bufferas.profile.get_obj_size("_VOLUSER_ASSIST_TYPES"):
+                    if thetype == "UNKNOWN_00" and len(
+                        data
+                    ) == bufferas.profile.get_obj_size(
+                        "_VOLUSER_ASSIST_TYPES"
+                    ):
                         # this is UserAssist Data
-                        item = obj.Object("_VOLUSER_ASSIST_TYPES", offset = 0, vm = bufferas)
+                        item = obj.Object(
+                            "_VOLUSER_ASSIST_TYPES", offset=0, vm=bufferas
+                        )
                         try:
                             value = value.encode('rot_13')
                         except UnicodeDecodeError:
@@ -798,7 +1106,7 @@ class ShellBags(common.AbstractWindowsCommand):
                     else:
                         if bufferas.profile.get_obj_size(thetype) > len(data):
                             continue
-                        item = obj.Object(thetype, offset = 0, vm = bufferas)
+                        item = obj.Object(thetype, offset=0, vm=bufferas)
                     if hasattr(item, "DataSize") and item.DataSize <= 0:
                         continue
                     if thetype in self.supported:
@@ -807,23 +1115,26 @@ class ShellBags(common.AbstractWindowsCommand):
                             temp = str(item.Attributes.UnicodeFilename)
                         elif hasattr(item, "Name"):
                             temp = str(item.Name)
-                        self.paths[reg + ":" + thekey + ":" + str(value)] = temp
+                        self.paths[
+                            reg + ":" + thekey + ":" + str(value)
+                        ] = temp
                         items[str(value)] = []
                         items[str(value)].append(item)
-        return items 
-
+        return items
 
     def calculate(self):
         addr_space = utils.load_as(self._config)
-        version = (addr_space.profile.metadata.get('major', 0), 
-                   addr_space.profile.metadata.get('minor', 0))
-        
+        version = (
+            addr_space.profile.metadata.get('major', 0),
+            addr_space.profile.metadata.get('minor', 0),
+        )
+
         if self._config.MACHINE != "":
             self._config.update("MACHINE", "{0} ".format(self._config.MACHINE))
-        #set our current registry of interest and get its path
+        # set our current registry of interest and get its path
         regapi = registryapi.RegistryApi(self._config)
         regapi.reset_current()
-        #scan for registries and populate them:
+        # scan for registries and populate them:
         print("Scanning for registries....")
 
         regapi.set_current('ntuser.dat')
@@ -832,37 +1143,67 @@ class ShellBags(common.AbstractWindowsCommand):
         print("Gathering shellbag items and building path tree...")
         seen = {}
         for bk in BAG_KEYS:
-            for cat, current_path in regapi.reg_yield_key("ntuser.dat", bk): 
-                keys = [(k, bk + "\\" + k.Name) for k in regapi.reg_get_all_subkeys("ntuser.dat", key = None, given_root = cat)]
+            for cat, current_path in regapi.reg_yield_key("ntuser.dat", bk):
+                keys = [
+                    (k, bk + "\\" + k.Name)
+                    for k in regapi.reg_get_all_subkeys(
+                        "ntuser.dat", key=None, given_root=cat
+                    )
+                ]
                 for key, start in keys:
                     if key.Name:
                         if seen.get(start + "\\" + k.Name, None) != None:
                             continue
                         seen[start + "\\" + k.Name] = key.obj_offset
-                        subkeys = [k for k in regapi.reg_get_all_subkeys("ntuser.dat", key = None, given_root = key)]
+                        subkeys = [
+                            k
+                            for k in regapi.reg_get_all_subkeys(
+                                "ntuser.dat", key=None, given_root=key
+                            )
+                        ]
                         for k in subkeys:
                             keys.append((k, start + "\\" + k.Name))
-                        items = self.parse_key(regapi, current_path, start, given_root = key)
+                        items = self.parse_key(
+                            regapi, current_path, start, given_root=key
+                        )
                         if len(items) > 0:
-                            shellbag_data.append((start, current_path, key, items))
+                            shellbag_data.append(
+                                (start, current_path, key, items)
+                            )
         if version >= (6, 0):
             regapi.reset_current()
             regapi.set_current("UsrClass.dat")
             seen = {}
             for bk in USERDAT_KEYS:
-                for cat, current_path in regapi.reg_yield_key("UsrClass.dat", bk): 
-                    keys = [(k, bk + "\\" + k.Name) for k in regapi.reg_get_all_subkeys("UsrClass.dat", key = None, given_root = cat)]
+                for cat, current_path in regapi.reg_yield_key(
+                    "UsrClass.dat", bk
+                ):
+                    keys = [
+                        (k, bk + "\\" + k.Name)
+                        for k in regapi.reg_get_all_subkeys(
+                            "UsrClass.dat", key=None, given_root=cat
+                        )
+                    ]
                     for key, start in keys:
                         if key.Name:
                             if seen.get(start + "\\" + k.Name, None) != None:
                                 continue
                             seen[start + "\\" + k.Name] = key.obj_offset
-                            subkeys = [k for k in regapi.reg_get_all_subkeys("UsrClass.dat", key = None, given_root = key)]
+                            subkeys = [
+                                k
+                                for k in regapi.reg_get_all_subkeys(
+                                    "UsrClass.dat", key=None, given_root=key
+                                )
+                            ]
                             for k in subkeys:
                                 keys.append((k, start + "\\" + k.Name))
-                            items = self.parse_key(regapi, current_path, start, given_root = key)
-                            if len(items) > 0: 
-                                shellbag_data.append((start, current_path, key, items))
+                            items = self.parse_key(
+                                regapi, current_path, start, given_root=key
+                            )
+                            if len(items) > 0:
+                                shellbag_data.append(
+                                    (start, current_path, key, items)
+                                )
         return shellbag_data
 
     def build_path(self, reg, key, item):
@@ -873,15 +1214,16 @@ class ShellBags(common.AbstractWindowsCommand):
             path = str(item.Name)
         else:
             return path
-        while key != "": 
+        while key != "":
             parent = self.rreplace(key, "\\" + key.split("\\")[-1], "", 1)
-            prev = self.paths.get(reg + ":" + parent + ":" + key.split("\\")[-1], "")
+            prev = self.paths.get(
+                reg + ":" + parent + ":" + key.split("\\")[-1], ""
+            )
             if prev == "":
                 break
             path = prev + "\\" + path
             key = parent
         return path
-        
 
     def render_body(self, outfd, data):
         for name, reg, key, items in data:
@@ -890,23 +1232,45 @@ class ShellBags(common.AbstractWindowsCommand):
                     continue
                 for shell in items[item]:
                     if type(shell) == ITEMPOS or type(shell) == FILE_ENTRY:
-                        full_path = self.build_path(reg, name, shell).replace("\\\\", "\\")
-                        outfd.write("{0}".format(shell.body("FullPath: {0}/Registry: {1}/Key: {2}/LW: {3}".format(full_path, reg, name, str(key.LastWriteTime)))))
+                        full_path = self.build_path(reg, name, shell).replace(
+                            "\\\\", "\\"
+                        )
+                        outfd.write(
+                            "{0}".format(
+                                shell.body(
+                                    "FullPath: {0}/Registry: {1}/Key: {2}/LW: {3}".format(
+                                        full_path,
+                                        reg,
+                                        name,
+                                        str(key.LastWriteTime),
+                                    )
+                                )
+                            )
+                        )
                     elif type(shell) == _VOLUSER_ASSIST_TYPES:
-                        outfd.write("{0}".format(shell.body(reg, name, item, str(key.LastWriteTime))))
+                        outfd.write(
+                            "{0}".format(
+                                shell.body(
+                                    reg, name, item, str(key.LastWriteTime)
+                                )
+                            )
+                        )
 
     def unified_output(self, data):
-        return TreeGrid([("Registry", str),
-                       ("Key", str),
-                       ("LastWrite", str),
-                       ("FileName", str),
-                       ("Create", str),
-                       ("Access", str),
-                       ("Attributes", str),
-                       ("Unicode", str),
-                       ("Path", str),
-                       ],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Registry", str),
+                ("Key", str),
+                ("LastWrite", str),
+                ("FileName", str),
+                ("Create", str),
+                ("Access", str),
+                ("Attributes", str),
+                ("Unicode", str),
+                ("Path", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for name, reg, key, items in data:
@@ -918,38 +1282,51 @@ class ShellBags(common.AbstractWindowsCommand):
                 for shell in items[item]:
                     full_path = ""
                     if type(shell) == ITEMPOS or type(shell) == FILE_ENTRY:
-                        full_path = self.build_path(reg, name, shell).replace("\\\\", "\\")
+                        full_path = self.build_path(reg, name, shell).replace(
+                            "\\\\", "\\"
+                        )
                         things = shell.get_items()
-                        yield (0, [str(reg),
-                            str(name),
-                            str(key.LastWriteTime),
-                            things.get("FileName", ""),
-                            things.get("Create", ""),
-                            things.get("Access", ""),
-                            things.get("Attributes", ""),
-                            things.get("Unicode", ""),
-                            str(full_path)])
+                        yield (
+                            0,
+                            [
+                                str(reg),
+                                str(name),
+                                str(key.LastWriteTime),
+                                things.get("FileName", ""),
+                                things.get("Create", ""),
+                                things.get("Access", ""),
+                                things.get("Attributes", ""),
+                                things.get("Unicode", ""),
+                                str(full_path),
+                            ],
+                        )
 
     def render_text(self, outfd, data):
         border = "*" * 75
         for name, reg, key, items in data:
-            if not key: 
+            if not key:
                 continue
             first = True
             mru = items.get("MruListEx", None)
-            mruheader = [("Value", "7"), ("Mru", "5")] if mru else [("Value", "25")]
+            mruheader = (
+                [("Value", "7"), ("Mru", "5")] if mru else [("Value", "25")]
+            )
             for item in items:
                 if item == "MruListEx":
                     continue
                 for shell in items[item]:
                     full_path = ""
                     if type(shell) != ITEMPOS and type(shell) != VOLUME_NAME:
-                        full_path = self.build_path(reg, name, shell).replace("\\\\", "\\")
+                        full_path = self.build_path(reg, name, shell).replace(
+                            "\\\\", "\\"
+                        )
                     if first:
                         outfd.write(border + "\n")
                         outfd.write("Registry: " + reg + "\n")
                         outfd.write("Key: " + name + "\n")
-                        outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
+                        outfd.write(
+                            "Last updated: {0}\n".format(key.LastWriteTime)
+                        )
                         curheader = shell.get_header()
                         self.table_header(outfd, mruheader + curheader)
                         first = False
@@ -958,10 +1335,16 @@ class ShellBags(common.AbstractWindowsCommand):
                         outfd.write("\n")
                         self.table_header(outfd, mruheader + curheader)
                     if mru:
-                        outfd.write("{0:7} {1:<5} {2} {3}\n".format(item, mru[int(item)], str(shell), full_path))
+                        outfd.write(
+                            "{0:7} {1:<5} {2} {3}\n".format(
+                                item, mru[int(item)], str(shell), full_path
+                            )
+                        )
                     else:
-                        outfd.write("{0:25} {1} {2}\n".format(item, str(shell), full_path))
+                        outfd.write(
+                            "{0:25} {1} {2}\n".format(
+                                item, str(shell), full_path
+                            )
+                        )
             if not first:
                 outfd.write(border + "\n\n")
-
-

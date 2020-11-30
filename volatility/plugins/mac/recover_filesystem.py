@@ -28,24 +28,32 @@
 import os
 import shutil
 
-import volatility.obj   as obj
+import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.mac.common as mac_common
 import volatility.plugins.mac.list_files as mac_list_files
+
 
 class mac_recover_filesystem(mac_common.AbstractMacCommand):
     """Recover the cached filesystem"""
 
     def __init__(self, config, *args, **kwargs):
         mac_common.AbstractMacCommand.__init__(self, config, *args, **kwargs)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
 
     def _fix_metadata(self, vnode, path):
         if vnode and vnode.is_valid():
             # currently can only fix metadata of HFS files
             if vnode.v_tag != 16:
                 return
-            
+
             cnode = vnode.v_data.dereference_as("cnode")
 
             ents = path.split("/")
@@ -62,14 +70,14 @@ class mac_recover_filesystem(mac_common.AbstractMacCommand):
 
             # this is the ..namedfork/rsrc files. We currently skip those
             if os.path.exists(out_path) and os.path.isdir(out_path):
-                shutil.rmtree(out_path) 
+                shutil.rmtree(out_path)
 
             if out_path.endswith("..namedfork/rsrc"):
                 ret = 0
             else:
-                mac_common.write_vnode_to_file(vnode, out_path)             
+                mac_common.write_vnode_to_file(vnode, out_path)
                 ret = 1
-        
+
         elif vnode.is_dir():
             ret = 1
         else:
@@ -96,10 +104,12 @@ class mac_recover_filesystem(mac_common.AbstractMacCommand):
 
     def calculate(self):
         mac_common.set_plugin_members(self)
-        
+
         num_files = 0
 
-        if (not self._config.DUMP_DIR or not os.path.isdir(self._config.DUMP_DIR)):
+        if not self._config.DUMP_DIR or not os.path.isdir(
+            self._config.DUMP_DIR
+        ):
             debug.error("Please specify an existing output dir (--dump-dir)")
 
         ff = mac_list_files.mac_list_files(self._config)
@@ -113,6 +123,5 @@ class mac_recover_filesystem(mac_common.AbstractMacCommand):
         yield num_files
 
     def render_text(self, outfd, data):
-        for (num_files) in data: 
+        for num_files in data:
             outfd.write("Recovered %d files\n" % num_files)
-

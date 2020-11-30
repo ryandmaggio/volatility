@@ -1175,7 +1175,7 @@ syscalls = [
         "NtValidateCompositionSurfaceHandle",
         "NtVisualCaptureBits",
         "NtUserSetClassLongPtr",
-        "NtUserSetWindowLongPtr"
+        "NtUserSetWindowLongPtr",
     ],
     [
         "NtAccessCheck",
@@ -1637,6 +1637,6 @@ syscalls = [
         "NtWaitForKeyedEvent",
         "NtWaitForWorkViaWorkerFactory",
         "NT_DISK::GetPnpProperty",
-        "NT_DISK::GetPnpProperty"
-    ]
+        "NT_DISK::GetPnpProperty",
+    ],
 ]

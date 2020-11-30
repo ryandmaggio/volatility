@@ -25,7 +25,7 @@
 @organization: Volatility Foundation
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 import volatility.win32.lsasecrets as lsasecrets
 import volatility.win32.hashdump as hashdumpmod
@@ -38,8 +38,10 @@ import volatility.plugins.registry.registryapi as registryapi
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address, Bytes
 
+
 class LSADump(common.AbstractWindowsCommand):
     """Dump (decrypted) LSA secrets from the registry"""
+
     # Declare meta information associated with this plugin
 
     meta_info = {}
@@ -53,12 +55,24 @@ class LSADump(common.AbstractWindowsCommand):
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
-        config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
-                          help = 'SYSTEM hive offset (virtual)')
-        config.add_option('SEC-OFFSET', short_option = 's', type = 'int',
-                          help = 'SECURITY hive offset (virtual)')
+        config.add_option(
+            'SYS-OFFSET',
+            short_option='y',
+            type='int',
+            help='SYSTEM hive offset (virtual)',
+        )
+        config.add_option(
+            'SEC-OFFSET',
+            short_option='s',
+            type='int',
+            help='SECURITY hive offset (virtual)',
+        )
 
-    @cache.CacheDecorator(lambda self: "tests/lsadump/sys_offset={0}/sec_offset={1}".format(self._config.SYS_OFFSET, self._config.SEC_OFFSET))
+    @cache.CacheDecorator(
+        lambda self: "tests/lsadump/sys_offset={0}/sec_offset={1}".format(
+            self._config.SYS_OFFSET, self._config.SEC_OFFSET
+        )
+    )
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
@@ -71,7 +85,12 @@ class LSADump(common.AbstractWindowsCommand):
                 elif "security" == name:
                     self._config.update("SEC_OFFSET", offset)
 
-        secrets = lsasecrets.get_memory_secrets(addr_space, self._config, self._config.sys_offset, self._config.sec_offset)
+        secrets = lsasecrets.get_memory_secrets(
+            addr_space,
+            self._config,
+            self._config.sys_offset,
+            self._config.sec_offset,
+        )
         if not secrets:
             debug.error("Unable to read LSA secrets from registry")
 
@@ -81,29 +100,44 @@ class LSADump(common.AbstractWindowsCommand):
         for k in data:
             outfd.write(k + "\n")
             for offset, hex, chars in utils.Hexdump(data[k]):
-                outfd.write("{0:#010x}  {1:<48}  {2}\n".format(offset, hex, ''.join(chars)))
+                outfd.write(
+                    "{0:#010x}  {1:<48}  {2}\n".format(
+                        offset, hex, ''.join(chars)
+                    )
+                )
             outfd.write("\n")
 
     def unified_output(self, data):
-        return TreeGrid([("Item", str),
-                       ("Data", Bytes)],
-                        self.generator(data))
+        return TreeGrid([("Item", str), ("Data", Bytes)], self.generator(data))
 
     def generator(self, data):
         for k in data:
             yield (0, [str(k), Bytes(data[k])])
+
 
 class HashDump(common.AbstractWindowsCommand):
     """Dumps passwords hashes (LM/NTLM) from memory"""
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
-        config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
-                          help = 'SYSTEM hive offset (virtual)')
-        config.add_option('SAM-OFFSET', short_option = 's', type = 'int',
-                          help = 'SAM hive offset (virtual)')
+        config.add_option(
+            'SYS-OFFSET',
+            short_option='y',
+            type='int',
+            help='SYSTEM hive offset (virtual)',
+        )
+        config.add_option(
+            'SAM-OFFSET',
+            short_option='s',
+            type='int',
+            help='SAM hive offset (virtual)',
+        )
 
-    @cache.CacheDecorator(lambda self: "tests/hashdump/sys_offset={0}/sam_offset={1}".format(self._config.SYS_OFFSET, self._config.SAM_OFFSET))
+    @cache.CacheDecorator(
+        lambda self: "tests/hashdump/sys_offset={0}/sam_offset={1}".format(
+            self._config.SYS_OFFSET, self._config.SAM_OFFSET
+        )
+    )
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
@@ -116,7 +150,12 @@ class HashDump(common.AbstractWindowsCommand):
                 elif "sam" == name:
                     self._config.update("SAM_OFFSET", offset)
 
-        hashes = hashdumpmod.dump_memory_hashes(addr_space, self._config, self._config.sys_offset, self._config.sam_offset)
+        hashes = hashdumpmod.dump_memory_hashes(
+            addr_space,
+            self._config,
+            self._config.sys_offset,
+            self._config.sam_offset,
+        )
         if not hashes:
             debug.error("Unable to read hashes from registry")
         return hashes
@@ -128,28 +167,35 @@ class HashDump(common.AbstractWindowsCommand):
             else:
                 outfd.write(d + "\n")
 
-    # Note: we may want to break up the different fields 
+    # Note: we may want to break up the different fields
     # in addition to storing the constructed hash.
-    # for now we're just yielding the hash 
+    # for now we're just yielding the hash
     # Also applies to CacheDump
     def unified_output(self, data):
-        return TreeGrid([("Hash", str)],
-                        self.generator(data))
+        return TreeGrid([("Hash", str)], self.generator(data))
 
     def generator(self, data):
         for d in data:
             yield (0, [str(d)])
+
 
 class CacheDump(common.AbstractWindowsCommand):
     """Dumps cached domain hashes from memory"""
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
-        config.add_option('SYS-OFFSET', short_option = 'y', type = 'int',
-                          help = 'SYSTEM hive offset (virtual)')
-        config.add_option('SEC-OFFSET', short_option = 's', type = 'int',
-                          help = 'SECURITY hive offset (virtual)')
- 
+        config.add_option(
+            'SYS-OFFSET',
+            short_option='y',
+            type='int',
+            help='SYSTEM hive offset (virtual)',
+        )
+        config.add_option(
+            'SEC-OFFSET',
+            short_option='s',
+            type='int',
+            help='SECURITY hive offset (virtual)',
+        )
 
     def calculate(self):
         addr_space = utils.load_as(self._config)
@@ -163,7 +209,12 @@ class CacheDump(common.AbstractWindowsCommand):
                 elif "security" == name:
                     self._config.update("SEC_OFFSET", offset)
 
-        hashes = domcachedumpmod.dump_memory_hashes(addr_space, self._config, self._config.sys_offset, self._config.sec_offset)
+        hashes = domcachedumpmod.dump_memory_hashes(
+            addr_space,
+            self._config,
+            self._config.sys_offset,
+            self._config.sec_offset,
+        )
         if hashes == None:
             debug.error("Unable to read hashes from registry")
         return hashes
@@ -176,8 +227,7 @@ class CacheDump(common.AbstractWindowsCommand):
                 outfd.write(d + "\n")
 
     def unified_output(self, data):
-        return TreeGrid([("Hash", str)],
-                        self.generator(data))
+        return TreeGrid([("Hash", str)], self.generator(data))
 
     def generator(self, data):
         for d in data:

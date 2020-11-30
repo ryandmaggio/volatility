@@ -30,13 +30,14 @@ import volatility.win32.xpress as xpress
 import struct
 
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 PAGE_SIZE = 0x1000
 page_shift = 12
 
+
 class Store(object):
-    def __init__(self, limit = 50):
+    def __init__(self, limit=50):
         self.limit = limit
         self.cache = {}
         self.seq = []
@@ -55,8 +56,9 @@ class Store(object):
     def get(self, key):
         return self.cache[key]
 
+
 class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
-    """ This is a hibernate address space for windows hibernation files.
+    """This is a hibernate address space for windows hibernation files.
 
     In order for us to work we need to:
     1) have a valid baseAddressSpace
@@ -64,7 +66,9 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         otherwise we bruteforce to find self.header.FirstTablePage in
         _get_first_table_page() this occurs with a zeroed PO_MEMORY_IMAGE header
     """
+
     order = 10
+
     def __init__(self, base, config, **kwargs):
         self.as_assert(base, "No base Address Space")
         addrspace.BaseAddressSpace.__init__(self, base, config, **kwargs)
@@ -80,7 +84,10 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         self._long_struct = struct.Struct("=I")
 
         # Extract header information
-        self.as_assert(self.profile.has_type("PO_MEMORY_IMAGE"), "PO_MEMORY_IMAGE is not available in profile")
+        self.as_assert(
+            self.profile.has_type("PO_MEMORY_IMAGE"),
+            "PO_MEMORY_IMAGE is not available in profile",
+        )
         self.header = obj.Object('PO_MEMORY_IMAGE', 0, base)
 
         ## Is the signature right?
@@ -98,7 +105,9 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         self.as_assert(pageno <= 10, "Bad profile for PO_MEMORY_RANGE")
 
         # Extract processor state
-        self.ProcState = obj.Object("_KPROCESSOR_STATE", PROC_PAGE * 4096, base)
+        self.ProcState = obj.Object(
+            "_KPROCESSOR_STATE", PROC_PAGE * 4096, base
+        )
 
         ## This is a pointer to the page table - any ASs above us dont
         ## need to search for it.
@@ -118,16 +127,20 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
     def build_page_cache(self):
         XpressIndex = 0
-        XpressHeader = obj.Object("_IMAGE_XPRESS_HEADER",
-                                  (self._get_first_table_page() + 1) * 4096,
-                                  self.base)
+        XpressHeader = obj.Object(
+            "_IMAGE_XPRESS_HEADER",
+            (self._get_first_table_page() + 1) * 4096,
+            self.base,
+        )
 
         XpressBlockSize = self.get_xpress_block_size(XpressHeader)
 
         MemoryArrayOffset = self._get_first_table_page() * 4096
 
         while MemoryArrayOffset:
-            MemoryArray = obj.Object('_PO_MEMORY_RANGE_ARRAY', MemoryArrayOffset, self.base)
+            MemoryArray = obj.Object(
+                '_PO_MEMORY_RANGE_ARRAY', MemoryArrayOffset, self.base
+            )
 
             EntryCount = MemoryArray.MemArrayLink.EntryCount.v()
             for i in MemoryArray.RangeTable:
@@ -139,25 +152,33 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
                 if end > self.HighestPage:
                     self.HighestPage = end
 
-                self.AddressList.append((start * 0x1000, LocalPageCnt * 0x1000))
+                self.AddressList.append(
+                    (start * 0x1000, LocalPageCnt * 0x1000)
+                )
 
                 for j in range(0, LocalPageCnt):
-                    if (XpressIndex and ((XpressIndex % 0x10) == 0)):
-                        XpressHeader, XpressBlockSize = \
-                                      self.next_xpress(XpressHeader, XpressBlockSize)
+                    if XpressIndex and ((XpressIndex % 0x10) == 0):
+                        XpressHeader, XpressBlockSize = self.next_xpress(
+                            XpressHeader, XpressBlockSize
+                        )
 
                     PageNumber = start + j
                     XpressPage = XpressIndex % 0x10
                     if XpressHeader.obj_offset not in self.PageDict:
                         self.PageDict[XpressHeader.obj_offset] = [
-                            (PageNumber, XpressBlockSize, XpressPage)]
+                            (PageNumber, XpressBlockSize, XpressPage)
+                        ]
                     else:
                         self.PageDict[XpressHeader.obj_offset].append(
-                            (PageNumber, XpressBlockSize, XpressPage))
+                            (PageNumber, XpressBlockSize, XpressPage)
+                        )
 
                     ## Update the lookup cache
                     self.LookupCache[PageNumber] = (
-                        XpressHeader.obj_offset, XpressBlockSize, XpressPage)
+                        XpressHeader.obj_offset,
+                        XpressBlockSize,
+                        XpressPage,
+                    )
 
                     self.PageIndex += 1
                     XpressIndex += 1
@@ -165,24 +186,27 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
             NextTable = MemoryArray.MemArrayLink.NextTable.v()
 
             # This entry count (EntryCount) should probably be calculated
-            if (NextTable and (EntryCount == self.entry_count)):
+            if NextTable and (EntryCount == self.entry_count):
                 MemoryArrayOffset = NextTable * 0x1000
                 self.MemRangeCnt += 1
-                XpressHeader, XpressBlockSize = \
-                                             self.next_xpress(XpressHeader, XpressBlockSize)
+                XpressHeader, XpressBlockSize = self.next_xpress(
+                    XpressHeader, XpressBlockSize
+                )
 
                 # Make sure the xpress block is after the Memory Table
-                while (XpressHeader.obj_offset < MemoryArrayOffset):
-                    XpressHeader, XpressBlockSize = \
-                        self.next_xpress(XpressHeader, 0)
+                while XpressHeader.obj_offset < MemoryArrayOffset:
+                    XpressHeader, XpressBlockSize = self.next_xpress(
+                        XpressHeader, 0
+                    )
 
                 XpressIndex = 0
             else:
                 MemoryArrayOffset = 0
 
     def next_xpress(self, XpressHeader, XpressBlockSize):
-        XpressHeaderOffset = XpressBlockSize + XpressHeader.obj_offset + \
-                             XpressHeader.size()
+        XpressHeaderOffset = (
+            XpressBlockSize + XpressHeader.obj_offset + XpressHeader.size()
+        )
 
         ## We only search this far
         BLOCKSIZE = 1024
@@ -200,7 +224,9 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
             if XpressHeaderOffset - original_offset > 10240:
                 return None, None
 
-        XpressHeader = obj.Object("_IMAGE_XPRESS_HEADER", XpressHeaderOffset, self.base)
+        XpressHeader = obj.Object(
+            "_IMAGE_XPRESS_HEADER", XpressHeaderOffset, self.base
+        )
         XpressBlockSize = self.get_xpress_block_size(XpressHeader)
 
         return XpressHeader, XpressBlockSize
@@ -214,7 +240,7 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         Size = Size >> 10
         Size = Size + 1
 
-        if ((Size % 8) == 0):
+        if (Size % 8) == 0:
             return Size
         return (Size & ~7) + 8
 
@@ -266,12 +292,12 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
             return data_uz
 
     def _partial_read(self, addr, len):
-        """ A function which reads as much as possible from the current page.
+        """A function which reads as much as possible from the current page.
 
         May return a short read.
         """
         ## The offset within the page where we start
-        page_offset = (addr & 0x00000FFF)
+        page_offset = addr & 0x00000FFF
 
         ## How much data can we satisfy?
         available = min(PAGE_SIZE - page_offset, len)
@@ -288,9 +314,9 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         ## need to know which page to use here.
         offset = XpressPage * 0x1000 + page_offset
 
-        return data[offset:offset + available]
+        return data[offset : offset + available]
 
-    def read(self, addr, length, zread = False):
+    def read(self, addr, length, zread=False):
         result = ''
         while length > 0:
             data = self._partial_read(addr, length)
@@ -303,13 +329,18 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
         if result == '':
             if zread:
-                return ('\0' * length)
-            result = obj.NoneObject("Unable to read data at " + str(addr) + " for length " + str(length))
+                return '\0' * length
+            result = obj.NoneObject(
+                "Unable to read data at "
+                + str(addr)
+                + " for length "
+                + str(length)
+            )
 
         return result
 
     def zread(self, addr, length):
-        stuff_read = self.read(addr, length, zread = True)
+        stuff_read = self.read(addr, length, zread=True)
         return stuff_read
 
     def read_long(self, addr):
@@ -317,7 +348,7 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         string = self.read(addr, 4)
         if not string:
             return obj.NoneObject("Could not read long at " + str(addr))
-        longval, = self._long_struct.unpack(string)
+        (longval,) = self._long_struct.unpack(string)
         return longval
 
     def get_available_pages(self):
@@ -344,4 +375,3 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
     def close(self):
         self.base.close()
-

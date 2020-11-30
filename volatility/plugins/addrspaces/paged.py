@@ -17,25 +17,37 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#import fractions
+# import fractions
 import volatility.addrspace as addrspace
 import volatility.obj as obj
 
+
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
-    """ Class to handle all the details of a paged virtual address space
-        
+    """Class to handle all the details of a paged virtual address space
+
     Note: Pages can be of any size
     """
+
     checkname = "Intel"
 
-    def __init__(self, base, config, dtb = 0, skip_as_check = False, *args, **kwargs):
+    def __init__(
+        self, base, config, dtb=0, skip_as_check=False, *args, **kwargs
+    ):
         ## We must be stacked on someone else:
         self.as_assert(base, "No base Address Space")
 
-        addrspace.AbstractVirtualAddressSpace.__init__(self, base, config, *args, **kwargs)
+        addrspace.AbstractVirtualAddressSpace.__init__(
+            self, base, config, *args, **kwargs
+        )
 
         ## We can not stack on someone with a dtb
-        self.as_assert(not (hasattr(base, 'paging_address_space') and base.paging_address_space), "Can not stack over another paging address space")
+        self.as_assert(
+            not (
+                hasattr(base, 'paging_address_space')
+                and base.paging_address_space
+            ),
+            "Can not stack over another paging address space",
+        )
 
         self.dtb = dtb or self.load_dtb()
         # No need to set the base or dtb, it's already been by the inherited class
@@ -45,12 +57,17 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         if not skip_as_check:
             volmag = obj.VolMagic(self)
             if hasattr(volmag, self.checkname):
-                self.as_assert(getattr(volmag, self.checkname).v(), "Failed valid Address Space check")
+                self.as_assert(
+                    getattr(volmag, self.checkname).v(),
+                    "Failed valid Address Space check",
+                )
             else:
-                self.as_assert(False, "Profile does not have valid Address Space check")
+                self.as_assert(
+                    False, "Profile does not have valid Address Space check"
+                )
 
         # Reserved for future use
-        #self.pagefile = config.PAGEFILE
+        # self.pagefile = config.PAGEFILE
         self.name = 'Kernel AS'
 
     def is_user_page(self, entry):
@@ -64,19 +81,19 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     def is_writeable(self, entry):
         """True if the page can be written to"""
         raise NotImplementedError
-        
+
     def is_dirty(self, entry):
         """True if the page has been written to"""
         raise NotImplementedError
-        
+
     def is_nx(self, entry):
         """True if the page /cannot/ be executed"""
         raise NotImplementedError
-        
+
     def is_accessed(self, entry):
         """True if the page has been accessed"""
         raise NotImplementedError
-        
+
     def is_copyonwrite(self, entry):
         """True if the page is copy-on-write"""
         raise NotImplementedError
@@ -112,8 +129,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
 
     @staticmethod
     def register_options(config):
-        config.add_option("DTB", type = 'int', default = 0,
-                          help = "DTB Address")
+        config.add_option("DTB", type='int', default=0, help="DTB Address")
 
     def vtop(self, addr):
         """Abstract function that converts virtual (paged) addresses to physical addresses"""
@@ -131,17 +147,17 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         runLength = None
         currentOffset = None
         for (offset, size) in self.get_available_pages():
-            if (runLength == None):
+            if runLength == None:
                 runLength = size
                 currentOffset = offset
             else:
-                if (offset <= (currentOffset + runLength)):
+                if offset <= (currentOffset + runLength):
                     runLength += (currentOffset + runLength - offset) + size
                 else:
                     yield (currentOffset, runLength)
                     runLength = size
                     currentOffset = offset
-        if (runLength != None and currentOffset != None):
+        if runLength != None and currentOffset != None:
             yield (currentOffset, runLength)
         raise StopIteration
 
@@ -157,16 +173,18 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
             return False
         return self.base.is_valid_address(paddr)
 
+
 class AbstractWritablePagedMemory(AbstractPagedMemory):
     """
     Mixin class that can be used to add write functionality
     to any standard address space that supports write() and
     vtop().
     """
+
     def write(self, vaddr, buf):
         """Writes the data from buf to the vaddr specified
-        
-           Note: writes are not transactionaly, meaning if they can write half the data and then fail"""
+
+        Note: writes are not transactionaly, meaning if they can write half the data and then fail"""
         if not self._config.WRITE:
             return False
 
@@ -180,7 +198,7 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
         # For each allocation...
         while remaining > 0:
             # Determine whether we're within an alloc or not
-            alloc_remaining = (self.alignment_gcd - (vaddr % self.alignment_gcd))
+            alloc_remaining = self.alignment_gcd - (vaddr % self.alignment_gcd)
             # Try to jump out early
             paddr = self.translate(position)
             datalen = min(remaining, alloc_remaining)
@@ -192,5 +210,12 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
             buf = buf[datalen:]
             position += datalen
             remaining -= datalen
-            assert (vaddr + length == position + remaining), "Address + length != position + remaining (" + hex(vaddr + length) + " != " + hex(position + remaining) + ") in " + self.base.__class__.__name__
+            assert vaddr + length == position + remaining, (
+                "Address + length != position + remaining ("
+                + hex(vaddr + length)
+                + " != "
+                + hex(position + remaining)
+                + ") in "
+                + self.base.__class__.__name__
+            )
         return True

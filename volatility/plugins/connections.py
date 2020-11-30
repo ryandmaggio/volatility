@@ -19,7 +19,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 import volatility.plugins.common as common
 import volatility.win32.network as network
@@ -28,6 +28,7 @@ import volatility.utils as utils
 import volatility.debug as debug
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
+
 
 class Connections(common.AbstractWindowsCommand):
     """
@@ -41,24 +42,36 @@ class Connections(common.AbstractWindowsCommand):
     because Windows closes all connections before hibernating. You might
     find it more effective to do connscan instead.
     """
+
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
-        config.add_option("PHYSICAL-OFFSET", short_option = 'P', default = False,
-                          cache_invalidator = False,
-                          help = "Physical Offset", action = "store_true")
+        config.add_option(
+            "PHYSICAL-OFFSET",
+            short_option='P',
+            default=False,
+            cache_invalidator=False,
+            help="Physical Offset",
+            action="store_true",
+        )
 
     @staticmethod
     def is_valid_profile(profile):
-        return (profile.metadata.get('os', 'unknown') == 'windows' and
-                profile.metadata.get('major', 0) == 5)
+        return (
+            profile.metadata.get('os', 'unknown') == 'windows'
+            and profile.metadata.get('major', 0) == 5
+        )
 
     def unified_output(self, data):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
-        return TreeGrid([("Offset{0}".format(offsettype), Address),
-                       ("LocalAddress", str),
-                       ("RemoteAddress", str),
-                       ("PID", int)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Offset{0}".format(offsettype), Address),
+                ("LocalAddress", str),
+                ("RemoteAddress", str),
+                ("PID", int),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for conn in data:
@@ -68,16 +81,22 @@ class Connections(common.AbstractWindowsCommand):
                 offset = conn.obj_vm.vtop(conn.obj_offset)
             local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
             remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
-            yield (0, [Address(offset), str(local), str(remote), int(conn.Pid)])
+            yield (
+                0,
+                [Address(offset), str(local), str(remote), int(conn.Pid)],
+            )
 
     def render_text(self, outfd, data):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
-        self.table_header(outfd,
-                          [("Offset{0}".format(offsettype), "[addrpad]"),
-                           ("Local Address", "25"),
-                           ("Remote Address", "25"),
-                           ("Pid", "")
-                           ])
+        self.table_header(
+            outfd,
+            [
+                ("Offset{0}".format(offsettype), "[addrpad]"),
+                ("Local Address", "25"),
+                ("Remote Address", "25"),
+                ("Pid", ""),
+            ],
+        )
 
         for conn in data:
             if not self._config.PHYSICAL_OFFSET:

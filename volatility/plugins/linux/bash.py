@@ -28,76 +28,90 @@ import struct
 import volatility.obj as obj
 import volatility.debug as debug
 import volatility.addrspace as addrspace
-import volatility.plugins.linux.common  as linux_common
+import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.pslist as linux_pslist
 from volatility.renderers import TreeGrid
 
 bash_vtypes_32 = {
-    '_hist_entry': [ 0xc, {
-    'line': [0x0, ['pointer', ['String', dict(length = 1024)]]],
-    'timestamp': [0x4, ['pointer', ['String', dict(length = 1024)]]],
-    'data': [0x8, ['pointer', ['void']]],
-    }],
+    '_hist_entry': [
+        0xC,
+        {
+            'line': [0x0, ['pointer', ['String', dict(length=1024)]]],
+            'timestamp': [0x4, ['pointer', ['String', dict(length=1024)]]],
+            'data': [0x8, ['pointer', ['void']]],
+        },
+    ],
 }
 
 bash_vtypes_64 = {
-    '_hist_entry': [ 24, {
-    'line': [0, ['pointer', ['String', dict(length = 1024)]]],
-    'timestamp': [8, ['pointer', ['String', dict(length = 1024)]]],
-    'data': [16, ['pointer', ['void']]],
-    }],
+    '_hist_entry': [
+        24,
+        {
+            'line': [0, ['pointer', ['String', dict(length=1024)]]],
+            'timestamp': [8, ['pointer', ['String', dict(length=1024)]]],
+            'data': [16, ['pointer', ['void']]],
+        },
+    ],
 }
+
 
 class _hist_entry(obj.CType):
     """A class for history entries"""
 
     def is_valid(self):
-        
-        # Check the basic structure members 
-        if (not obj.CType.is_valid(self) or  
-                    not self.line.is_valid() or 
-                    len(self.line.dereference()) == 0 or  
-                    not self.timestamp.is_valid()):
+
+        # Check the basic structure members
+        if (
+            not obj.CType.is_valid(self)
+            or not self.line.is_valid()
+            or len(self.line.dereference()) == 0
+            or not self.timestamp.is_valid()
+        ):
             return False
 
-        # A pointer to the timestamp string 
+        # A pointer to the timestamp string
         ts = self.timestamp.dereference()
 
-        # At this point in time, the epoc integer size will 
-        # never be less than 10 characters, and the stamp is 
-        # always preceded by a pound/hash character. 
+        # At this point in time, the epoc integer size will
+        # never be less than 10 characters, and the stamp is
+        # always preceded by a pound/hash character.
         if len(ts) < 10 or str(ts)[0] != "#":
             return False
 
         # The final check is to make sure the entire string
-        # is composed of numbers. Try to convert to an int. 
+        # is composed of numbers. Try to convert to an int.
         try:
             int(str(ts)[1:])
         except ValueError:
-            return False 
+            return False
 
         return True
 
     @property
     def time_as_integer(self):
-        # Get the string and remove the leading "#" from the timestamp 
-        time_string = str(self.timestamp.dereference())[1:] 
+        # Get the string and remove the leading "#" from the timestamp
+        time_string = str(self.timestamp.dereference())[1:]
         # Convert the string into an integer (number of seconds)
         return int(time_string)
 
     def time_object(self):
         nsecs = self.time_as_integer
-        # Build a timestamp object from the integer 
+        # Build a timestamp object from the integer
         time_val = struct.pack("<I", nsecs)
-        time_buf = addrspace.BufferAddressSpace(self.obj_vm.get_config(), data = time_val)
-        time_obj = obj.Object("UnixTimeStamp", offset = 0, vm = time_buf, is_utc = True)
+        time_buf = addrspace.BufferAddressSpace(
+            self.obj_vm.get_config(), data=time_val
+        )
+        time_obj = obj.Object(
+            "UnixTimeStamp", offset=0, vm=time_buf, is_utc=True
+        )
         return time_obj
 
+
 class BashTypes(obj.ProfileModification):
-    conditions = {"os" : lambda x : x in ["linux", "mac"]}
+    conditions = {"os": lambda x: x in ["linux", "mac"]}
 
     def modification(self, profile):
-        
+
         if profile.metadata.get('memory_model', '32bit') == "32bit":
             profile.vtypes.update(bash_vtypes_32)
         else:
@@ -105,24 +119,44 @@ class BashTypes(obj.ProfileModification):
 
         profile.object_classes.update({"_hist_entry": _hist_entry})
 
+
 class linux_bash(linux_pslist.linux_pslist):
     """Recover bash history from bash process memory"""
 
-    def __init__(self, config, *args, **kwargs): 
+    def __init__(self, config, *args, **kwargs):
         linux_pslist.linux_pslist.__init__(self, config, *args, **kwargs)
-        self._config.add_option('PRINTUNALLOC', short_option = 'P', default = None, help = 'print unallocated entries, please redirect to a file', action = 'store_true')
-        self._config.add_option('HISTORY_LIST', short_option = 'H', default = None, help = 'address from history_list - see the Volatility wiki', action = 'store', type = 'long')        
-        self._config.add_option('SCAN_ALL', short_option = 'A', default = False, help = 'scan all processes, not just those named bash', action = 'store_true')    
+        self._config.add_option(
+            'PRINTUNALLOC',
+            short_option='P',
+            default=None,
+            help='print unallocated entries, please redirect to a file',
+            action='store_true',
+        )
+        self._config.add_option(
+            'HISTORY_LIST',
+            short_option='H',
+            default=None,
+            help='address from history_list - see the Volatility wiki',
+            action='store',
+            type='long',
+        )
+        self._config.add_option(
+            'SCAN_ALL',
+            short_option='A',
+            default=False,
+            help='scan all processes, not just those named bash',
+            action='store_true',
+        )
 
     def calculate(self):
         linux_common.set_plugin_members(self)
-    
+
         tasks = linux_pslist.linux_pslist(self._config).calculate()
 
         for task in tasks:
             proc_as = task.get_process_address_space()
-            
-            # In cases when mm is an invalid pointer 
+
+            # In cases when mm is an invalid pointer
             if not proc_as:
                 continue
 
@@ -132,15 +166,21 @@ class linux_bash(linux_pslist.linux_pslist):
                     continue
 
                 for hist in task.bash_history_entries():
-                    yield task, hist     
+                    yield task, hist
 
-            else:    
+            else:
                 the_history_addr = the_history_addr = self._config.HISTORY_LIST
-                the_history = obj.Object("Pointer", vm = proc_as, offset = the_history_addr)
+                the_history = obj.Object(
+                    "Pointer", vm=proc_as, offset=the_history_addr
+                )
                 max_ents = 2001
-                the_history = obj.Object(theType = 'Array', offset = the_history, 
-                                         vm = proc_as, targetType = 'Pointer', 
-                                         count = max_ents)
+                the_history = obj.Object(
+                    theType='Array',
+                    offset=the_history,
+                    vm=proc_as,
+                    targetType='Pointer',
+                    count=max_ents,
+                )
 
                 for ptr in the_history:
                     if not ptr:
@@ -149,31 +189,50 @@ class linux_bash(linux_pslist.linux_pslist):
                         else:
                             break
 
-                    hist = ptr.dereference_as("_hist_entry")      
+                    hist = ptr.dereference_as("_hist_entry")
 
                     if hist.is_valid():
                         yield task, hist
 
     def unified_output(self, data):
-        return TreeGrid([("Pid", int),
-                       ("Name", str),
-                       ("CommandTime", str),
-                       ("Command", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Pid", int),
+                ("Name", str),
+                ("CommandTime", str),
+                ("Command", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for task, hist_entry in data:
-            yield (0, [int(task.pid), str(task.comm),
-                           str(hist_entry.time_object()), 
-                           str(hist_entry.line.dereference())])
-            
+            yield (
+                0,
+                [
+                    int(task.pid),
+                    str(task.comm),
+                    str(hist_entry.time_object()),
+                    str(hist_entry.line.dereference()),
+                ],
+            )
+
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Pid", "8"), 
-                                  ("Name", "20"),
-                                  ("Command Time", "30"),
-                                  ("Command", ""),])
-                                    
+        self.table_header(
+            outfd,
+            [
+                ("Pid", "8"),
+                ("Name", "20"),
+                ("Command Time", "30"),
+                ("Command", ""),
+            ],
+        )
+
         for task, hist_entry in data:
-            self.table_row(outfd, task.pid, task.comm, 
-                           hist_entry.time_object(), 
-                           hist_entry.line.dereference())
+            self.table_row(
+                outfd,
+                task.pid,
+                task.comm,
+                hist_entry.time_object(),
+                hist_entry.line.dereference(),
+            )

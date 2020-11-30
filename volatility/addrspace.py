@@ -31,7 +31,7 @@
 
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 import fractions
 import volatility.obj as obj
@@ -43,10 +43,11 @@ import volatility.debug as debug
 ## another module.
 PROFILES = {}
 
-class ASAssertionError(AssertionError):
 
+class ASAssertionError(AssertionError):
     def __init__(self, *args, **kwargs):
         AssertionError.__init__(self, *args, **kwargs)
+
 
 def check_valid_profile(option, _opt_str, value, parser):
     """Checks to make sure the selected profile is valid"""
@@ -61,10 +62,12 @@ def check_valid_profile(option, _opt_str, value, parser):
             debug.error("Invalid profile " + value + " selected")
         setattr(parser.values, option.dest, value)
 
+
 class BaseAddressSpace(object):
     """ This is the base class of all Address Spaces. """
+
     def __init__(self, base, config, *_args, **_kwargs):
-        """ base is the AS we will be stacking on top of, opts are
+        """base is the AS we will be stacking on top of, opts are
         options which we may use.
         """
         self.base = base
@@ -75,12 +78,22 @@ class BaseAddressSpace(object):
     @staticmethod
     def register_options(config):
         ## By default load the profile that the user asked for
-        config.add_option("PROFILE", default = "WinXPSP2x86", type = 'str',
-                          nargs = 1, action = "callback", callback = check_valid_profile,
-                          help = "Name of the profile to load (use --info to see a list of supported profiles)")
+        config.add_option(
+            "PROFILE",
+            default="WinXPSP2x86",
+            type='str',
+            nargs=1,
+            action="callback",
+            callback=check_valid_profile,
+            help="Name of the profile to load (use --info to see a list of supported profiles)",
+        )
 
-        config.add_option("LOCATION", default = None, short_option = 'l',
-                          help = "A URN location from which to load an address space")
+        config.add_option(
+            "LOCATION",
+            default=None,
+            short_option='l',
+            help="A URN location from which to load an address space",
+        )
 
     def get_config(self):
         """Returns the config object used by the vm for use in other vms"""
@@ -98,19 +111,23 @@ class BaseAddressSpace(object):
                 ret = profs[profile_name]()
                 PROFILES[profile_name] = ret
             else:
-                raise ASAssertionError("Invalid profile " + profile_name + " selected")
+                raise ASAssertionError(
+                    "Invalid profile " + profile_name + " selected"
+                )
         if not self.is_valid_profile(ret):
-            raise ASAssertionError("Incompatible profile " + profile_name + " selected")
+            raise ASAssertionError(
+                "Incompatible profile " + profile_name + " selected"
+            )
         return ret
 
-    def is_valid_profile(self, profile): #pylint: disable-msg=W0613
+    def is_valid_profile(self, profile):  # pylint: disable-msg=W0613
         """Determines whether a selected profile is compatible with this address space"""
         return True
 
-    def as_assert(self, assertion, error = None):
+    def as_assert(self, assertion, error=None):
         """Duplicate for the assert command (so that optimizations don't disable them)
-        
-           It had to be called as_assert, since assert is a keyword
+
+        It had to be called as_assert, since assert is a keyword
         """
         if not assertion:
             if error == None:
@@ -118,8 +135,11 @@ class BaseAddressSpace(object):
             raise ASAssertionError(error)
 
     def __eq__(self, other):
-        return (self.__class__ == other.__class__ and
-                self.profile == other.profile and self.base == other.base)
+        return (
+            self.__class__ == other.__class__
+            and self.profile == other.profile
+            and self.base == other.base
+        )
 
     def __ne__(self, other):
         return not self == other
@@ -131,10 +151,10 @@ class BaseAddressSpace(object):
         """ Read data from a certain offset padded with \x00 where data is not available """
 
     def get_available_addresses(self):
-        """ Return a generator of address ranges as (offset, size) covered by this AS sorted by offset.
+        """Return a generator of address ranges as (offset, size) covered by this AS sorted by offset.
 
-            The address ranges produced must be disjoint (no overlaps) and not be continuous
-            (there must be a gap between two ranges).
+        The address ranges produced must be disjoint (no overlaps) and not be continuous
+        (there must be a gap between two ranges).
         """
         raise StopIteration
 
@@ -145,13 +165,17 @@ class BaseAddressSpace(object):
     def write(self, _addr, _buf):
         if not self._config.WRITE:
             return False
-        raise NotImplementedError("Write support for this type of Address Space has not been implemented")
+        raise NotImplementedError(
+            "Write support for this type of Address Space has not been implemented"
+        )
 
     def __getstate__(self):
         """ Serialise this address space efficiently """
         ## FIXME: Note that types added/overridden in the config.PROFILE may bleed through
         ## into other plugins from the cache.  This needs fixing.
-        return dict(name = self.__class__.__name__, base = self.base, config = self._config)
+        return dict(
+            name=self.__class__.__name__, base=self.base, config=self._config
+        )
 
     def __setstate__(self, state):
         self.__init__(**state)
@@ -172,10 +196,10 @@ class BaseAddressSpace(object):
         return cls.address_compare(a, b) == 0
 
     def physical_space(self):
-        """Return the underlying physical layer, if there is one. 
+        """Return the underlying physical layer, if there is one.
 
-        This cycles through the base address spaces and returns 
-        the first one that's not an ancestor of a virtual space. 
+        This cycles through the base address spaces and returns
+        the first one that's not an ancestor of a virtual space.
         """
         b = self.base
 
@@ -186,9 +210,10 @@ class BaseAddressSpace(object):
 
         return self
 
+
 class AbstractDiscreteAllocMemory(BaseAddressSpace):
-    """A class based on memory stored as discrete allocations.
-    """
+    """A class based on memory stored as discrete allocations."""
+
     minimum_size = None
     alignment_gcd = None
 
@@ -196,15 +221,19 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
         BaseAddressSpace.__init__(self, base, config, *args, **kwargs)
 
     def translate(self, vaddr):
-        raise NotImplementedError("This is an abstract method and should not be referenced directly")
+        raise NotImplementedError(
+            "This is an abstract method and should not be referenced directly"
+        )
 
     def get_available_allocs(self):
         """A generator that returns (addr, size) for each of the virtual addresses present, sorted by offset"""
-        raise NotImplementedError("This is an abstract method and should not be referenced directly")
+        raise NotImplementedError(
+            "This is an abstract method and should not be referenced directly"
+        )
 
     def calculate_alloc_stats(self):
         """Calculates the minimum_size and alignment_gcd to determine "virtual allocs" when read lengths of data
-           It's particularly important to cast all numbers to ints, since they're used a lot and object take effort to reread.
+        It's particularly important to cast all numbers to ints, since they're used a lot and object take effort to reread.
         """
         available_allocs = list(self.get_available_allocs())
 
@@ -218,13 +247,17 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
         self.alignment_gcd = int(accumulator)
         # Pick an arbitrary cut-off that'll lead to too many reads
         if self.alignment_gcd < 0x4:
-            debug.warning("Alignment of " + self.__class__.__name__ + " is too small, plugins will be extremely slow")
+            debug.warning(
+                "Alignment of "
+                + self.__class__.__name__
+                + " is too small, plugins will be extremely slow"
+            )
 
-    def _read(self, addr, length, pad = False):
+    def _read(self, addr, length, pad=False):
         """Reads length bytes at the address addr
 
-           If pad is False, this can return None if some of the address space is empty
-           If pad is True, any read errors result in "\x00" bytes filling the missing read locations
+        If pad is False, this can return None if some of the address space is empty
+        If pad is True, any read errors result in "\x00" bytes filling the missing read locations
         """
 
         if not self.alignment_gcd or not self.minimum_size:
@@ -239,7 +272,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
         # For each allocation...
         while remaining > 0:
             # Determine whether we're within an alloc or not
-            alloc_remaining = (self.alignment_gcd - (addr % self.alignment_gcd))
+            alloc_remaining = self.alignment_gcd - (addr % self.alignment_gcd)
             # Try to jump out early
             paddr = self.translate(position)
             datalen = min(remaining, alloc_remaining)
@@ -258,39 +291,61 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
                     data = read(paddr, datalen)
                 else:
                     if not pad:
-                        return obj.NoneObject("Could not read_chunks from addr " + hex(position) + " of size " + hex(datalen))
+                        return obj.NoneObject(
+                            "Could not read_chunks from addr "
+                            + hex(position)
+                            + " of size "
+                            + hex(datalen)
+                        )
                     data = "\x00" * datalen
                 buff.append(data)
                 lenbuff += len(data)
             position += datalen
             remaining -= datalen
-            assert (addr + length == position + remaining), "Address + length != position + remaining (" + hex(addr + length) + " != " + hex(position + remaining) + ") in " + self.base.__class__.__name__
-            assert (position - addr == lenbuff), "Position - address != len(buff) (" + str(position - addr) + " != " + str(lenbuff) + ") in " + self.base.__class__.__name__
+            assert addr + length == position + remaining, (
+                "Address + length != position + remaining ("
+                + hex(addr + length)
+                + " != "
+                + hex(position + remaining)
+                + ") in "
+                + self.base.__class__.__name__
+            )
+            assert position - addr == lenbuff, (
+                "Position - address != len(buff) ("
+                + str(position - addr)
+                + " != "
+                + str(lenbuff)
+                + ") in "
+                + self.base.__class__.__name__
+            )
         return "".join(buff)
 
     def read(self, addr, length):
-        '''
+        """
         This method reads 'length' bytes from the specified 'addr'.
         If any range is unavailable it returns None.
-        '''
+        """
         return self._read(addr, length, False)
 
     def zread(self, addr, length):
-        '''
+        """
         This method reads 'length' bytes from the specified 'addr'.
         If any range is unavailable it pads the region with zeros.
-        '''
+        """
         return self._read(addr, length, True)
+
 
 class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
     """A class based on memory stored as separate segments.
 
-       @var runs: Stores an ordered list of the segments or runs
-                  A run is a tuple of (input/domain/virtual address, output/range/physical address, size of segment)
+    @var runs: Stores an ordered list of the segments or runs
+               A run is a tuple of (input/domain/virtual address, output/range/physical address, size of segment)
     """
 
     def __init__(self, base, config, *args, **kwargs):
-        AbstractDiscreteAllocMemory.__init__(self, base, config, *args, **kwargs)
+        AbstractDiscreteAllocMemory.__init__(
+            self, base, config, *args, **kwargs
+        )
         self.runs = []
         self.header = None
 
@@ -344,7 +399,7 @@ class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
         return [start, size]
 
     def write(self, phys_addr, buf):
-        """This is mostly for support of raw2dmp so that 
+        """This is mostly for support of raw2dmp so that
         it can modify the kernel CONTEXT after the crash
         dump has been written to disk"""
 
@@ -358,40 +413,52 @@ class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
 
         return self.base.write(file_addr, buf)
 
+
 class AbstractVirtualAddressSpace(AbstractDiscreteAllocMemory):
     """Base Ancestor for all Virtual address spaces, as determined by astype"""
-    def __init__(self, base, config, astype = 'virtual', *args, **kwargs):
-        AbstractDiscreteAllocMemory.__init__(self, base, config, astype = astype, *args, **kwargs)
-        self.as_assert(astype == 'virtual' or astype == 'any', "User requested non-virtual AS")
+
+    def __init__(self, base, config, astype='virtual', *args, **kwargs):
+        AbstractDiscreteAllocMemory.__init__(
+            self, base, config, astype=astype, *args, **kwargs
+        )
+        self.as_assert(
+            astype == 'virtual' or astype == 'any',
+            "User requested non-virtual AS",
+        )
 
     def vtop(self, vaddr):
-        raise NotImplementedError("This is an abstract method and should not be referenced directly")
+        raise NotImplementedError(
+            "This is an abstract method and should not be referenced directly"
+        )
 
     def translate(self, vaddr):
         return self.vtop(vaddr)
+
 
 ## This is a specialised AS for use internally - Its used to provide
 ## transparent support for a string buffer so types can be
 ## instantiated off the buffer.
 class BufferAddressSpace(BaseAddressSpace):
-    def __init__(self, config, base_offset = 0, data = '', **kwargs):
+    def __init__(self, config, base_offset=0, data='', **kwargs):
         BaseAddressSpace.__init__(self, None, config, **kwargs)
         self.fname = "Buffer"
         self.data = data
         self.base_offset = base_offset
 
-    def assign_buffer(self, data, base_offset = 0):
+    def assign_buffer(self, data, base_offset=0):
         self.base_offset = base_offset
         self.data = data
 
     def is_valid_address(self, addr):
         if self.data == None:
             return False
-        return not (addr < self.base_offset or addr > self.base_offset + len(self.data))
+        return not (
+            addr < self.base_offset or addr > self.base_offset + len(self.data)
+        )
 
     def read(self, addr, length):
         offset = addr - self.base_offset
-        return self.data[offset: offset + length]
+        return self.data[offset : offset + length]
 
     def zread(self, addr, length):
         return self.read(addr, length)
@@ -399,7 +466,7 @@ class BufferAddressSpace(BaseAddressSpace):
     def write(self, addr, data):
         if not self._config.WRITE:
             return False
-        self.data = self.data[:addr] + data + self.data[addr + len(data):]
+        self.data = self.data[:addr] + data + self.data[addr + len(data) :]
         return True
 
     def get_available_addresses(self):

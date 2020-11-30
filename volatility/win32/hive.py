@@ -18,7 +18,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """
 @author:       Brendan Dolan-Gavitt
@@ -32,7 +32,9 @@ import volatility.win32 as win32
 import struct
 import sys
 
-FILTER = ''.join([(len(repr(chr(x))) == 3) and chr(x) or '.' for x in range(256)])
+FILTER = ''.join(
+    [(len(repr(chr(x))) == 3) and chr(x) or '.' for x in range(256)]
+)
 
 CI_TYPE_MASK = 0x80000000
 CI_TYPE_SHIFT = 0x1F
@@ -45,6 +47,7 @@ CI_OFF_SHIFT = 0x0
 
 BLOCK_SIZE = 0x1000
 
+
 class HiveAddressSpace(addrspace.BaseAddressSpace):
     def __init__(self, base, config, hive_addr, **kwargs):
         addrspace.BaseAddressSpace.__init__(self, base, config)
@@ -52,10 +55,17 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
 
         # Win10_17063 introduced the Registry process, change base to its address space
         meta = self.profile.metadata
-        version = (meta.get("major", 0), meta.get("minor", 0), meta.get("build", 0))
+        version = (
+            meta.get("major", 0),
+            meta.get("minor", 0),
+            meta.get("build", 0),
+        )
         if version >= (6, 4, 17063):
             for t in win32.tasks.pslist(self.base):
-                if str(t.ImageFileName) == "Registry" and int(t.InheritedFromUniqueProcessId) == 4:
+                if (
+                    str(t.ImageFileName) == "Registry"
+                    and int(t.InheritedFromUniqueProcessId) == 4
+                ):
                     reg_proc = t
                     break
             if reg_proc:
@@ -63,7 +73,9 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
             else:
                 ## If we get here we couldn't find the Registry process so address translation
                 ## probably won't work
-                debug.warning("Couldn't locate Registry process. Registry address translation may fail.")
+                debug.warning(
+                    "Couldn't locate Registry process. Registry address translation may fail."
+                )
         else:
             self.base = base
 
@@ -87,11 +99,16 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
         ci_block = (vaddr & CI_BLOCK_MASK) >> CI_BLOCK_SHIFT
         ci_off = (vaddr & CI_OFF_MASK) >> CI_OFF_SHIFT
 
-        block = self.hive.Storage[ci_type].Map.Directory[ci_table].Table[ci_block].BlockAddress
+        block = (
+            self.hive.Storage[ci_type]
+            .Map.Directory[ci_table]
+            .Table[ci_block]
+            .BlockAddress
+        )
 
         return block + ci_off + 4
 
-    def read(self, vaddr, length, zero = False):
+    def read(self, vaddr, length, zero=False):
         length = int(length)
         vaddr = int(vaddr)
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
@@ -166,7 +183,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
             return False
         return self.base.is_valid_address(vaddr)
 
-    def save(self, outf, summary = sys.stdout):
+    def save(self, outf, summary=sys.stdout):
         baseblock = self.base.read(self.baseblock, BLOCK_SIZE)
         if baseblock:
             outf.write(baseblock)
@@ -182,15 +199,23 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
                 paddr = paddr - 4
                 data = self.base.read(paddr, BLOCK_SIZE)
             else:
-                summary.write("No mapping found for index {0:x}, filling with NULLs\n".format(i))
+                summary.write(
+                    "No mapping found for index {0:x}, filling with NULLs\n".format(
+                        i
+                    )
+                )
 
             if not data:
-                summary.write("Physical layer returned None for index {0:x}, filling with NULL\n".format(i))
+                summary.write(
+                    "Physical layer returned None for index {0:x}, filling with NULL\n".format(
+                        i
+                    )
+                )
                 data = '\0' * BLOCK_SIZE
 
             outf.write(data)
 
-    def stats(self, stable = True):
+    def stats(self, stable=True):
         if stable:
             stor = 0
             ci = lambda x: x
@@ -217,9 +242,18 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
                 bad_blocks_mem += 1
 
         print("{0} bytes in hive.".format(length))
-        print("{0} blocks not loaded by CM, {1} blocks paged out, {2} total blocks.".format(bad_blocks_reg, bad_blocks_mem, total_blocks))
+        print(
+            "{0} blocks not loaded by CM, {1} blocks paged out, {2} total blocks.".format(
+                bad_blocks_reg, bad_blocks_mem, total_blocks
+            )
+        )
         if total_blocks:
-            print("Total of {0:.2f}% of hive unreadable.".format(((bad_blocks_reg + bad_blocks_mem) / float(total_blocks)) * 100))
+            print(
+                "Total of {0:.2f}% of hive unreadable.".format(
+                    ((bad_blocks_reg + bad_blocks_mem) / float(total_blocks))
+                    * 100
+                )
+            )
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
@@ -232,7 +266,7 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
     def vtop(self, vaddr):
         return vaddr + BLOCK_SIZE + 4
 
-    def read(self, vaddr, length, zero = False):
+    def read(self, vaddr, length, zero=False):
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
         full_blocks = ((length + (vaddr % BLOCK_SIZE)) / BLOCK_SIZE) - 1
         left_over = (length + vaddr) % BLOCK_SIZE

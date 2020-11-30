@@ -9,6 +9,7 @@ import volatility.plugins.connscan as connscan
 import volatility.plugins.netscan as netscan
 import volatility.plugins.malware.callbacks as callbacks
 
+
 class MultiScan(common.AbstractScanCommand):
     """Scan for various objects at once"""
 
@@ -25,13 +26,15 @@ class MultiScan(common.AbstractScanCommand):
             modscan.PoolScanThread,
             atoms.PoolScanAtom,
             windowstations.PoolScanWind,
-            ]
+        ]
 
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
-        version = (addr_space.profile.metadata.get("major", 0), 
-                   addr_space.profile.metadata.get("minor", 0))
+        version = (
+            addr_space.profile.metadata.get("major", 0),
+            addr_space.profile.metadata.get("minor", 0),
+        )
 
         if version < (6, 0):
             self.scanners.append(sockscan.PoolScanSocket)
@@ -49,7 +52,6 @@ class MultiScan(common.AbstractScanCommand):
         self.scanners.append(callbacks.PoolScanFSCallback)
         self.scanners.append(callbacks.PoolScanShutdownCallback)
         self.scanners.append(callbacks.PoolScanGenericCallback)
-
 
         for objct in self.scan_results(addr_space):
             yield objct

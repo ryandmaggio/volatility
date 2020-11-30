@@ -32,49 +32,74 @@ import volatility.plugins.linux.common as linux_common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class linux_check_modules(linux_common.AbstractLinuxCommand):
     """Compares module list to sysfs info, if available"""
 
     def get_kset_modules(self):
         module_kset_addr = self.profile.get_symbol("module_kset")
         if not module_kset_addr:
-            debug.error("This command is not supported by this profile.") 
+            debug.error("This command is not supported by this profile.")
 
         ret = {}
 
-        module_kset = obj.Object("kset", offset = module_kset_addr, vm = self.addr_space)
-    
+        module_kset = obj.Object(
+            "kset", offset=module_kset_addr, vm=self.addr_space
+        )
+
         for kobj in module_kset.list.list_of_type("kobject", "entry"):
             kobj_off = self.profile.get_obj_offset("module_kobject", "kobj")
-            mod_kobj = obj.Object("module_kobject", offset = kobj.v() - kobj_off, vm = self.addr_space)            
+            mod_kobj = obj.Object(
+                "module_kobject",
+                offset=kobj.v() - kobj_off,
+                vm=self.addr_space,
+            )
             mod = mod_kobj.mod
 
-            name = kobj.name.dereference_as("String", length = 32)
+            name = kobj.name.dereference_as("String", length=32)
             if name.is_valid() and kobj.reference_count() > 2:
                 ret[str(name)] = mod
-    
+
         return ret
 
     def calculate(self):
         linux_common.set_plugin_members(self)
 
         kset_modules = self.get_kset_modules()
-        
-        lsmod_modules = set([str(module.name) for (module, params, sects) in linux_lsmod.linux_lsmod(self._config).calculate()])
-            
+
+        lsmod_modules = set(
+            [
+                str(module.name)
+                for (module, params, sects) in linux_lsmod.linux_lsmod(
+                    self._config
+                ).calculate()
+            ]
+        )
+
         for mod_name in set(kset_modules.keys()).difference(lsmod_modules):
             yield kset_modules[mod_name]
 
     def unified_output(self, data):
-        return TreeGrid([("ModuleAddress", Address),
-                       ("ModuleName", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [("ModuleAddress", Address), ("ModuleName", str)],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for mod in data:
             yield (0, [Address(mod), str(mod.name)])
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Module Address", "[address]"), ("Core Address", "[address]"), ("Init Address", "[addreess]"), ("Module Name", "24")])
+        self.table_header(
+            outfd,
+            [
+                ("Module Address", "[address]"),
+                ("Core Address", "[address]"),
+                ("Init Address", "[addreess]"),
+                ("Module Name", "24"),
+            ],
+        )
         for mod in data:
-            self.table_row(outfd, mod, mod.module_core, mod.module_init, str(mod.name))
+            self.table_row(
+                outfd, mod, mod.module_core, mod.module_init, str(mod.name)
+            )

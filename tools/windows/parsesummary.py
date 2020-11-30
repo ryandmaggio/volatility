@@ -15,8 +15,10 @@ parsesummary.py [summary_file]
 
 """
 
+
 def usage(name):
     print("{0} [summary_file]".format(name))
+
 
 def main():
     try:
@@ -46,23 +48,34 @@ def main():
                 present = vacb.get("present", None)
                 padding = vacb.get("pad", None)
                 if present != None:
-                    print("\tPresent Pages:") 
+                    print("\tPresent Pages:")
                     for page in present:
-                        print("\t\tOffset(V): 0x{0:x}, Length: {1}".format(page[0], page[1]))
-            
+                        print(
+                            "\t\tOffset(V): 0x{0:x}, Length: {1}".format(
+                                page[0], page[1]
+                            )
+                        )
+
         else:
             present = item.get("present", None)
             if present != None:
                 print("\tPresent Pages:")
                 if item["type"] != "SharedCacheMap":
                     for page in present:
-                        print("\t\tOffset(P) 0x{0:x} FileOffset: 0x{1:x}, Size: {2}".format(page[0], page[1], page[2]))
+                        print(
+                            "\t\tOffset(P) 0x{0:x} FileOffset: 0x{1:x}, Size: {2}".format(
+                                page[0], page[1], page[2]
+                            )
+                        )
             padding = item.get("pad", None)
         if padding != None:
             print("\tPadding:")
             for pad in padding:
-                print("\t\tFileOffset: 0x{0:x} x 0x{1:x}".format(pad[0], pad[1]))
+                print(
+                    "\t\tFileOffset: 0x{0:x} x 0x{1:x}".format(pad[0], pad[1])
+                )
     print(heading)
+
 
 if __name__ == "__main__":
     main()

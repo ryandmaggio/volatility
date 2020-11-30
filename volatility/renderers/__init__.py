@@ -7,12 +7,16 @@ import types
 
 Column = collections.namedtuple('Column', ['index', 'name', 'type'])
 
+
 class TreePopulationError(Exception):
     """Exception class for accessing functions on an partially populated tree."""
+
     pass
+
 
 class TreeNode(collections.Sequence):
     """Class representing a particular node in a tree grid"""
+
     def __init__(self, path, treegrid, parent, values):
         if not isinstance(treegrid, TreeGrid):
             raise TypeError("Treegrid must be an instance of TreeGrid")
@@ -33,17 +37,28 @@ class TreeNode(collections.Sequence):
 
     def _validate_values(self, values):
         """A function for raising exceptions if a given set of values is invalid according to the column properties."""
-        if not (isinstance(values, list) and len(values) == len(self._treegrid.columns)):
+        if not (
+            isinstance(values, list)
+            and len(values) == len(self._treegrid.columns)
+        ):
             raise TypeError(
-                "Values must be a list of objects made up of simple types and number the same as the columns")
+                "Values must be a list of objects made up of simple types and number the same as the columns"
+            )
         for index in range(len(self._treegrid.columns)):
             column = self._treegrid.columns[index]
             if not isinstance(values[index], column.type):
                 if not (type(values[index]) == int and column.type == int):
                     raise TypeError(
-                    "Values item with index " + repr(index) + " is the wrong type for column " + \
-                    repr(column.name) + " (got " + str(type(values[index])) + " but expected " + \
-                    str(column.type) + ")")
+                        "Values item with index "
+                        + repr(index)
+                        + " is the wrong type for column "
+                        + repr(column.name)
+                        + " (got "
+                        + str(type(values[index]))
+                        + " but expected "
+                        + str(column.type)
+                        + ")"
+                    )
 
     @property
     def values(self):
@@ -69,17 +84,20 @@ class TreeNode(collections.Sequence):
         """Return the path depth of the current node"""
         return len(self.path.split(TreeGrid.path_sep))
 
-    def path_changed(self, path, added = False):
+    def path_changed(self, path, added=False):
         """Updates the path based on the addition or removal of a node higher up in the tree
 
-           This should only be called by the containing TreeGrid and expects to only be called for affected nodes.
+        This should only be called by the containing TreeGrid and expects to only be called for affected nodes.
         """
         components = self._path.split(TreeGrid.path_sep)
         changed = path.split(TreeGrid.path_sep)
         changed_index = len(changed) - 1
         if int(components[changed_index]) >= int(changed[-1]):
-            components[changed_index] = str(int(components[changed_index]) + (1 if added else -1))
+            components[changed_index] = str(
+                int(components[changed_index]) + (1 if added else -1)
+            )
         self._path = TreeGrid.path_sep.join(components)
+
 
 class TreeGrid(object):
     """Class providing the interface for a TreeGrid (which contains TreeNodes)
@@ -111,16 +129,30 @@ class TreeGrid(object):
         self._children = []
         converted_columns = []
         if len(columns) < 1:
-            raise ValueError("Columns must be a list containing at least one column")
+            raise ValueError(
+                "Columns must be a list containing at least one column"
+            )
         for (name, column_type) in columns:
             is_simple_type = False
             for stype in self.simple_types:
-                is_simple_type = is_simple_type or issubclass(column_type, stype)
+                is_simple_type = is_simple_type or issubclass(
+                    column_type, stype
+                )
             if not is_simple_type:
-                raise TypeError("Column " + name + "'s type " + column_type.__class__.__name__ +
-                                " is not a simple type")
-            converted_columns.append(Column(len(converted_columns), name, column_type))
-        self.RowStructure = collections.namedtuple("RowStructure", [self._sanitize(column.name) for column in converted_columns])
+                raise TypeError(
+                    "Column "
+                    + name
+                    + "'s type "
+                    + column_type.__class__.__name__
+                    + " is not a simple type"
+                )
+            converted_columns.append(
+                Column(len(converted_columns), name, column_type)
+            )
+        self.RowStructure = collections.namedtuple(
+            "RowStructure",
+            [self._sanitize(column.name) for column in converted_columns],
+        )
         self._columns = converted_columns
         if generator is None:
             generator = []
@@ -132,13 +164,17 @@ class TreeGrid(object):
         output = ""
         for letter in text.lower():
             if letter != ' ':
-                output += (letter if letter in '0123456789abcdefghiljklmnopqrstuvwxyz_' else '_')
+                output += (
+                    letter
+                    if letter in '0123456789abcdefghiljklmnopqrstuvwxyz_'
+                    else '_'
+                )
         return output
 
-    def populate(self, func = None, initial_accumulator = None):
+    def populate(self, func=None, initial_accumulator=None):
         """Generator that returns the next available Node
 
-           This is equivalent to a one-time visit.
+        This is equivalent to a one-time visit.
         """
         accumulator = initial_accumulator
         if func is None:
@@ -148,9 +184,11 @@ class TreeGrid(object):
             prev_nodes = []
             for (level, item) in self._generator:
                 parent_index = min(len(prev_nodes), level)
-                parent = prev_nodes[parent_index - 1] if parent_index > 0 else None
+                parent = (
+                    prev_nodes[parent_index - 1] if parent_index > 0 else None
+                )
                 treenode = self._append(parent, item)
-                prev_nodes = prev_nodes[0: parent_index] + [treenode]
+                prev_nodes = prev_nodes[0:parent_index] + [treenode]
                 accumulator = func(treenode, accumulator)
         self._populated = True
 
@@ -171,7 +209,7 @@ class TreeGrid(object):
     def _find_children(self, node):
         """Returns the children list associated with a particular node
 
-           Returns None if the node does not exist
+        Returns None if the node does not exist
         """
         children = self._children
         try:
@@ -185,7 +223,7 @@ class TreeGrid(object):
     def values(self, node):
         """Returns the values for a particular node
 
-           The values returned are mutable,
+        The values returned are mutable,
         """
         if node is None:
             raise ValueError("Node must be a valid node within the TreeGrid")
@@ -211,7 +249,9 @@ class TreeGrid(object):
         newpath = parent_path + str(position)
         tree_item = TreeNode(newpath, self, parent, values)
         for node, _ in children[position:]:
-            self.visit(node, lambda child, _: child.path_changed(newpath, True))
+            self.visit(
+                node, lambda child, _: child.path_changed(newpath, True)
+            )
         children.insert(position, (tree_item, []))
         return tree_item
 
@@ -225,24 +265,27 @@ class TreeGrid(object):
 
     def max_depth(self):
         """Returns the maximum depth of the tree"""
-        return self.visit(None, lambda n, a: max(a, self.path_depth(n)), )
+        return self.visit(
+            None,
+            lambda n, a: max(a, self.path_depth(n)),
+        )
 
     def path_is_valid(self, node):
         """Returns True is a given path is valid for this treegrid"""
         return node in self.children(node.parent)
 
-    def visit(self, node, function, initial_accumulator = None, sort_key = None):
+    def visit(self, node, function, initial_accumulator=None, sort_key=None):
         """Visits all the nodes in a tree, calling function on each one.
 
-           function should have the signature function(node, accumulator) and return new_accumulator
-           If accumulators are not needed, the function must still accept a second parameter.
+        function should have the signature function(node, accumulator) and return new_accumulator
+        If accumulators are not needed, the function must still accept a second parameter.
 
-           The order of that the nodes are visited is always depth first, however, the order children are traversed can
-           be set based on a sort_key function which should accept a node's values and return something that can be
-           sorted to receive the desired order (similar to the sort/sorted key).
+        The order of that the nodes are visited is always depth first, however, the order children are traversed can
+        be set based on a sort_key function which should accept a node's values and return something that can be
+        sorted to receive the desired order (similar to the sort/sorted key).
 
-           We use the private _find_children function so that we don't have to re-traverse the tree
-           for every node we descend further down
+        We use the private _find_children function so that we don't have to re-traverse the tree
+        for every node we descend further down
         """
         if not self.populated:
             self.populate()
@@ -256,19 +299,28 @@ class TreeGrid(object):
             accumulator = function(node, initial_accumulator)
         if children is not None:
             if sort_key is not None:
-                children = sorted(children, key = lambda x_y1: sort_key(x_y1[0].values))
-            accumulator = self._visit(children, function, accumulator, sort_key)
+                children = sorted(
+                    children, key=lambda x_y1: sort_key(x_y1[0].values)
+                )
+            accumulator = self._visit(
+                children, function, accumulator, sort_key
+            )
         return accumulator
 
-    def _visit(self, list_of_children, function, accumulator, sort_key = None):
+    def _visit(self, list_of_children, function, accumulator, sort_key=None):
         """Visits all the nodes in a tree, calling function on each one"""
         if list_of_children is not None:
             for n, children in list_of_children:
                 accumulator = function(n, accumulator)
                 if sort_key is not None:
-                    children = sorted(children, key = lambda x_y: sort_key(x_y[0].values))
-                accumulator = self._visit(children, function, accumulator, sort_key)
+                    children = sorted(
+                        children, key=lambda x_y: sort_key(x_y[0].values)
+                    )
+                accumulator = self._visit(
+                    children, function, accumulator, sort_key
+                )
         return accumulator
+
 
 class ColumnSortKey(object):
     def __init__(self, treegrid, column_name):
@@ -277,7 +329,9 @@ class ColumnSortKey(object):
             if i.name.lower() == column_name.lower():
                 self._index = i.index
         if self._index is None:
-            raise ValueError("Column " + column_name + " not found in TreeGrid columns")
+            raise ValueError(
+                "Column " + column_name + " not found in TreeGrid columns"
+            )
 
     def key(self, values):
         """The key function passed as the sort key"""

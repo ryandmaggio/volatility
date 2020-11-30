@@ -29,31 +29,43 @@ import volatility.plugins.mac.pstasks as pstasks
 import volatility.plugins.mac.common as common
 from volatility.renderers import TreeGrid
 
+
 class mac_lsof(pstasks.mac_tasks):
     """ Lists per-process opened files """
 
     def unified_output(self, data):
-        return TreeGrid([("PID",int),
-                        ("File Descriptor", int),
-                        ("File Path", str),
-                        ], self.generator(data))
+        return TreeGrid(
+            [
+                ("PID", int),
+                ("File Descriptor", int),
+                ("File Path", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for proc in data:
             for (_, filepath, fd) in proc.lsof():
                 if filepath:
-                    yield(0, [
-                          int(proc.p_pid),
-                          int(fd),
-                          str(filepath),
-                          ])
+                    yield (
+                        0,
+                        [
+                            int(proc.p_pid),
+                            int(fd),
+                            str(filepath),
+                        ],
+                    )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("PID","8"),
-                                  ("File Descriptor", "6"),
-                                  ("File Path", ""),
-                                 ])
- 
+        self.table_header(
+            outfd,
+            [
+                ("PID", "8"),
+                ("File Descriptor", "6"),
+                ("File Path", ""),
+            ],
+        )
+
         for proc in data:
             for (_, filepath, fd) in proc.lsof():
                 if filepath:

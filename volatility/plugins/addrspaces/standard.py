@@ -26,18 +26,19 @@
 """ These are standard address spaces supported by Volatility """
 import struct
 import volatility.addrspace as addrspace
-import volatility.debug as debug #pylint: disable-msg=W0611
+import volatility.debug as debug  # pylint: disable-msg=W0611
 import urllib.request, urllib.parse, urllib.error
 import os
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
+
 
 def write_callback(option, _opt_str, _value, parser, *_args, **_kwargs):
     """Callback function to ensure that write support is only enabled if user repeats a long string
 
-       This call back checks whether the user really wants write support and then either enables it
-       (for all future parses) by changing the option to store_true, or disables it permanently
-       by ensuring all future attempts to store the value store_false.
+    This call back checks whether the user really wants write support and then either enables it
+    (for all future parses) by changing the option to store_true, or disables it permanently
+    by ensuring all future attempts to store the value store_false.
     """
     if not hasattr(parser.values, 'write'):
         # We don't want to use config.outfile, since this should always be seen by the user
@@ -46,16 +47,20 @@ def write_callback(option, _opt_str, _value, parser, *_args, **_kwargs):
         parser.values.write = False
         for _ in range(3):
             testphrase = "Yes, I want to enable write support"
-            response = input("Write support requested.  Please type \"" + testphrase +
-                                 "\" below precisely (case-sensitive):\n")
+            response = input(
+                "Write support requested.  Please type \""
+                + testphrase
+                + "\" below precisely (case-sensitive):\n"
+            )
             if response == testphrase:
                 option.action = "store_true"
                 parser.values.write = True
                 return
         print("Write support disabled.")
 
+
 class FileAddressSpace(addrspace.BaseAddressSpace):
-    """ This is a direct file AS.
+    """This is a direct file AS.
 
     For this AS to be instantiated, we need
 
@@ -66,15 +71,22 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     3) base == None (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
+
     ## We should be the AS of last resort
     order = 100
-    def __init__(self, base, config, layered = False, **kwargs):
+
+    def __init__(self, base, config, layered=False, **kwargs):
         addrspace.BaseAddressSpace.__init__(self, base, config, **kwargs)
         self.as_assert(base == None or layered, 'Must be first Address Space')
-        self.as_assert(config.LOCATION.startswith("file://"), 'Location is not of file scheme')
+        self.as_assert(
+            config.LOCATION.startswith("file://"),
+            'Location is not of file scheme',
+        )
 
         path = urllib.request.url2pathname(config.LOCATION[7:])
-        self.as_assert(os.path.exists(path), 'Filename must be specified and exist')
+        self.as_assert(
+            os.path.exists(path), 'Filename must be specified and exist'
+        )
         self.name = os.path.abspath(path)
         self.fname = self.name
         self.mode = 'rb'
@@ -88,8 +100,14 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     # Abstract Classes cannot register options, and since this checks config.WRITE in __init__, we define the option here
     @staticmethod
     def register_options(config):
-        config.add_option("WRITE", short_option = 'w', action = "callback", default = False,
-                          help = "Enable write support", callback = write_callback)
+        config.add_option(
+            "WRITE",
+            short_option='w',
+            action="callback",
+            default=False,
+            help="Enable write support",
+            callback=write_callback,
+        )
 
     def fread(self, length):
         length = int(length)
@@ -116,7 +134,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
 
     def read_long(self, addr):
         string = self.read(addr, 4)
-        longval, = self._long_struct.unpack(string)
+        (longval,) = self._long_struct.unpack(string)
         return longval
 
     def get_available_addresses(self):
@@ -143,5 +161,9 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         return True
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.base == other.base and hasattr(other, "fname") and self.fname == other.fname
-
+        return (
+            self.__class__ == other.__class__
+            and self.base == other.base
+            and hasattr(other, "fname")
+            and self.fname == other.fname
+        )

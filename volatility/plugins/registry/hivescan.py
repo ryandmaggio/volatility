@@ -25,14 +25,15 @@
 @organization: Volatility Foundation
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
-import volatility.utils as utils 
+import volatility.utils as utils
 import volatility.poolscan as poolscan
 import volatility.plugins.common as common
 import volatility.plugins.bigpagepools as bigpools
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
+
 
 class PoolScanHive(poolscan.PoolScanner):
     """Pool scanner for registry hives"""
@@ -42,9 +43,10 @@ class PoolScanHive(poolscan.PoolScanner):
         self.struct_name = "_CMHIVE"
         self.pooltag = "CM10"
         size = self.address_space.profile.get_obj_size("_CMHIVE")
-        self.checks = [ 
-                   ('CheckPoolSize', dict(condition = lambda x: x >= size)),
-                   ]
+        self.checks = [
+            ('CheckPoolSize', dict(condition=lambda x: x >= size)),
+        ]
+
 
 class HiveScan(common.AbstractScanCommand):
     """Pool scanner for registry hives"""
@@ -53,14 +55,14 @@ class HiveScan(common.AbstractScanCommand):
     # Declare meta information associated with this plugin
 
     meta_info = dict(
-        author = 'Brendan Dolan-Gavitt',
-        copyright = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt',
-        contact = 'bdolangavitt@wesleyan.edu',
-        license = 'GNU General Public License 2.0',
-        url = 'http://moyix.blogspot.com/',
-        os = 'WIN_32_XP_SP2',
-        version = '1.0',
-        )
+        author='Brendan Dolan-Gavitt',
+        copyright='Copyright (c) 2007,2008 Brendan Dolan-Gavitt',
+        contact='bdolangavitt@wesleyan.edu',
+        license='GNU General Public License 2.0',
+        url='http://moyix.blogspot.com/',
+        os='WIN_32_XP_SP2',
+        version='1.0',
+    )
 
     def calculate(self):
         addr_space = utils.load_as(self._config)
@@ -77,12 +79,11 @@ class HiveScan(common.AbstractScanCommand):
                 yield result
 
     def unified_output(self, data):
-        return TreeGrid([("Offset(P)", Address)],
-                        self.generator(data))
+        return TreeGrid([("Offset(P)", Address)], self.generator(data))
 
     def generator(self, data):
         for hive in data:
-            yield(0, [Address(hive.obj_offset)])
+            yield (0, [Address(hive.obj_offset)])
 
     def render_text(self, outfd, data):
         self.table_header(outfd, [('Offset(P)', '[addrpad]')])

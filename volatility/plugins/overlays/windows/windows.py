@@ -37,120 +37,217 @@ import volatility.win32.hive as hivemod
 # files, collecting debugging symbol data etc. This file defines
 # fixups and improvements to the standard types.
 windows_overlay = {
-    'VOLATILITY_MAGIC' : [None, {
-    # Profile specific values
-    'DTBSignature' : [ 0x0, ['VolatilityMagic', dict(value = "Volatility DTBSignature unspecified")]],
-    'KUSER_SHARED_DATA' : [ 0x0, ['VolatilityMagic', dict(value = 0xFFDF0000)]],
-    'KDBGHeader' : [ 0x0, ['VolatilityMagic', dict(value = 'Volatility KDBGHeader unspecified')]],
-    # Configuration options
-    'DTB' : [ 0x0, ['VolatilityDTB', dict(configname = "DTB")]],
-    'KPCR' : [ 0x0, ['VolatilityMagic', dict(value = 0xffdff000, configname = "KPCR")]],
-    'KDBG' : [ 0x0, ['VolatilityKDBG', dict(configname = "KDBG")]],
-    'IA32ValidAS': [ 0x0, ['VolatilityIA32ValidAS']],
-    'AMD64ValidAS': [ 0x0, ['VolatilityAMD64ValidAS']],
-    # Pool allocations are aligned to this many bytes.
-    'PoolAlignment': [0x0, ['VolatilityMagic', dict(value = 8)]],
-    #hibrfil.sys values
-    'HibrProcPage': [0x0, ['VolatilityMagic', dict(value = 0x0)]],
-    'HibrEntryCount': [0x0, ['VolatilityMagic', dict(value = 0x0)]],
-    'MM_MAX_COMMIT': [ 0x0, ['VolatilityMagic', dict(value = 0x7ffffffffffff)]],
-    'PolicyKey': [0x0, ['VolatilityMagic', dict(value = "PolSecretEncryptionKey")]],
-    }],
-
-    '_EPROCESS' : [ None, {
-    'CreateTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    'ExitTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    'InheritedFromUniqueProcessId' : [ None, ['unsigned int']],
-    'ImageFileName' : [ None, ['String', dict(length = 16)]],
-    'UniqueProcessId' : [ None, ['unsigned int']],
-    }],
-
-    '_ETHREAD' : [ None, {
-    'CreateTime' : [ None, ['ThreadCreateTimeStamp', dict(is_utc = True)]],
-    'ExitTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    }],
-
-    '_OBJECT_SYMBOLIC_LINK' : [ None, {
-    'CreationTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    }],
-
-    '_KUSER_SHARED_DATA' : [ None, {
-    'SystemTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    'TimeZoneBias' : [ None, ['WinTimeStamp', {}]],
-    }],
-
+    'VOLATILITY_MAGIC': [
+        None,
+        {
+            # Profile specific values
+            'DTBSignature': [
+                0x0,
+                [
+                    'VolatilityMagic',
+                    dict(value="Volatility DTBSignature unspecified"),
+                ],
+            ],
+            'KUSER_SHARED_DATA': [
+                0x0,
+                ['VolatilityMagic', dict(value=0xFFDF0000)],
+            ],
+            'KDBGHeader': [
+                0x0,
+                [
+                    'VolatilityMagic',
+                    dict(value='Volatility KDBGHeader unspecified'),
+                ],
+            ],
+            # Configuration options
+            'DTB': [0x0, ['VolatilityDTB', dict(configname="DTB")]],
+            'KPCR': [
+                0x0,
+                ['VolatilityMagic', dict(value=0xFFDFF000, configname="KPCR")],
+            ],
+            'KDBG': [0x0, ['VolatilityKDBG', dict(configname="KDBG")]],
+            'IA32ValidAS': [0x0, ['VolatilityIA32ValidAS']],
+            'AMD64ValidAS': [0x0, ['VolatilityAMD64ValidAS']],
+            # Pool allocations are aligned to this many bytes.
+            'PoolAlignment': [0x0, ['VolatilityMagic', dict(value=8)]],
+            # hibrfil.sys values
+            'HibrProcPage': [0x0, ['VolatilityMagic', dict(value=0x0)]],
+            'HibrEntryCount': [0x0, ['VolatilityMagic', dict(value=0x0)]],
+            'MM_MAX_COMMIT': [
+                0x0,
+                ['VolatilityMagic', dict(value=0x7FFFFFFFFFFFF)],
+            ],
+            'PolicyKey': [
+                0x0,
+                ['VolatilityMagic', dict(value="PolSecretEncryptionKey")],
+            ],
+        },
+    ],
+    '_EPROCESS': [
+        None,
+        {
+            'CreateTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+            'ExitTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+            'InheritedFromUniqueProcessId': [None, ['unsigned int']],
+            'ImageFileName': [None, ['String', dict(length=16)]],
+            'UniqueProcessId': [None, ['unsigned int']],
+        },
+    ],
+    '_ETHREAD': [
+        None,
+        {
+            'CreateTime': [None, ['ThreadCreateTimeStamp', dict(is_utc=True)]],
+            'ExitTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+        },
+    ],
+    '_OBJECT_SYMBOLIC_LINK': [
+        None,
+        {
+            'CreationTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+        },
+    ],
+    '_KUSER_SHARED_DATA': [
+        None,
+        {
+            'SystemTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+            'TimeZoneBias': [None, ['WinTimeStamp', {}]],
+        },
+    ],
     # The DTB is really an array of 2 ULONG_PTR but we only need the first one
     # which is the value loaded into CR3. The second one, according to procobj.c
     # of the wrk-v1.2, contains the PTE that maps something called hyper space.
-    '_KPROCESS' : [ None, {
-    'DirectoryTableBase' : [ None, ['unsigned long']],
-    }],
-
-    '_IMAGE_SECTION_HEADER' : [ None, {
-    'Name' : [ 0x0, ['String', dict(length = 8)]],
-    }],
-
-    '_IMAGE_FILE_HEADER': [ None, {
-    'TimeDateStamp' : [None, ['UnixTimeStamp', dict(is_utc = True)]],
-    }],
-
-    '_LDR_DATA_TABLE_ENTRY': [ None, {
-    'TimeDateStamp' : [None, ['UnixTimeStamp', dict(is_utc = True)]],
-    }],
-
-    '_DBGKD_GET_VERSION64' : [  None, {
-    'DebuggerDataList' : [ None, ['pointer', ['unsigned long']]],
-    }],
-
-    '_CM_KEY_NODE' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'LastWriteTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    'Parent': [ None, ['pointer32', ['_CM_KEY_NODE']]],
-    }],
-
-    '_CM_NAME_CONTROL_BLOCK' : [ None, {
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    }],
-
-    '_CHILD_LIST' : [ None, {
-    'List' : [ None, ['pointer32', ['array', lambda x: x.Count,
-                                 ['pointer32', ['_CM_KEY_VALUE']]]]],
-    }],
-
-    '_CM_KEY_VALUE' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'Name' : [ None, ['String', dict(length = lambda x: x.NameLength)]],
-    }],
-
-    '_CM_KEY_INDEX' : [ None, {
-    'Signature' : [ None, ['String', dict(length = 2)]],
-    'List' : [ None, ['array', lambda x: x.Count.v() * 2, ['pointer32', ['_CM_KEY_NODE']]]],
-    }],
-
-    'PO_MEMORY_IMAGE' : [ None, {
-    'Signature':   [ None, ['String', dict(length = 4)]],
-    'SystemTime' : [ None, ['WinTimeStamp', dict(is_utc = True)]],
-    }],
-
-    '_PHYSICAL_MEMORY_DESCRIPTOR' : [ None, {
-    'Run' : [ None, ['array', lambda x: x.NumberOfRuns, ['_PHYSICAL_MEMORY_RUN']]],
-    }],
-
-    '_TOKEN' : [ None, {
-    'UserAndGroups' : [ None, ['pointer', ['array', lambda x: x.UserAndGroupCount,
-                                 ['_SID_AND_ATTRIBUTES']]]],
-    }],
-
-    '_SID' : [ None, {
-    'SubAuthority' : [ None, ['array', lambda x: x.SubAuthorityCount, ['unsigned long']]],
-    }],
-
-    '_CLIENT_ID': [ None, {
-    'UniqueProcess' : [ None, ['unsigned int']],
-    'UniqueThread' : [ None, ['unsigned int']],
-    }],
+    '_KPROCESS': [
+        None,
+        {
+            'DirectoryTableBase': [None, ['unsigned long']],
+        },
+    ],
+    '_IMAGE_SECTION_HEADER': [
+        None,
+        {
+            'Name': [0x0, ['String', dict(length=8)]],
+        },
+    ],
+    '_IMAGE_FILE_HEADER': [
+        None,
+        {
+            'TimeDateStamp': [None, ['UnixTimeStamp', dict(is_utc=True)]],
+        },
+    ],
+    '_LDR_DATA_TABLE_ENTRY': [
+        None,
+        {
+            'TimeDateStamp': [None, ['UnixTimeStamp', dict(is_utc=True)]],
+        },
+    ],
+    '_DBGKD_GET_VERSION64': [
+        None,
+        {
+            'DebuggerDataList': [None, ['pointer', ['unsigned long']]],
+        },
+    ],
+    '_CM_KEY_NODE': [
+        None,
+        {
+            'Signature': [None, ['String', dict(length=2)]],
+            'LastWriteTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+            'Name': [None, ['String', dict(length=lambda x: x.NameLength)]],
+            'Parent': [None, ['pointer32', ['_CM_KEY_NODE']]],
+        },
+    ],
+    '_CM_NAME_CONTROL_BLOCK': [
+        None,
+        {
+            'Name': [None, ['String', dict(length=lambda x: x.NameLength)]],
+        },
+    ],
+    '_CHILD_LIST': [
+        None,
+        {
+            'List': [
+                None,
+                [
+                    'pointer32',
+                    [
+                        'array',
+                        lambda x: x.Count,
+                        ['pointer32', ['_CM_KEY_VALUE']],
+                    ],
+                ],
+            ],
+        },
+    ],
+    '_CM_KEY_VALUE': [
+        None,
+        {
+            'Signature': [None, ['String', dict(length=2)]],
+            'Name': [None, ['String', dict(length=lambda x: x.NameLength)]],
+        },
+    ],
+    '_CM_KEY_INDEX': [
+        None,
+        {
+            'Signature': [None, ['String', dict(length=2)]],
+            'List': [
+                None,
+                [
+                    'array',
+                    lambda x: x.Count.v() * 2,
+                    ['pointer32', ['_CM_KEY_NODE']],
+                ],
+            ],
+        },
+    ],
+    'PO_MEMORY_IMAGE': [
+        None,
+        {
+            'Signature': [None, ['String', dict(length=4)]],
+            'SystemTime': [None, ['WinTimeStamp', dict(is_utc=True)]],
+        },
+    ],
+    '_PHYSICAL_MEMORY_DESCRIPTOR': [
+        None,
+        {
+            'Run': [
+                None,
+                ['array', lambda x: x.NumberOfRuns, ['_PHYSICAL_MEMORY_RUN']],
+            ],
+        },
+    ],
+    '_TOKEN': [
+        None,
+        {
+            'UserAndGroups': [
+                None,
+                [
+                    'pointer',
+                    [
+                        'array',
+                        lambda x: x.UserAndGroupCount,
+                        ['_SID_AND_ATTRIBUTES'],
+                    ],
+                ],
+            ],
+        },
+    ],
+    '_SID': [
+        None,
+        {
+            'SubAuthority': [
+                None,
+                ['array', lambda x: x.SubAuthorityCount, ['unsigned long']],
+            ],
+        },
+    ],
+    '_CLIENT_ID': [
+        None,
+        {
+            'UniqueProcess': [None, ['unsigned int']],
+            'UniqueThread': [None, ['unsigned int']],
+        },
+    ],
 }
+
 
 class ExecutiveObjectMixin(object):
     """A mixin for executive objects to allow easy
@@ -158,10 +255,14 @@ class ExecutiveObjectMixin(object):
     """
 
     def get_object_header(self):
-        return obj.Object("_OBJECT_HEADER", vm = self.obj_vm,
-                        offset = self.obj_offset -
-                        self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body"),
-                        native_vm = self.obj_native_vm)
+        return obj.Object(
+            "_OBJECT_HEADER",
+            vm=self.obj_vm,
+            offset=self.obj_offset
+            - self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body"),
+            native_vm=self.obj_native_vm,
+        )
+
 
 class _UNICODE_STRING(obj.CType):
     """Class representing a _UNICODE_STRING
@@ -171,6 +272,7 @@ class _UNICODE_STRING(obj.CType):
         than a pointer to an unsigned short.
       * The __str__ method returns the value of the Buffer.
     """
+
     def v(self):
         """
         If the claimed length of the string is acceptable, return a unicode string.
@@ -184,17 +286,25 @@ class _UNICODE_STRING(obj.CType):
     def dereference(self):
         length = self.Length.v()
         if length > 0 and length <= 1024:
-            data = self.Buffer.dereference_as('String', encoding = 'utf16', length = length)
+            data = self.Buffer.dereference_as(
+                'String', encoding='utf16', length=length
+            )
             return data
         else:
-            return obj.NoneObject("Buffer length {0} for _UNICODE_STRING not within bounds".format(length))
+            return obj.NoneObject(
+                "Buffer length {0} for _UNICODE_STRING not within bounds".format(
+                    length
+                )
+            )
 
     def proxied(self, _name):
         return str(self)
 
     def __bool__(self):
         ## Unicode strings are valid if they point at a valid memory
-        return bool(self.Buffer and self.Length.v() > 0 and self.Length.v() <= 1024)
+        return bool(
+            self.Buffer and self.Length.v() > 0 and self.Length.v() <= 1024
+        )
 
     def __format__(self, formatspec):
         return format(self.v(), formatspec)
@@ -208,12 +318,14 @@ class _UNICODE_STRING(obj.CType):
     def __len__(self):
         return len(self.dereference())
 
+
 class _LIST_ENTRY(obj.CType):
     """ Adds iterators for _LIST_ENTRY types """
+
     def get_next_entry(self, member):
         return self.m(member).dereference()
 
-    def list_of_type(self, type, member, forward = True, head_sentinel = True):
+    def list_of_type(self, type, member, forward=True, head_sentinel=True):
         if not self.is_valid():
             return
 
@@ -233,18 +345,21 @@ class _LIST_ENTRY(obj.CType):
         while nxt.is_valid() and nxt.obj_offset not in seen:
 
             ## Instantiate the object
-            item = obj.Object(type, offset = nxt.obj_offset - offset,
-                                    vm = self.obj_vm,
-                                    parent = self.obj_parent,
-                                    native_vm = self.obj_native_vm,
-                                    name = type)
+            item = obj.Object(
+                type,
+                offset=nxt.obj_offset - offset,
+                vm=self.obj_vm,
+                parent=self.obj_parent,
+                native_vm=self.obj_native_vm,
+                name=type,
+            )
 
             seen.add(nxt.obj_offset)
 
             yield item
 
             if forward:
-                nxt =  item.m(member).get_next_entry("Flink")
+                nxt = item.m(member).get_next_entry("Flink")
             else:
                 nxt = item.m(member).get_next_entry("Blink")
 
@@ -255,12 +370,15 @@ class _LIST_ENTRY(obj.CType):
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
 
+
 class WinTimeStamp(obj.NativeType):
     """Class for handling Windows Time Stamps"""
 
-    def __init__(self, theType, offset, vm, is_utc = False, **kwargs):
+    def __init__(self, theType, offset, vm, is_utc=False, **kwargs):
         self.is_utc = is_utc
-        obj.NativeType.__init__(self, theType, offset, vm, format_string = "q", **kwargs)
+        obj.NativeType.__init__(
+            self, theType, offset, vm, format_string="q", **kwargs
+        )
 
     def windows_to_unix_time(self, windows_time):
         """
@@ -301,7 +419,7 @@ class WinTimeStamp(obj.NativeType):
             dt = datetime.datetime.utcfromtimestamp(self.v())
             if self.is_utc:
                 # Only do dt.replace when dealing with UTC
-                dt = dt.replace(tzinfo = timefmt.UTC())
+                dt = dt.replace(tzinfo=timefmt.UTC())
         except ValueError as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
         return dt
@@ -313,10 +431,13 @@ class WinTimeStamp(obj.NativeType):
             return format(timefmt.display_datetime(dt), formatspec)
         return "-"
 
+
 class DosDate(obj.NativeType):
-    def __init__(self, theType, offset, vm, is_utc = False, **kwargs):
+    def __init__(self, theType, offset, vm, is_utc=False, **kwargs):
         self.is_utc = is_utc
-        obj.NativeType.__init__(self, theType, offset, vm, format_string = "<I", **kwargs)
+        obj.NativeType.__init__(
+            self, theType, offset, vm, format_string="<I", **kwargs
+        )
 
     def as_dos_timestamp(self):
         return obj.NativeType.v(self)
@@ -336,7 +457,7 @@ class DosDate(obj.NativeType):
             dt = datetime.datetime.utcfromtimestamp(self.v())
             if self.is_utc:
                 # Only do dt.replace when dealing with UTC
-                dt = dt.replace(tzinfo = timefmt.UTC())
+                dt = dt.replace(tzinfo=timefmt.UTC())
         except ValueError as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
         return dt
@@ -360,8 +481,21 @@ class DosDate(obj.NativeType):
         conversion to datetime taken from: http://code.google.com/p/libforensics/
         dosdate is already in UTC: http://download.polytechnic.edu.na/pub4/download.sourceforge.net/pub/sourceforge/l/project/li/liblnk/Documentation/Windows%20Shell%20Item%20format/Windows%20Shell%20Item%20format.pdf
         """
-        date = struct.unpack(">H", ''.join([chr(x) for x in [(dosdate >> 8) & 0xff, (dosdate & 0xff)]]))[0]
-        time = struct.unpack(">H", ''.join([chr(x) for x in [(dosdate >> 24) & 0xff, (dosdate >> 16) & 0xff]]))[0]
+        date = struct.unpack(
+            ">H",
+            ''.join(
+                [chr(x) for x in [(dosdate >> 8) & 0xFF, (dosdate & 0xFF)]]
+            ),
+        )[0]
+        time = struct.unpack(
+            ">H",
+            ''.join(
+                [
+                    chr(x)
+                    for x in [(dosdate >> 24) & 0xFF, (dosdate >> 16) & 0xFF]
+                ]
+            ),
+        )[0]
         seconds = (time & 0x1F) * 2
         minutes = (time & 0x7E0) >> 5
         hours = (time & 0xF800) >> 11
@@ -369,20 +503,25 @@ class DosDate(obj.NativeType):
         month = (date & 0x1E0) >> 5
         year = ((date & 0xFE00) >> 9) + 1980
 
-        #convert into timestamp and return:
+        # convert into timestamp and return:
         try:
-            return calendar.timegm(datetime.datetime(year, month, day, hours, minutes, seconds).utctimetuple())
+            return calendar.timegm(
+                datetime.datetime(
+                    year, month, day, hours, minutes, seconds
+                ).utctimetuple()
+            )
         except ValueError:
             return 0
         # if we use the following we need to s/utcfromtimestamp/fromtimestamp/ in as_datetime() function:
-        #return time.mktime(datetime.datetime(year, month, day, hours, minutes, seconds).timetuple())
+        # return time.mktime(datetime.datetime(year, month, day, hours, minutes, seconds).timetuple())
 
 
 class _EPROCESS(obj.CType, ExecutiveObjectMixin):
     """ An extensive _EPROCESS with bells and whistles """
+
     @property
     def Peb(self):
-        """ Returns a _PEB object which is using the process address space.
+        """Returns a _PEB object which is using the process address space.
 
         The PEB structure is referencing back into the process address
         space so we need to switch address spaces when we look at
@@ -391,8 +530,9 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         process_ad = self.get_process_address_space()
         if process_ad:
             offset = self.m("Peb").v()
-            peb = obj.Object("_PEB", offset, vm = process_ad,
-                                    name = "Peb", parent = self)
+            peb = obj.Object(
+                "_PEB", offset, vm=process_ad, name="Peb", parent=self
+            )
 
             if peb.is_valid():
                 return peb
@@ -401,7 +541,7 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
     @property
     def Peb32(self):
-        """ Returns a _PEB object which is using the process address space.
+        """Returns a _PEB object which is using the process address space.
 
         The PEB structure is referencing back into the process address
         space so we need to switch address spaces when we look at
@@ -412,11 +552,15 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
             return obj.NoneObject("Unable to create process AS")
 
         # get the address but don't dereference
-        ptr = obj.Object("address", offset = self.Wow64Process.v(), vm = process_as)
+        ptr = obj.Object(
+            "address", offset=self.Wow64Process.v(), vm=process_as
+        )
 
         # make sure the validity check happens with a process AS
         if not ptr.is_valid():
-            return obj.NoneObject("The Wow64Process pointer is not valid in process AS")
+            return obj.NoneObject(
+                "The Wow64Process pointer is not valid in process AS"
+            )
 
         # windows 10
         if process_as.profile.has_type("_EWOW64PROCESS"):
@@ -435,7 +579,11 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         directory_table_base = self.Pcb.DirectoryTableBase.v()
 
         try:
-            process_as = self.obj_vm.__class__(self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
+            process_as = self.obj_vm.__class__(
+                self.obj_vm.base,
+                self.obj_vm.get_config(),
+                dtb=directory_table_base,
+            )
         except AssertionError as _e:
             return obj.NoneObject("Unable to get process AS")
 
@@ -452,21 +600,31 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
     def _prep_get_modules(self, list_member, link_member):
 
-        pebs = [[self.Peb, "_LDR_DATA_TABLE_ENTRY"],
-            [self.Peb32, "_LDR32_DATA_TABLE_ENTRY"]]
+        pebs = [
+            [self.Peb, "_LDR_DATA_TABLE_ENTRY"],
+            [self.Peb32, "_LDR32_DATA_TABLE_ENTRY"],
+        ]
 
         for peb, table_name in pebs:
-            for module in self._get_modules(peb.Ldr.m(list_member), table_name, link_member):
+            for module in self._get_modules(
+                peb.Ldr.m(list_member), table_name, link_member
+            ):
                 yield module
 
     def get_init_modules(self):
-        return self._prep_get_modules("InInitializationOrderModuleList", "InInitializationOrderLinks")
+        return self._prep_get_modules(
+            "InInitializationOrderModuleList", "InInitializationOrderLinks"
+        )
 
     def get_mem_modules(self):
-        return self._prep_get_modules("InMemoryOrderModuleList", "InMemoryOrderLinks")
+        return self._prep_get_modules(
+            "InMemoryOrderModuleList", "InMemoryOrderLinks"
+        )
 
     def get_load_modules(self):
-        return self._prep_get_modules("InLoadOrderModuleList", "InLoadOrderLinks")
+        return self._prep_get_modules(
+            "InLoadOrderModuleList", "InLoadOrderLinks"
+        )
 
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
@@ -515,8 +673,11 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         # WSL requires x64 but strangely the x86 types still
         # contain PicoContext, but in those cases it always
         # seems to be zeroed out
-        if (len(name) == 0 and
-                hasattr(self, "PicoContext") and self.PicoContext.is_valid()):
+        if (
+            len(name) == 0
+            and hasattr(self, "PicoContext")
+            and self.PicoContext.is_valid()
+        ):
             name = self.PicoContext.Name
 
         return name
@@ -528,13 +689,13 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         if self.Session.is_valid():
             process_space = self.get_process_address_space()
             if process_space:
-                return obj.Object("_MM_SESSION_SPACE",
-                                  offset = self.Session,
-                                  vm = process_space).SessionId
+                return obj.Object(
+                    "_MM_SESSION_SPACE", offset=self.Session, vm=process_space
+                ).SessionId
 
         return obj.NoneObject("Cannot find process session")
 
-    def get_vads(self, vad_filter = None, skip_max_commit = False):
+    def get_vads(self, vad_filter=None, skip_max_commit=False):
         """
         Generator for MMVADs that match specific
         metadata.
@@ -566,9 +727,13 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
             # Skip Wow64 MM_MAX_COMMIT range
             if skip_max_commit:
-                if self.IsWow64 and vad.CommitCharge == max_commit and vad.End > 0x7fffffff:
+                if (
+                    self.IsWow64
+                    and vad.CommitCharge == max_commit
+                    and vad.End > 0x7FFFFFFF
+                ):
                     continue
-                elif vad.Length > 0x7f000000000: # see issue #70
+                elif vad.Length > 0x7F000000000:  # see issue #70
                     continue
 
             # Apply the meta filter if one is supplied
@@ -577,7 +742,7 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
                     continue
             yield vad, process_space
 
-    def search_process_memory(self, s, vad_filter = None):
+    def search_process_memory(self, s, vad_filter=None):
         """
         Search memory for a simple byte string.
 
@@ -598,16 +763,22 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         # Make sure s in a list. This allows you to search for
         # multiple strings at once, without changing the API.
         if type(s) != list:
-            debug.warning("Single strings to search_process_memory is deprecated, use a list instead")
+            debug.warning(
+                "Single strings to search_process_memory is deprecated, use a list instead"
+            )
             s = [s]
 
         # All MMVADs that belong to this process.
-        for vad, address_space in self.get_vads(vad_filter, skip_max_commit = True):
+        for vad, address_space in self.get_vads(
+            vad_filter, skip_max_commit=True
+        ):
             offset = vad.Start
             out_of_range = vad.Start + vad.Length
             while offset < out_of_range:
                 # Read some data and match it.
-                to_read = min(constants.SCAN_BLOCKSIZE + overlap, out_of_range - offset)
+                to_read = min(
+                    constants.SCAN_BLOCKSIZE + overlap, out_of_range - offset
+                )
                 data = address_space.zread(offset, to_read)
                 if not data:
                     break
@@ -647,8 +818,10 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
             return True
 
         # This is a stuxnet-style injection
-        if (vad.VadFlags.PrivateMemory == 0 and
-                protect != "PAGE_EXECUTE_WRITECOPY"):
+        if (
+            vad.VadFlags.PrivateMemory == 0
+            and protect != "PAGE_EXECUTE_WRITECOPY"
+        ):
             return True
 
         return False
@@ -686,8 +859,13 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
         block = self.Peb.ProcessParameters.Environment
 
-        s = obj.Object("String", offset = block, vm = process_space,
-            encoding = 'utf16', length = 0x7FFF)
+        s = obj.Object(
+            "String",
+            offset=block,
+            vm=process_space,
+            encoding='utf16',
+            length=0x7FFF,
+        )
 
         # The terminator is a quad null
         while len(s):
@@ -695,8 +873,13 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
                 yield s.split("=")
             # Scan forward the length of this string plus the null
             next_offset = s.obj_offset + ((len(s) + 1) * 2)
-            s = obj.Object("String", offset = next_offset,
-                vm = process_space, encoding = 'utf16', length = 0x7FFF)
+            s = obj.Object(
+                "String",
+                offset=next_offset,
+                vm=process_space,
+                encoding='utf16',
+                length=0x7FFF,
+            )
 
     def is_valid(self):
 
@@ -723,11 +906,11 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         if self.UniqueProcessId % 4 != 0:
             return False
 
-        if (self.Pcb.DirectoryTableBase == 0):
+        if self.Pcb.DirectoryTableBase == 0:
             return False
 
         # check for all 0s besides the PCID entries
-        if self.Pcb.DirectoryTableBase & ~0xfff == 0:
+        if self.Pcb.DirectoryTableBase & ~0xFFF == 0:
             return False
 
         list_head = self.ThreadListHead
@@ -745,7 +928,11 @@ class _TOKEN(obj.CType):
     def is_valid(self):
         """Override BaseObject.is_valid with some additional
         checks specific to _TOKEN objects."""
-        return obj.CType.is_valid(self) and self.TokenInUse in (0, 1) and self.SessionId < 10
+        return (
+            obj.CType.is_valid(self)
+            and self.TokenInUse in (0, 1)
+            and self.SessionId < 10
+        )
 
     def get_sids(self):
         """Generator for process SID strings"""
@@ -761,8 +948,10 @@ class _TOKEN(obj.CType):
                 id_auth = ""
                 for i in sid.IdentifierAuthority.Value:
                     id_auth = i
-                yield "S-" + "-".join(str(i) for i in (sid.Revision, id_auth) +
-                                      tuple(sid.SubAuthority))
+                yield "S-" + "-".join(
+                    str(i)
+                    for i in (sid.Revision, id_auth) + tuple(sid.SubAuthority)
+                )
 
     def privileges(self):
         """Generator for privileges.
@@ -785,8 +974,10 @@ class _TOKEN(obj.CType):
                 default = luid.Attributes & 1 != 0
                 yield luid.Luid.LowPart, True, enabled, default
 
+
 class _OBJECT_TYPE(obj.CType, ExecutiveObjectMixin):
     pass
+
 
 class _ETHREAD(obj.CType, ExecutiveObjectMixin):
     """ A class for threads """
@@ -809,34 +1000,41 @@ class _ETHREAD(obj.CType, ExecutiveObjectMixin):
             return False
 
         # win8 _KTHREAD doesn't have this member
-        if (hasattr(self.Tcb, 'SuspendSemaphore') and
-                self.Tcb.SuspendSemaphore.Header.Size != 0x05 and
-                self.Tcb.SuspendSemaphore.Header.Type != 0x05):
-           return False
+        if (
+            hasattr(self.Tcb, 'SuspendSemaphore')
+            and self.Tcb.SuspendSemaphore.Header.Size != 0x05
+            and self.Tcb.SuspendSemaphore.Header.Type != 0x05
+        ):
+            return False
 
-        if (self.KeyedWaitSemaphore.Header.Size != 0x05 and
-               self.KeyedWaitSemaphore.Header.Type != 0x05):
+        if (
+            self.KeyedWaitSemaphore.Header.Size != 0x05
+            and self.KeyedWaitSemaphore.Header.Type != 0x05
+        ):
             return False
 
         return True
 
+
 class _HANDLE_TABLE(obj.CType):
-    """ A class for _HANDLE_TABLE.
+    """A class for _HANDLE_TABLE.
 
     This used to be a member of _EPROCESS but it was isolated per issue
     91 so that it could be subclassed and used to service other handle
     tables, such as the _KDDEBUGGER_DATA64.PspCidTable.
     """
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         """Returns the OBJECT_HEADER of the associated handle. The parent
         is the _HANDLE_TABLE_ENTRY so that an object can be linked to its
         GrantedAccess.
         """
-        return entry.Object.dereference_as("_OBJECT_HEADER", parent = entry, handle_value = handle_value)
+        return entry.Object.dereference_as(
+            "_OBJECT_HEADER", parent=entry, handle_value=handle_value
+        )
 
-    def _make_handle_array(self, offset, level, depth = 0):
-        """ Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
+    def _make_handle_array(self, offset, level, depth=0):
+        """Returns an array of _HANDLE_TABLE_ENTRY rooted at offset,
         and iterates over them.
         """
 
@@ -847,7 +1045,9 @@ class _HANDLE_TABLE(obj.CType):
             count = 0x1000 / self.obj_vm.profile.get_obj_size("address")
             targetType = "address"
         else:
-            count = 0x1000 / self.obj_vm.profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+            count = 0x1000 / self.obj_vm.profile.get_obj_size(
+                "_HANDLE_TABLE_ENTRY"
+            )
             targetType = "_HANDLE_TABLE_ENTRY"
 
         # as seen on an XP 32-bit system with no PAT, the kernel address 0 can
@@ -856,8 +1056,15 @@ class _HANDLE_TABLE(obj.CType):
         if offset == 0:
             raise StopIteration
 
-        table = obj.Object("Array", offset = offset, vm = self.obj_vm, count = count,
-                           targetType = targetType, parent = self, native_vm = self.obj_native_vm)
+        table = obj.Object(
+            "Array",
+            offset=offset,
+            vm=self.obj_vm,
+            count=count,
+            targetType=targetType,
+            parent=self,
+            native_vm=self.obj_native_vm,
+        )
 
         if table:
             for entry in table:
@@ -876,10 +1083,14 @@ class _HANDLE_TABLE(obj.CType):
                     # Calculate the starting handle value for this level.
                     handle_level_base = depth * count * handle_multiplier
                     # The size of a handle table entry.
-                    handle_entry_size = self.obj_vm.profile.get_obj_size("_HANDLE_TABLE_ENTRY")
+                    handle_entry_size = self.obj_vm.profile.get_obj_size(
+                        "_HANDLE_TABLE_ENTRY"
+                    )
                     # Finally, compute the handle value for this object.
-                    handle_value = ((entry.obj_offset - offset) /
-                                   (handle_entry_size / handle_multiplier)) + handle_level_base
+                    handle_value = (
+                        (entry.obj_offset - offset)
+                        / (handle_entry_size / handle_multiplier)
+                    ) + handle_level_base
 
                     ## OK We got to the bottom table, we just resolve
                     ## objects here:
@@ -897,7 +1108,7 @@ class _HANDLE_TABLE(obj.CType):
                             yield item
 
     def handles(self):
-        """ A generator which yields this process's handles
+        """A generator which yields this process's handles
 
         _HANDLE_TABLE tables are multi-level tables at the first level
         they are pointers to second level table, which might be
@@ -925,15 +1136,18 @@ class _HANDLE_TABLE(obj.CType):
         for h in self._make_handle_array(offset, table_levels):
             yield h
 
+
 class _OBJECT_HEADER(obj.CType):
     """A Volatility object to handle Windows object headers.
 
     This object applies only to versions below windows 7.
     """
 
-    optional_headers = [('NameInfo', '_OBJECT_HEADER_NAME_INFO'),
-                        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO'),
-                        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO')]
+    optional_headers = [
+        ('NameInfo', '_OBJECT_HEADER_NAME_INFO'),
+        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO'),
+        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO'),
+    ]
 
     def __init__(self, *args, **kwargs):
         # Usually we don't add members to objects like this, but its an
@@ -951,9 +1165,18 @@ class _OBJECT_HEADER(obj.CType):
             if self.obj_vm.profile.has_type(objtype):
                 header_offset = self.m(name + 'Offset').v()
                 if header_offset:
-                    o = obj.Object(objtype, offset - header_offset, vm = self.obj_vm, native_vm = self.obj_native_vm)
+                    o = obj.Object(
+                        objtype,
+                        offset - header_offset,
+                        vm=self.obj_vm,
+                        native_vm=self.obj_native_vm,
+                    )
                 else:
-                    o = obj.NoneObject("Header {0} not set for object at {1:#x}".format(name, offset))
+                    o = obj.NoneObject(
+                        "Header {0} not set for object at {1:#x}".format(
+                            name, offset
+                        )
+                    )
 
                 self.newattr(name, o)
 
@@ -965,8 +1188,13 @@ class _OBJECT_HEADER(obj.CType):
 
     def dereference_as(self, theType):
         """Instantiate an object from the _OBJECT_HEADER.Body"""
-        return obj.Object(theType, offset = self.Body.obj_offset, vm = self.obj_vm,
-                         native_vm = self.obj_native_vm, parent = self)
+        return obj.Object(
+            theType,
+            offset=self.Body.obj_offset,
+            vm=self.obj_vm,
+            native_vm=self.obj_native_vm,
+            parent=self,
+        )
 
     def get_object_type(self):
         """Return the object's type as a string"""
@@ -983,14 +1211,17 @@ class _OBJECT_HEADER(obj.CType):
 
         return True
 
+
 class _OBJECT_SYMBOLIC_LINK(obj.CType, ExecutiveObjectMixin):
     """A symbolic link object"""
 
     def is_valid(self):
         return obj.CType.is_valid(self) and self.LinkTarget.v()
 
+
 class _KMUTANT(obj.CType, ExecutiveObjectMixin):
     """A mutex object"""
+
 
 class _FILE_OBJECT(obj.CType, ExecutiveObjectMixin):
     """Class for file objects"""
@@ -1000,43 +1231,60 @@ class _FILE_OBJECT(obj.CType, ExecutiveObjectMixin):
         of the device object to which the file belongs"""
         name = ""
         if self.DeviceObject:
-            object_hdr = obj.Object("_OBJECT_HEADER",
-                            self.DeviceObject - self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body"),
-                            self.obj_native_vm)
+            object_hdr = obj.Object(
+                "_OBJECT_HEADER",
+                self.DeviceObject
+                - self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body"),
+                self.obj_native_vm,
+            )
             if object_hdr:
-                name = "\\Device\\{0}".format(str(object_hdr.NameInfo.Name or ''))
+                name = "\\Device\\{0}".format(
+                    str(object_hdr.NameInfo.Name or '')
+                )
         if self.FileName:
             name += str(self.FileName)
         return name
 
     def access_string(self):
         ## Make a nicely formatted ACL string
-        AccessStr = (((self.ReadAccess > 0 and "R") or '-') +
-                     ((self.WriteAccess > 0  and "W") or '-') +
-                     ((self.DeleteAccess > 0 and "D") or '-') +
-                     ((self.SharedRead > 0 and "r") or '-') +
-                     ((self.SharedWrite > 0 and "w") or '-') +
-                     ((self.SharedDelete > 0 and "d") or '-'))
+        AccessStr = (
+            ((self.ReadAccess > 0 and "R") or '-')
+            + ((self.WriteAccess > 0 and "W") or '-')
+            + ((self.DeleteAccess > 0 and "D") or '-')
+            + ((self.SharedRead > 0 and "r") or '-')
+            + ((self.SharedWrite > 0 and "w") or '-')
+            + ((self.SharedDelete > 0 and "d") or '-')
+        )
         return AccessStr
 
     def is_valid(self):
         return obj.CType.is_valid(self) and self.FileName.v()
 
+
 class _EX_FAST_REF(obj.CType):
 
     MAX_FAST_REF = 7
 
-    def dereference_as(self, theType, parent = None, **kwargs):
+    def dereference_as(self, theType, parent=None, **kwargs):
         """Use the _EX_FAST_REF.Object pointer to resolve an object of the specified type"""
-        return obj.Object(theType, self.Object.v() & ~self.MAX_FAST_REF, self.obj_native_vm, parent = parent or self, **kwargs)
+        return obj.Object(
+            theType,
+            self.Object.v() & ~self.MAX_FAST_REF,
+            self.obj_native_vm,
+            parent=parent or self,
+            **kwargs
+        )
+
 
 class ThreadCreateTimeStamp(WinTimeStamp):
     """Handles ThreadCreateTimeStamps which are bit shifted WinTimeStamps"""
+
     def __init__(self, *args, **kwargs):
         WinTimeStamp.__init__(self, *args, **kwargs)
 
     def as_windows_timestamp(self):
         return obj.NativeType.v(self) >> 3
+
 
 class VolatilityKPCR(obj.VolatilityMagic):
     """A scanner for KPCR data within an address space"""
@@ -1053,6 +1301,7 @@ class VolatilityKPCR(obj.VolatilityMagic):
         for val in scanner.scan(self.obj_vm):
             yield val
 
+
 class VolatilityKDBG(obj.VolatilityMagic):
     """A Scanner for KDBG data within an address space"""
 
@@ -1060,20 +1309,27 @@ class VolatilityKDBG(obj.VolatilityMagic):
         if self.value is None:
             return self.get_best_suggestion()
         else:
-            return obj.Object("_KDDEBUGGER_DATA64", offset = self.value, vm = self.obj_vm)
+            return obj.Object(
+                "_KDDEBUGGER_DATA64", offset=self.value, vm=self.obj_vm
+            )
 
     def get_suggestions(self):
         if self.value:
-            yield obj.Object("_KDDEBUGGER_DATA64", offset = self.value, vm = self.obj_vm)
+            yield obj.Object(
+                "_KDDEBUGGER_DATA64", offset=self.value, vm=self.obj_vm
+            )
         for x in self.generate_suggestions():
             yield x
 
     def generate_suggestions(self):
         """Generates a list of possible KDBG structure locations"""
-        scanner = kdbg.KDBGScanner(needles = [obj.VolMagic(self.obj_vm).KDBGHeader.v()])
+        scanner = kdbg.KDBGScanner(
+            needles=[obj.VolMagic(self.obj_vm).KDBGHeader.v()]
+        )
         for val in scanner.scan(self.obj_vm):
-            val = obj.Object("_KDDEBUGGER_DATA64", offset = val, vm = self.obj_vm)
+            val = obj.Object("_KDDEBUGGER_DATA64", offset=val, vm=self.obj_vm)
             yield val
+
 
 class VolatilityIA32ValidAS(obj.VolatilityMagic):
     """An object to check that an address space is a valid IA32 Paged space"""
@@ -1084,12 +1340,12 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
         # the paging tables
         try:
             if self.obj_vm.pae:
-                pde_base = 0xc0600000
-                pd = self.obj_vm.get_pdpi(0) & 0xffffffffff000
+                pde_base = 0xC0600000
+                pd = self.obj_vm.get_pdpi(0) & 0xFFFFFFFFFF000
             else:
-                pde_base = 0xc0300000
+                pde_base = 0xC0300000
                 pd = self.obj_vm.dtb
-            if (self.obj_vm.vtop(pde_base) == pd):
+            if self.obj_vm.vtop(pde_base) == pd:
                 yield True
                 raise StopIteration
 
@@ -1099,24 +1355,35 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
 
         # This constraint verifies that _KUSER_ SHARED_DATA is shared
         # between user and kernel address spaces.
-        if (self.obj_vm.vtop(0xffdf0000)) == (self.obj_vm.vtop(0x7ffe0000)):
-            if self.obj_vm.vtop(0xffdf0000) != None:
+        if (self.obj_vm.vtop(0xFFDF0000)) == (self.obj_vm.vtop(0x7FFE0000)):
+            if self.obj_vm.vtop(0xFFDF0000) != None:
                 yield True
                 raise StopIteration
         debug.debug("Failed to pass the labarum_x Valid IA32 AS test", 3)
 
         yield False
 
+
 class VolatilityAMD64ValidAS(obj.VolatilityMagic):
     def generate_suggestions(self):
         if self.obj_vm.vtop(0xFFFFF78000000000) != None:
-            if (self.obj_vm.vtop(0xFFFFF78000000000)) == (self.obj_vm.vtop(0x7FFE0000)):
+            if (self.obj_vm.vtop(0xFFFFF78000000000)) == (
+                self.obj_vm.vtop(0x7FFE0000)
+            ):
                 yield True
                 raise StopIteration
-            if obj.Object("_KUSER_SHARED_DATA", offset = 0xFFFFF78000000000, vm = self.obj_vm).Reserved1 == 0x7FFEFFFF:
+            if (
+                obj.Object(
+                    "_KUSER_SHARED_DATA",
+                    offset=0xFFFFF78000000000,
+                    vm=self.obj_vm,
+                ).Reserved1
+                == 0x7FFEFFFF
+            ):
                 yield True
                 raise StopIteration
         yield False
+
 
 class _CM_KEY_BODY(obj.CType):
     """Registry key"""
@@ -1133,22 +1400,31 @@ class _CM_KEY_BODY(obj.CType):
             seen.append(kcb.obj_offset)
         return "\\".join(reversed(output))
 
+
 class _CMHIVE(obj.CType):
     """Registry hive"""
 
     def get_name(self):
         try:
-            name = str(self.FileFullPath or '') or str(self.FileUserName or '') or str(self.HiveRootPath or '') or "[no name]"
+            name = (
+                str(self.FileFullPath or '')
+                or str(self.FileUserName or '')
+                or str(self.HiveRootPath or '')
+                or "[no name]"
+            )
         except AttributeError:
             name = "[no name]"
 
         return name
 
     def address_space(self):
-        return hivemod.HiveAddressSpace(self.obj_vm, self.obj_vm.get_config(), self.obj_offset)
+        return hivemod.HiveAddressSpace(
+            self.obj_vm, self.obj_vm.get_config(), self.obj_offset
+        )
 
     def is_valid(self):
-        return obj.CType.is_valid(self) and self.Hive.Signature == 0xbee0bee0
+        return obj.CType.is_valid(self) and self.Hive.Signature == 0xBEE0BEE0
+
 
 class _POOL_HEADER(obj.CType):
     """A class for pool headers"""
@@ -1176,22 +1452,30 @@ class _POOL_HEADER(obj.CType):
         """
 
         if not object_type:
-            return obj.Object(struct_name, vm = self.obj_vm,
-                        offset = self.obj_offset +
-                        self.obj_vm.profile.get_obj_size("_POOL_HEADER"),
-                        native_vm = self.obj_native_vm)
+            return obj.Object(
+                struct_name,
+                vm=self.obj_vm,
+                offset=self.obj_offset
+                + self.obj_vm.profile.get_obj_size("_POOL_HEADER"),
+                native_vm=self.obj_native_vm,
+            )
 
         pool_alignment = obj.VolMagic(self.obj_vm).PoolAlignment.v()
 
-        the_object = obj.Object(struct_name, vm = self.obj_vm,
-                        offset = (self.obj_offset + self.BlockSize * pool_alignment -
-                        common.pool_align(self.obj_vm, struct_name, pool_alignment)),
-                        native_vm = self.obj_native_vm)
+        the_object = obj.Object(
+            struct_name,
+            vm=self.obj_vm,
+            offset=(
+                self.obj_offset
+                + self.BlockSize * pool_alignment
+                - common.pool_align(self.obj_vm, struct_name, pool_alignment)
+            ),
+            native_vm=self.obj_native_vm,
+        )
 
         header = the_object.get_object_header()
 
-        if (skip_type_check or
-                    header.get_object_type() == object_type):
+        if skip_type_check or header.get_object_type() == object_type:
             return the_object
         else:
             return obj.NoneObject("Cannot find the object")
@@ -1207,28 +1491,37 @@ class _POOL_HEADER(obj.CType):
         """
 
         # we start after the pool header
-        start_offset = self.obj_offset + self.obj_vm.profile.get_obj_size("_POOL_HEADER")
+        start_offset = self.obj_offset + self.obj_vm.profile.get_obj_size(
+            "_POOL_HEADER"
+        )
 
         # allocations containing only one structure
         if not object_type:
-            return obj.Object(object_name, offset = start_offset,
-                              vm = self.obj_vm,
-                              native_vm = self.obj_native_vm)
+            return obj.Object(
+                object_name,
+                offset=start_offset,
+                vm=self.obj_vm,
+                native_vm=self.obj_native_vm,
+            )
 
         # pool aligned boundary
         pool_alignment = obj.VolMagic(self.obj_vm).PoolAlignment.v()
 
         # maximum distance to search
-        end_offset = start_offset + min(self.MAX_PREAMBLE, self.BlockSize * pool_alignment)
+        end_offset = start_offset + min(
+            self.MAX_PREAMBLE, self.BlockSize * pool_alignment
+        )
 
         for addr in range(start_offset, end_offset, pool_alignment):
 
-            header = obj.Object("_OBJECT_HEADER", offset = addr,
-                                vm = self.obj_vm,
-                                native_vm = self.obj_native_vm)
+            header = obj.Object(
+                "_OBJECT_HEADER",
+                offset=addr,
+                vm=self.obj_vm,
+                native_vm=self.obj_native_vm,
+            )
 
-            if (header.is_valid() and
-                        header.get_object_type() == object_type):
+            if header.is_valid() and header.get_object_type() == object_type:
 
                 the_object = header.dereference_as(object_name)
                 if the_object.is_valid():
@@ -1236,7 +1529,13 @@ class _POOL_HEADER(obj.CType):
 
         return obj.NoneObject("Cannot find object")
 
-    def get_object(self, struct_name, object_type = None, use_top_down = False, skip_type_check = False):
+    def get_object(
+        self,
+        struct_name,
+        object_type=None,
+        use_top_down=False,
+        skip_type_check=False,
+    ):
         """Get the windows object contained within this pool
         using whichever method is best for the target OS.
 
@@ -1255,9 +1554,14 @@ class _POOL_HEADER(obj.CType):
         """
 
         if use_top_down:
-            return self.get_object_top_down(struct_name, object_type, skip_type_check)
+            return self.get_object_top_down(
+                struct_name, object_type, skip_type_check
+            )
         else:
-            return self.get_object_bottom_up(struct_name, object_type, skip_type_check)
+            return self.get_object_bottom_up(
+                struct_name, object_type, skip_type_check
+            )
+
 
 from . import crash_vtypes
 from . import hibernate_vtypes
@@ -1265,12 +1569,14 @@ from . import kdbg_vtypes
 from . import tcpip_vtypes
 from . import ssdt_vtypes
 
+
 class WindowsOverlay(obj.ProfileModification):
     conditions = {'os': lambda x: x == 'windows'}
     before = ['BasicObjectClasses', 'WindowsVTypes']
 
     def modification(self, profile):
         profile.merge_overlay(windows_overlay)
+
 
 class WindowsVTypes(obj.ProfileModification):
     conditions = {'os': lambda x: x == 'windows'}
@@ -1283,37 +1589,41 @@ class WindowsVTypes(obj.ProfileModification):
         profile.vtypes.update(tcpip_vtypes.tcpip_vtypes)
         profile.vtypes.update(ssdt_vtypes.ssdt_vtypes)
 
+
 class WindowsObjectClasses(obj.ProfileModification):
     conditions = {'os': lambda x: x == 'windows'}
     before = ['BasicObjectClasses', 'WindowsVTypes', 'WindowsOverlay']
 
     def modification(self, profile):
-        profile.object_classes.update({
-            '_UNICODE_STRING': _UNICODE_STRING,
-            '_LIST_ENTRY': _LIST_ENTRY,
-            'WinTimeStamp': WinTimeStamp,
-            'DosDate':DosDate,
-            '_EPROCESS': _EPROCESS,
-            '_ETHREAD': _ETHREAD,
-            '_HANDLE_TABLE': _HANDLE_TABLE,
-            '_OBJECT_HEADER': _OBJECT_HEADER,
-            '_FILE_OBJECT': _FILE_OBJECT,
-            '_EX_FAST_REF': _EX_FAST_REF,
-            'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
-            'IpAddress': basic.IpAddress,
-            'Ipv6Address': basic.Ipv6Address,
-            'VolatilityKPCR': VolatilityKPCR,
-            'VolatilityKDBG': VolatilityKDBG,
-            'VolatilityIA32ValidAS': VolatilityIA32ValidAS,
-            'VolatilityAMD64ValidAS': VolatilityAMD64ValidAS,
-            '_CM_KEY_BODY': _CM_KEY_BODY,
-            '_TOKEN': _TOKEN,
-            '_POOL_HEADER': _POOL_HEADER,
-            '_OBJECT_SYMBOLIC_LINK': _OBJECT_SYMBOLIC_LINK,
-            '_KMUTANT': _KMUTANT,
-            '_CMHIVE': _CMHIVE,
-            '_OBJECT_TYPE': _OBJECT_TYPE,
-            })
+        profile.object_classes.update(
+            {
+                '_UNICODE_STRING': _UNICODE_STRING,
+                '_LIST_ENTRY': _LIST_ENTRY,
+                'WinTimeStamp': WinTimeStamp,
+                'DosDate': DosDate,
+                '_EPROCESS': _EPROCESS,
+                '_ETHREAD': _ETHREAD,
+                '_HANDLE_TABLE': _HANDLE_TABLE,
+                '_OBJECT_HEADER': _OBJECT_HEADER,
+                '_FILE_OBJECT': _FILE_OBJECT,
+                '_EX_FAST_REF': _EX_FAST_REF,
+                'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
+                'IpAddress': basic.IpAddress,
+                'Ipv6Address': basic.Ipv6Address,
+                'VolatilityKPCR': VolatilityKPCR,
+                'VolatilityKDBG': VolatilityKDBG,
+                'VolatilityIA32ValidAS': VolatilityIA32ValidAS,
+                'VolatilityAMD64ValidAS': VolatilityAMD64ValidAS,
+                '_CM_KEY_BODY': _CM_KEY_BODY,
+                '_TOKEN': _TOKEN,
+                '_POOL_HEADER': _POOL_HEADER,
+                '_OBJECT_SYMBOLIC_LINK': _OBJECT_SYMBOLIC_LINK,
+                '_KMUTANT': _KMUTANT,
+                '_CMHIVE': _CMHIVE,
+                '_OBJECT_TYPE': _OBJECT_TYPE,
+            }
+        )
+
 
 class VolMagicPoolTag(obj.VolatilityMagic):
     """The pool tag for a specific data structure on a given OS"""
@@ -1332,6 +1642,7 @@ class VolMagicPoolTag(obj.VolatilityMagic):
             tag |= 0x80000000
         yield struct.pack("I", tag)
 
+
 class HandleTableEntryPreWin8(obj.ProfileModification):
     """A modification for handle table entries before Windows 8"""
 
@@ -1339,14 +1650,23 @@ class HandleTableEntryPreWin8(obj.ProfileModification):
 
     def modification(self, profile):
 
-        version = (profile.metadata.get('major', 0),
-                   profile.metadata.get('minor', 0))
+        version = (
+            profile.metadata.get('major', 0),
+            profile.metadata.get('minor', 0),
+        )
 
         if version <= (6, 1):
-            profile.merge_overlay({
-                '_HANDLE_TABLE_ENTRY' : [ None, {
-                'Object' : [ None, ['_EX_FAST_REF']],
-                }]})
+            profile.merge_overlay(
+                {
+                    '_HANDLE_TABLE_ENTRY': [
+                        None,
+                        {
+                            'Object': [None, ['_EX_FAST_REF']],
+                        },
+                    ]
+                }
+            )
+
 
 class PoolTagModification(obj.ProfileModification):
     """A modification for variable pool tags across Windows versions"""
@@ -1357,31 +1677,101 @@ class PoolTagModification(obj.ProfileModification):
         profile.object_classes.update({'VolMagicPoolTag': VolMagicPoolTag})
 
         # win8 / 2012 pool tags are not protected
-        if (profile.metadata.get('major', 0) == 6 and
-                    profile.metadata.get('minor', 0) >= 2):
+        if (
+            profile.metadata.get('major', 0) == 6
+            and profile.metadata.get('minor', 0) >= 2
+        ):
             protected = False
         else:
             protected = True
 
-        profile.merge_overlay({
-            'VOLATILITY_MAGIC': [ None, {
-            'ProcessPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Proc", protected = protected)]],
-            'MutexPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Muta", protected = protected)]],
-            'SymlinkPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Symb", protected = protected)]],
-            'DriverPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Driv", protected = protected)]],
-            'FilePoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "File", protected = protected)]],
-            'WindPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Wind", protected = protected)]],
-            'ThreadPoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "Thre", protected = protected)]],
-            'ObjectTypePoolTag': [ 0x0, ['VolMagicPoolTag', dict(tag = "ObjT", protected = protected)]],
-            }]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    None,
+                    {
+                        'ProcessPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Proc", protected=protected),
+                            ],
+                        ],
+                        'MutexPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Muta", protected=protected),
+                            ],
+                        ],
+                        'SymlinkPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Symb", protected=protected),
+                            ],
+                        ],
+                        'DriverPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Driv", protected=protected),
+                            ],
+                        ],
+                        'FilePoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="File", protected=protected),
+                            ],
+                        ],
+                        'WindPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Wind", protected=protected),
+                            ],
+                        ],
+                        'ThreadPoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="Thre", protected=protected),
+                            ],
+                        ],
+                        'ObjectTypePoolTag': [
+                            0x0,
+                            [
+                                'VolMagicPoolTag',
+                                dict(tag="ObjT", protected=protected),
+                            ],
+                        ],
+                    },
+                ]
+            }
+        )
+
 
 class AbstractKDBGMod(obj.ProfileModification):
     kdbgsize = 0x290
 
     def modification(self, profile):
-        signature = b'\x00\x00\x00\x00\x00\x00\x00\x00' if profile.metadata.get('memory_model', '32bit') == '32bit' else b'\x00\xf8\xff\xff'
+        signature = (
+            b'\x00\x00\x00\x00\x00\x00\x00\x00'
+            if profile.metadata.get('memory_model', '32bit') == '32bit'
+            else b'\x00\xf8\xff\xff'
+        )
         signature += b'KDBG' + struct.pack('<H', self.kdbgsize)
-        profile.merge_overlay({'VOLATILITY_MAGIC': [ None, {
-                                'KDBGHeader': [ None, ['VolatilityMagic', dict(value = signature)]]
-                                                            }
-                                                    ]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    None,
+                    {
+                        'KDBGHeader': [
+                            None,
+                            ['VolatilityMagic', dict(value=signature)],
+                        ]
+                    },
+                ]
+            }
+        )

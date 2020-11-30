@@ -16,29 +16,39 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 class VolatilityException(Exception):
     """Generic Volatility Specific exception, to help differentiate from other exceptions"""
+
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
 
+
 class AddrSpaceError(VolatilityException):
     """Address Space Exception, so we can catch and deal with it in the main program"""
+
     def __init__(self):
         self.reasons = []
-        VolatilityException.__init__(self, "No suitable address space mapping found")
+        VolatilityException.__init__(
+            self, "No suitable address space mapping found"
+        )
 
     def append_reason(self, driver, reason):
         self.reasons.append((driver, reason))
 
     def __str__(self):
-        result = VolatilityException.__str__(self) + "\nTried to open image as:\n" #pylint: disable-msg=E1101
+        result = (
+            VolatilityException.__str__(self) + "\nTried to open image as:\n"
+        )  # pylint: disable-msg=E1101
         for k, v in self.reasons:
             result += " {0}: {1}\n".format(k, v)
 
         return result
 
+
 class CacheRelativeURLException(VolatilityException):
     """Exception for gracefully not saving Relative URLs in the cache"""
+
 
 class SanityCheckException(VolatilityException):
     """Exception for failed sanity checks (which can potentially be disabled)"""

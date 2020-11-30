@@ -25,43 +25,56 @@ import sys
 import inspect
 import logging
 import volatility.conf
+
 config = volatility.conf.ConfObject()
 
-config.add_option("DEBUG", short_option = 'd', default = 0,
-                  cache_invalidator = False,
-                  action = 'count', help = "Debug volatility")
+config.add_option(
+    "DEBUG",
+    short_option='d',
+    default=0,
+    cache_invalidator=False,
+    action='count',
+    help="Debug volatility",
+)
 
 # Largest debug value used + 1
 MAX_DEBUG = 3
 
-def setup(level = 0):
+
+def setup(level=0):
     """Sets up the global logging environment"""
     formatstr = "%(levelname)-8s: %(name)-20s: %(message)s"
-    logging.basicConfig(format = formatstr)
+    logging.basicConfig(format=formatstr)
     rootlogger = logging.getLogger('')
     rootlogger.setLevel(logging.DEBUG + 1 - level)
     for i in range(1, 9):
         logging.addLevelName(logging.DEBUG - i, "DEBUG" + str(i))
 
-def debug(msg, level = 1):
+
+def debug(msg, level=1):
     """Logs a message at the DEBUG level"""
     log(msg, logging.DEBUG + 1 - level)
+
 
 def info(msg):
     """Logs a message at the INFO level"""
     log(msg, logging.INFO)
 
+
 def warning(msg):
     """Logs a message at the WARNING level"""
     log(msg, logging.WARNING)
+
 
 def error(msg):
     log(msg, logging.ERROR)
     sys.exit(1)
 
+
 def critical(msg):
     log(msg, logging.CRITICAL)
     sys.exit(1)
+
 
 def log(msg, level):
     modname = "volatility.py"
@@ -78,19 +91,23 @@ def log(msg, level):
         del frm
     _log(msg, modname, level)
 
+
 def _log(msg, facility, loglevel):
     """Outputs a debugging message"""
     logger = logging.getLogger(facility)
     logger.log(loglevel, msg)
 
-def b(level = 1):
+
+def b(level=1):
     """Enters the debugger at the call point"""
     if config.DEBUG >= level:
         pdb.set_trace()
 
+
 trace = b
 
-def post_mortem(level = 1):
+
+def post_mortem(level=1):
     """Provides a command line interface to python after an exception's occurred"""
     if config.DEBUG >= level:
         pdb.post_mortem()

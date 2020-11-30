@@ -28,12 +28,13 @@ import socket
 import volatility.plugins.linux.common as linux_common
 import volatility.obj as obj
 
-class a_ent(object):
 
+class a_ent(object):
     def __init__(self, ip, mac, devname):
         self.ip = ip
         self.mac = mac
         self.devname = devname
+
 
 # based off pykdump
 # not 100% this works, will need some testing to verify
@@ -52,10 +53,20 @@ class linux_arp(linux_common.AbstractLinuxCommand):
             hasnext = False
 
         if hasnext == True:
-            ntables_ptr = obj.Object("Pointer", offset = neigh_tables_addr, vm = self.addr_space)
-            tables = linux_common.walk_internal_list("neigh_table", "next", ntables_ptr)
+            ntables_ptr = obj.Object(
+                "Pointer", offset=neigh_tables_addr, vm=self.addr_space
+            )
+            tables = linux_common.walk_internal_list(
+                "neigh_table", "next", ntables_ptr
+            )
         else:
-            tables_arr = obj.Object(theType="Array", targetType="Pointer", offset = neigh_tables_addr, vm = self.addr_space, count = 4)
+            tables_arr = obj.Object(
+                theType="Array",
+                targetType="Pointer",
+                offset=neigh_tables_addr,
+                vm=self.addr_space,
+                count=4,
+            )
             tables = [t.dereference_as("neigh_table") for t in tables_arr]
 
         for ntable in tables:
@@ -75,23 +86,31 @@ class linux_arp(linux_common.AbstractLinuxCommand):
             hash_table = ntable.nht.hash_buckets
         else:
             try:
-                hash_size = (1 << ntable.nht.hash_shift)
+                hash_size = 1 << ntable.nht.hash_shift
             except OverflowError:
-                return []        
-    
+                return []
+
             hash_table = ntable.nht.hash_buckets
 
         if not self.addr_space.is_valid_address(hash_table):
             return []
 
-        buckets = obj.Object(theType = 'Array', offset = hash_table, vm = self.addr_space, targetType = 'Pointer', count = hash_size)
+        buckets = obj.Object(
+            theType='Array',
+            offset=hash_table,
+            vm=self.addr_space,
+            targetType='Pointer',
+            count=hash_size,
+        )
 
         if not buckets or hash_size > 50000:
             return []
 
         for i in range(hash_size):
             if buckets[i]:
-                neighbor = obj.Object("neighbour", offset = buckets[i], vm = self.addr_space)
+                neighbor = obj.Object(
+                    "neighbour", offset=buckets[i], vm=self.addr_space
+                )
 
                 ret.append(self.walk_neighbor(neighbor))
 
@@ -100,10 +119,12 @@ class linux_arp(linux_common.AbstractLinuxCommand):
 
     def walk_neighbor(self, neighbor):
         seen = []
-        ret  = []
-        ctr  = 0
+        ret = []
+        ctr = 0
 
-        for n in linux_common.walk_internal_list("neighbour", "next", neighbor):
+        for n in linux_common.walk_internal_list(
+            "neighbour", "next", neighbor
+        ):
             if n.obj_offset in seen:
                 break
             seen.append(n.obj_offset)
@@ -116,14 +137,24 @@ class linux_arp(linux_common.AbstractLinuxCommand):
             family = n.tbl.family
 
             if family == socket.AF_INET:
-                ip = obj.Object("IpAddress", offset = n.primary_key.obj_offset, vm = self.addr_space).v()
+                ip = obj.Object(
+                    "IpAddress",
+                    offset=n.primary_key.obj_offset,
+                    vm=self.addr_space,
+                ).v()
             elif family == socket.AF_INET6:
-                ip = obj.Object("Ipv6Address", offset = n.primary_key.obj_offset, vm = self.addr_space).v()
+                ip = obj.Object(
+                    "Ipv6Address",
+                    offset=n.primary_key.obj_offset,
+                    vm=self.addr_space,
+                ).v()
             else:
                 ip = '?'
 
             if n.dev.is_valid():
-                mac = ":".join(["{0:02x}".format(x) for x in n.ha][:n.dev.addr_len])
+                mac = ":".join(
+                    ["{0:02x}".format(x) for x in n.ha][: n.dev.addr_len]
+                )
                 devname = n.dev.name
 
                 ret.append(a_ent(ip, mac, devname))
@@ -132,4 +163,8 @@ class linux_arp(linux_common.AbstractLinuxCommand):
 
     def render_text(self, outfd, data):
         for ent in data:
-            outfd.write("[{0:42s}] at {1:20s} on {2:s}\n".format(ent.ip, ent.mac, ent.devname))
+            outfd.write(
+                "[{0:42s}] at {1:20s} on {2:s}\n".format(
+                    ent.ip, ent.mac, ent.devname
+                )
+            )

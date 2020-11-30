@@ -26,31 +26,40 @@ import volatility.debug as debug
 import socket
 import itertools
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
-def load_as(config, astype = 'virtual', **kwargs):
+
+def load_as(config, astype='virtual', **kwargs):
     """Loads an address space by stacking valid ASes on top of each other (priority order first)"""
 
     base_as = None
     error = exceptions.AddrSpaceError()
 
-    # Start off requiring another round    
+    # Start off requiring another round
     found = True
     ## A full iteration through all the classes without anyone
     ## selecting us means we are done:
     while found:
         debug.debug("Voting round")
         found = False
-        for cls in sorted(list(registry.get_plugin_classes(addrspace.BaseAddressSpace).values()),
-                          key = lambda x: x.order if hasattr(x, 'order') else 10):
+        for cls in sorted(
+            list(
+                registry.get_plugin_classes(
+                    addrspace.BaseAddressSpace
+                ).values()
+            ),
+            key=lambda x: x.order if hasattr(x, 'order') else 10,
+        ):
             debug.debug("Trying {0} ".format(cls))
             try:
-                base_as = cls(base_as, config, astype = astype, **kwargs)
+                base_as = cls(base_as, config, astype=astype, **kwargs)
                 debug.debug("Succeeded instantiating {0}".format(base_as))
                 found = True
                 break
             except addrspace.ASAssertionError as e:
-                debug.debug("Failed instantiating {0}: {1}".format(cls.__name__, e), 2)
+                debug.debug(
+                    "Failed instantiating {0}: {1}".format(cls.__name__, e), 2
+                )
                 error.append_reason(cls.__name__, e)
                 continue
             except Exception as e:
@@ -58,7 +67,9 @@ def load_as(config, astype = 'virtual', **kwargs):
                 error.append_reason(cls.__name__ + " - EXCEPTION", e)
                 continue
 
-    if not isinstance(base_as, addrspace.AbstractVirtualAddressSpace) and (astype == 'virtual'):
+    if not isinstance(base_as, addrspace.AbstractVirtualAddressSpace) and (
+        astype == 'virtual'
+    ):
         base_as = None
 
     if base_as is None:
@@ -66,23 +77,30 @@ def load_as(config, astype = 'virtual', **kwargs):
 
     return base_as
 
-def Hexdump(data, width = 16):
+
+def Hexdump(data, width=16):
     """ Hexdump function shared by various plugins """
     for offset in range(0, len(data), width):
-        row_data = data[offset:offset + width]
-        translated_data = [x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
+        row_data = data[offset : offset + width]
+        translated_data = [
+            x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data
+        ]
         hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
 
         yield offset, hexdata, translated_data
 
+
 def remove_unprintable(str):
-    return ''.join([c for c in str if (ord(c) > 31 or ord(c) == 9) and ord(c) <= 126])
+    return ''.join(
+        [c for c in str if (ord(c) > 31 or ord(c) == 9) and ord(c) <= 126]
+    )
+
 
 # Compensate for Windows python not supporting socket.inet_ntop and some
-# Linux systems (i.e. OpenSuSE 11.2 w/ Python 2.6) not supporting IPv6. 
+# Linux systems (i.e. OpenSuSE 11.2 w/ Python 2.6) not supporting IPv6.
+
 
 def inet_ntop(address_family, packed_ip):
-
     def inet_ntop4(packed_ip):
         if not isinstance(packed_ip, str):
             raise TypeError("must be string, not {0}".format(type(packed_ip)))
@@ -102,7 +120,10 @@ def inet_ntop(address_family, packed_ip):
 
         # Replace a run of 0x00s with None
         numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
-        max_zero_run = sorted(sorted(numlen, key = lambda x: x[1], reverse = True), key = lambda x: x[0])[0]
+        max_zero_run = sorted(
+            sorted(numlen, key=lambda x: x[1], reverse=True),
+            key=lambda x: x[0],
+        )[0]
         words = []
         for k, l in numlen:
             if (k == 0) and (l == max_zero_run[1]) and not (None in words):
@@ -113,7 +134,9 @@ def inet_ntop(address_family, packed_ip):
 
         # Handle encapsulated IPv4 addresses
         encapsulated = ""
-        if (words[0] is None) and (len(words) == 3 or (len(words) == 4 and words[1] == 0xffff)):
+        if (words[0] is None) and (
+            len(words) == 3 or (len(words) == 4 and words[1] == 0xFFFF)
+        ):
             words = words[:-2]
             encapsulated = inet_ntop4(packed_ip[-4:])
         # If we start or end with None, then add an additional :
@@ -122,7 +145,12 @@ def inet_ntop(address_family, packed_ip):
         if words[-1] is None:
             words += [None]
         # Join up everything we've got using :s
-        return ":".join(["{0:x}".format(w) if w is not None else "" for w in words]) + encapsulated
+        return (
+            ":".join(
+                ["{0:x}".format(w) if w is not None else "" for w in words]
+            )
+            + encapsulated
+        )
 
     if address_family == socket.AF_INET:
         return inet_ntop4(packed_ip)
@@ -130,8 +158,9 @@ def inet_ntop(address_family, packed_ip):
         return inet_ntop6(packed_ip)
     raise socket.error("[Errno 97] Address family not supported by protocol")
 
+
 def iterfind(data, string):
-    """This function is called by the search_process_memory() 
+    """This function is called by the search_process_memory()
     method of windows, linux, and mac process objects"""
 
     offset = data.find(string, 0)

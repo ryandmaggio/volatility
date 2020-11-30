@@ -30,6 +30,7 @@ import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.pslist as linux_pslist
 import volatility.plugins.linux.proc_maps as linux_proc_maps
 
+
 class linux_proc_maps_rb(linux_proc_maps.linux_proc_maps):
     """Gathers process maps for linux through the mappings red-black tree"""
 
@@ -40,5 +41,4 @@ class linux_proc_maps_rb(linux_proc_maps.linux_proc_maps):
         for task in tasks:
             if task.mm:
                 for vma in task.get_proc_maps_rb():
-                    yield task, vma            
-
+                    yield task, vma

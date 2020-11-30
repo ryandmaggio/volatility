@@ -33,6 +33,7 @@ import volatility.obj as obj
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class mac_list_raw(mac_common.AbstractMacCommand):
     """List applications with promiscuous sockets"""
 
@@ -44,16 +45,18 @@ class mac_list_raw(mac_common.AbstractMacCommand):
         for task in mac_pstasks.mac_tasks(self._config).calculate():
             for filp, _, fd in task.lsof():
                 if filp.f_fglob.fg_type == 'DTYPE_SOCKET':
-                    socket = filp.f_fglob.fg_data.dereference_as("socket").v() 
-         
+                    socket = filp.f_fglob.fg_data.dereference_as("socket").v()
+
                     self.fd_cache[socket] = [task, fd]
- 
+
     def calculate(self):
         mac_common.set_plugin_members(self)
 
         list_addr = self.profile.get_symbol("_rawcb_list")
 
-        list_ptr  = obj.Object("rawcb_list_head", offset = list_addr, vm = self.addr_space)
+        list_ptr = obj.Object(
+            "rawcb_list_head", offset=list_addr, vm=self.addr_space
+        )
 
         cur = list_ptr.lh_first
 
@@ -61,7 +64,7 @@ class mac_list_raw(mac_common.AbstractMacCommand):
 
         while cur.is_valid():
             socket = cur.rcb_socket.v()
-      
+
             if socket in self.fd_cache:
                 (task, fd) = self.fd_cache[socket]
                 yield (task, fd, socket)
@@ -69,28 +72,38 @@ class mac_list_raw(mac_common.AbstractMacCommand):
             cur = cur.list.le_next.dereference()
 
     def unified_output(self, data):
-        return TreeGrid([("Process", str),
-                                  ("PID", int),
-                                  ("File Descriptor", int),
-                                  ("Socket", Address),
-                                 ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Process", str),
+                ("PID", int),
+                ("File Descriptor", int),
+                ("Socket", Address),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (task, fd, socket) in data:
-            yield(0, [
-                str(task.p_comm),
-                int(task.p_pid),
-                int(fd),
-                Address(socket),
-                ])
+            yield (
+                0,
+                [
+                    str(task.p_comm),
+                    int(task.p_pid),
+                    int(fd),
+                    Address(socket),
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Process", "16"),
-                                  ("PID", "6"),
-                                  ("File Descriptor", "5"),
-                                  ("Socket", "[addrpad]"),
-                                 ])
+        self.table_header(
+            outfd,
+            [
+                ("Process", "16"),
+                ("PID", "6"),
+                ("File Descriptor", "5"),
+                ("Socket", "[addrpad]"),
+            ],
+        )
 
         for (task, fd, socket) in data:
             self.table_row(outfd, task.p_comm, task.p_pid, fd, socket)
-

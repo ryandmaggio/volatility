@@ -28,12 +28,20 @@ import volatility.debug as debug
 import volatility.plugins.linux.netstat as linux_netstat
 import volatility.plugins.linux.common as linux_common
 
+
 class linux_pkt_queues(linux_netstat.linux_netstat):
     """Writes per-process packet queues out to disk"""
 
     def __init__(self, config, *args, **kwargs):
         linux_netstat.linux_netstat.__init__(self, config, *args, **kwargs)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'output directory for recovered packets', action = 'store', type = 'str')
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='output directory for recovered packets',
+            action='store',
+            type='str',
+        )
 
     def process_queue(self, name, pid, fd_num, queue):
         if queue.qlen == 0:
@@ -50,7 +58,7 @@ class linux_pkt_queues(linux_netstat.linux_netstat):
 
             pkt_len = sk_buff.len
 
-            if pkt_len > 0 and pkt_len != 0xffffffff:
+            if pkt_len > 0 and pkt_len != 0xFFFFFFFF:
 
                 # only open once we have a packet with data
                 # otherwise we get 0 sized files
@@ -58,7 +66,7 @@ class linux_pkt_queues(linux_netstat.linux_netstat):
                     fd = open(os.path.join(self.edir, fname), "wb")
 
                 start = sk_buff.data
-                data  = self.addr_space.zread(start, pkt_len)
+                data = self.addr_space.zread(start, pkt_len)
 
                 fd.write(data)
 
@@ -93,9 +101,11 @@ class linux_pkt_queues(linux_netstat.linux_netstat):
                     sk = skt.sk
 
                     for msg in self.process_queue(
-                            "receive", task.pid, fdnum, sk.sk_receive_queue):
+                        "receive", task.pid, fdnum, sk.sk_receive_queue
+                    ):
                         outfd.write(msg + "\n")
 
                     for msg in self.process_queue(
-                            "write", task.pid, fdnum, sk.sk_write_queue):
+                        "write", task.pid, fdnum, sk.sk_write_queue
+                    ):
                         outfd.write(msg + "\n")

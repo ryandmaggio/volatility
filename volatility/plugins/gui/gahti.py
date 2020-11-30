@@ -26,25 +26,31 @@ import volatility.debug as debug
 import volatility.plugins.gui.constants as consts
 import volatility.plugins.gui.sessions as sessions
 
+
 class Gahti(sessions.Sessions):
     """Dump the USER handle type information"""
 
     def unified_output(self, data):
 
         return renderers.TreeGrid(
-            [("Session", str),
-             ("Type", str),
-             ("Tag", str),
-             ("fnDestroy", Address),
-             ("Flags", str),
-            ], self.generator(data))
+            [
+                ("Session", str),
+                ("Type", str),
+                ("Tag", str),
+                ("fnDestroy", Address),
+                ("Flags", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         profile = utils.load_as(self._config).profile
 
         # Get the OS version being analyzed
-        version = (profile.metadata.get('major', 0),
-                   profile.metadata.get('minor', 0))
+        version = (
+            profile.metadata.get('major', 0),
+            profile.metadata.get('minor', 0),
+        )
 
         # Choose which USER handle enum to use
         if version >= (6, 1):
@@ -56,18 +62,24 @@ class Gahti(sessions.Sessions):
             gahti = session.find_gahti()
             if gahti:
                 for i, h in list(handle_types.items()):
-                    yield (0,
-                                    [str(session.SessionId),
-                                     str(h),
-                                     str(gahti.types[i].dwAllocTag),
-                                     Address(gahti.types[i].fnDestroy),
-                                     str(gahti.types[i].bObjectCreateFlags)])
+                    yield (
+                        0,
+                        [
+                            str(session.SessionId),
+                            str(h),
+                            str(gahti.types[i].dwAllocTag),
+                            Address(gahti.types[i].fnDestroy),
+                            str(gahti.types[i].bObjectCreateFlags),
+                        ],
+                    )
 
     def render_text(self, outfd, data):
         output = self.unified_output(data)
 
         if isinstance(output, renderers.TreeGrid):
-            tr = TextRenderer(self.text_cell_renderers, sort_column = self.text_sort_column)
+            tr = TextRenderer(
+                self.text_cell_renderers, sort_column=self.text_sort_column
+            )
             tr.render(outfd, output)
         else:
             raise TypeError("Unified Output must return a TreeGrid object")

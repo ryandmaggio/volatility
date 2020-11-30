@@ -31,7 +31,7 @@ import volatility.plugins.overlays.windows.windows as windows
 import volatility.obj as obj
 import volatility.constants as constants
 import volatility.utils as utils
-import volatility.debug as debug #pylint: disable-msg=W0611
+import volatility.debug as debug  # pylint: disable-msg=W0611
 import volatility.addrspace as addrspace
 import volatility.plugins.malware.malfind as malfind
 import volatility.plugins.overlays.windows.pe_vtypes as pe_vtypes
@@ -41,9 +41,11 @@ import volatility.plugins.overlays.windows.vista as vista
 
 try:
     import distorm3
+
     has_distorm = True
 except:
     has_distorm = False
+
 
 class _HANDLE_TABLE32(windows._HANDLE_TABLE):
     """A class for 32-bit Windows 8 handle tables"""
@@ -60,7 +62,7 @@ class _HANDLE_TABLE32(windows._HANDLE_TABLE):
 
         return 0
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         """Returns the OBJECT_HEADER of the associated handle.
         The parent is the _HANDLE_TABLE_ENTRY so that an object
         can be linked to its GrantedAccess.
@@ -69,11 +71,14 @@ class _HANDLE_TABLE32(windows._HANDLE_TABLE):
         if entry.InfoTable == 0:
             return obj.NoneObject("LeafHandleValue pointer is invalid")
 
-        return obj.Object("_OBJECT_HEADER",
-                          offset = entry.InfoTable & ~7,
-                          vm = self.obj_vm,
-                          parent = entry,
-                          handle_value = handle_value)
+        return obj.Object(
+            "_OBJECT_HEADER",
+            offset=entry.InfoTable & ~7,
+            vm=self.obj_vm,
+            parent=entry,
+            handle_value=handle_value,
+        )
+
 
 class _HANDLE_TABLE64(_HANDLE_TABLE32):
     """A class for 64-bit Windows 8 / 2012 handle tables"""
@@ -88,12 +93,12 @@ class _HANDLE_TABLE64(_HANDLE_TABLE32):
 
         value = value & 0xFFFFFFFFFFFFFFF8
         value = value >> self.DECODE_MAGIC
-        if (value & 1 << 44):
+        if value & 1 << 44:
             return value | 0xFFFFF00000000000
         else:
             return value | 0xFFFF000000000000
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         """Returns the OBJECT_HEADER of the associated handle.
         The parent is the _HANDLE_TABLE_ENTRY so that an object
         can be linked to its GrantedAccess.
@@ -102,23 +107,29 @@ class _HANDLE_TABLE64(_HANDLE_TABLE32):
         if entry.LowValue == 0:
             return obj.NoneObject("LowValue pointer is invalid")
 
-        return obj.Object("_OBJECT_HEADER",
-                          offset = self.decode_pointer(entry.LowValue),
-                          vm = self.obj_vm,
-                          parent = entry,
-                          handle_value = handle_value)
+        return obj.Object(
+            "_OBJECT_HEADER",
+            offset=self.decode_pointer(entry.LowValue),
+            vm=self.obj_vm,
+            parent=entry,
+            handle_value=handle_value,
+        )
+
 
 class _HANDLE_TABLE_81R264(_HANDLE_TABLE64):
     """A class for 64-bit Windows 8.1 / 2012 R2 handle tables"""
+
     DECODE_MAGIC = 0x10
+
 
 class _PSP_CID_TABLE32(_HANDLE_TABLE32):
     """PspCidTable for 32-bit Windows 8"""
 
+
 class _PSP_CID_TABLE64(_HANDLE_TABLE64):
     """PspCidTable for 64-bit Windows 8 and Server 2012"""
 
-    def get_item(self, entry, handle_value = 0):
+    def get_item(self, entry, handle_value=0):
         """Starting with 8/2012 x64 the PsPCidTable pointers
         go directly to an object rather than an object header.
         """
@@ -126,79 +137,88 @@ class _PSP_CID_TABLE64(_HANDLE_TABLE64):
         if entry.LowValue == 0:
             return obj.NoneObject("LowValue pointer is invalid")
 
-        body_offset = self.obj_vm.profile.get_obj_offset("_OBJECT_HEADER", "Body")
+        body_offset = self.obj_vm.profile.get_obj_offset(
+            "_OBJECT_HEADER", "Body"
+        )
         head_offset = self.decode_pointer(entry.LowValue) - body_offset
 
-        return obj.Object("_OBJECT_HEADER",
-                          offset = head_offset,
-                          vm = self.obj_vm,
-                          parent = entry,
-                          handle_value = handle_value)
+        return obj.Object(
+            "_OBJECT_HEADER",
+            offset=head_offset,
+            vm=self.obj_vm,
+            parent=entry,
+            handle_value=handle_value,
+        )
+
 
 class _PSP_CID_TABLE_81R264(_PSP_CID_TABLE64):
     """PspCidTable for 64-bit Windows 8.1 and Server 2012 R2"""
+
     DECODE_MAGIC = 0x10
+
 
 class _OBJECT_HEADER(win7._OBJECT_HEADER):
     """A class for object headers on Win 8 / Server 2012"""
 
     # This specifies the order the headers are found below the _OBJECT_HEADER
     # Note the AuditInfo field which is new as of Windows 8 / 2012
-    optional_header_mask = (('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
-                            ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
-                            ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
-                            ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
-                            ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
-                            ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
-                            )
+    optional_header_mask = (
+        ('CreatorInfo', '_OBJECT_HEADER_CREATOR_INFO', 0x01),
+        ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 0x02),
+        ('HandleInfo', '_OBJECT_HEADER_HANDLE_INFO', 0x04),
+        ('QuotaInfo', '_OBJECT_HEADER_QUOTA_INFO', 0x08),
+        ('ProcessInfo', '_OBJECT_HEADER_PROCESS_INFO', 0x10),
+        ('AuditInfo', '_OBJECT_HEADER_AUDIT_INFO', 0x40),
+    )
 
-    type_map = { 2: 'Type',
-                3: 'Directory',
-                4: 'SymbolicLink',
-                5: 'Token',
-                6: 'Job',
-                7: 'Process',
-                8: 'Thread',
-                9: 'UserApcReserve',
-                10: 'IoCompletionReserve',
-                11: 'DebugObject',
-                12: 'Event',
-                13: 'EventPair',
-                14: 'Mutant',
-                15: 'Callback',
-                16: 'Semaphore',
-                17: 'Timer',
-                18: 'IRTimer',
-                19: 'Profile',
-                20: 'KeyedEvent',
-                21: 'WindowStation',
-                22: 'Desktop',
-                24: 'TpWorkerFactory',
-                25: 'Adapter',
-                26: 'Controller',
-                27: 'Device',
-                28: 'Driver',
-                29: 'IoCompletion',
-                30: 'WaitCompletionPacket',
-                31: 'File',
-                32: 'TmTm',
-                33: 'TmTx',
-                34: 'TmRm',
-                35: 'TmEn',
-                36: 'Section',
-                37: 'Session',
-                38: 'Key',
-                39: 'ALPC Port',
-                40: 'PowerRequest',
-                41: 'WmiGuid',
-                42: 'EtwRegistration',
-                43: 'EtwConsumer',
-                44: 'FilterConnectionPort',
-                45: 'FilterCommunicationPort',
-                46: 'PcwObject',
-                47: 'DxgkSharedResource',
-                48: 'DxgkSharedSyncObject',
-            }
+    type_map = {
+        2: 'Type',
+        3: 'Directory',
+        4: 'SymbolicLink',
+        5: 'Token',
+        6: 'Job',
+        7: 'Process',
+        8: 'Thread',
+        9: 'UserApcReserve',
+        10: 'IoCompletionReserve',
+        11: 'DebugObject',
+        12: 'Event',
+        13: 'EventPair',
+        14: 'Mutant',
+        15: 'Callback',
+        16: 'Semaphore',
+        17: 'Timer',
+        18: 'IRTimer',
+        19: 'Profile',
+        20: 'KeyedEvent',
+        21: 'WindowStation',
+        22: 'Desktop',
+        24: 'TpWorkerFactory',
+        25: 'Adapter',
+        26: 'Controller',
+        27: 'Device',
+        28: 'Driver',
+        29: 'IoCompletion',
+        30: 'WaitCompletionPacket',
+        31: 'File',
+        32: 'TmTm',
+        33: 'TmTx',
+        34: 'TmRm',
+        35: 'TmEn',
+        36: 'Section',
+        37: 'Session',
+        38: 'Key',
+        39: 'ALPC Port',
+        40: 'PowerRequest',
+        41: 'WmiGuid',
+        42: 'EtwRegistration',
+        43: 'EtwConsumer',
+        44: 'FilterConnectionPort',
+        45: 'FilterCommunicationPort',
+        46: 'PcwObject',
+        47: 'DxgkSharedResource',
+        48: 'DxgkSharedSyncObject',
+    }
 
     @property
     def GrantedAccess(self):
@@ -207,7 +227,6 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
         if self.obj_parent:
             return self.obj_parent.GrantedAccessBits
         return obj.NoneObject("No parent known")
-
 
     def is_valid(self):
         """Determine if a given object header is valid"""
@@ -223,63 +242,68 @@ class _OBJECT_HEADER(win7._OBJECT_HEADER):
 
         return True
 
+
 class _OBJECT_HEADER_81R2(_OBJECT_HEADER):
     """A class for object headers on Win 8.1 / Server 2012 R2"""
 
-    type_map = { 2: 'Type',
-                3: 'Directory',
-                4: 'SymbolicLink',
-                5: 'Token',
-                6: 'Job',
-                7: 'Process',
-                8: 'Thread',
-                9: 'UserApcReserve',
-                10: 'IoCompletionReserve',
-                11: 'DebugObject',
-                12: 'Event',
-                13: 'Mutant',
-                14: 'Callback',
-                15: 'Semaphore',
-                16: 'Timer',
-                17: 'IRTimer',
-                18: 'Profile',
-                19: 'KeyedEvent',
-                20: 'WindowStation',
-                21: 'Desktop',
-                22: 'Composition',
-                23: 'TpWorkerFactory',
-                24: 'Adapter',
-                25: 'Controller',
-                26: 'Device',
-                27: 'Driver',
-                28: 'IoCompletion',
-                29: 'WaitCompletionPacket',
-                30: 'File',
-                31: 'TmTm',
-                32: 'TmTx',
-                33: 'TmRm',
-                34: 'TmEn',
-                35: 'Section',
-                36: 'Session',
-                37: 'Key',
-                38: 'ALPC Port',
-                39: 'PowerRequest',
-                40: 'WmiGuid',
-                41: 'EtwRegistration',
-                42: 'EtwConsumer',
-                43: 'FilterConnectionPort',
-                44: 'FilterCommunicationPort',
-                45: 'PcwObject',
-                46: 'DxgkSharedResource',
-            }
+    type_map = {
+        2: 'Type',
+        3: 'Directory',
+        4: 'SymbolicLink',
+        5: 'Token',
+        6: 'Job',
+        7: 'Process',
+        8: 'Thread',
+        9: 'UserApcReserve',
+        10: 'IoCompletionReserve',
+        11: 'DebugObject',
+        12: 'Event',
+        13: 'Mutant',
+        14: 'Callback',
+        15: 'Semaphore',
+        16: 'Timer',
+        17: 'IRTimer',
+        18: 'Profile',
+        19: 'KeyedEvent',
+        20: 'WindowStation',
+        21: 'Desktop',
+        22: 'Composition',
+        23: 'TpWorkerFactory',
+        24: 'Adapter',
+        25: 'Controller',
+        26: 'Device',
+        27: 'Driver',
+        28: 'IoCompletion',
+        29: 'WaitCompletionPacket',
+        30: 'File',
+        31: 'TmTm',
+        32: 'TmTx',
+        33: 'TmRm',
+        34: 'TmEn',
+        35: 'Section',
+        36: 'Session',
+        37: 'Key',
+        38: 'ALPC Port',
+        39: 'PowerRequest',
+        40: 'WmiGuid',
+        41: 'EtwRegistration',
+        42: 'EtwConsumer',
+        43: 'FilterConnectionPort',
+        44: 'FilterCommunicationPort',
+        45: 'PcwObject',
+        46: 'DxgkSharedResource',
+    }
+
 
 class Win8KDBG(windows.AbstractKDBGMod):
     """The Windows 8 / 2012 KDBG signatures"""
 
     before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2}
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+    }
 
     kdbgsize = 0x360
 
@@ -291,78 +315,137 @@ class Win8KDBG(windows.AbstractKDBGMod):
             signature = b'\x03\xf8\xff\xff'
         signature += b'KDBG' + struct.pack('<H', self.kdbgsize)
 
-        profile.merge_overlay({
-            'VOLATILITY_MAGIC': [ None, {
-            'KDBGHeader': [ None, ['VolatilityMagic', dict(value = signature)]]
-            }]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    None,
+                    {
+                        'KDBGHeader': [
+                            None,
+                            ['VolatilityMagic', dict(value=signature)],
+                        ]
+                    },
+                ]
+            }
+        )
+
 
 class Win8x86DTB(obj.ProfileModification):
     """The Windows 8 32-bit DTB signature"""
 
     before = ['WindowsOverlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2,
-                  'memory_model': lambda x: x == '32bit',
-                  }
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+        'memory_model': lambda x: x == '32bit',
+    }
 
     def modification(self, profile):
-        profile.merge_overlay({
-            'VOLATILITY_MAGIC': [ None, {
-            'DTBSignature' : [ None, ['VolatilityMagic', dict(value = "\x03\x00\x28\x00")]],
-            }]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    None,
+                    {
+                        'DTBSignature': [
+                            None,
+                            [
+                                'VolatilityMagic',
+                                dict(value="\x03\x00\x28\x00"),
+                            ],
+                        ],
+                    },
+                ]
+            }
+        )
+
 
 class Win8x64MaxCommit(obj.ProfileModification):
     """The Windows 8 / Server 2012 MM_MAX_COMMIT value"""
 
     before = ["Windows64Overlay"]
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2,
-                  'memory_model': lambda x: x == '64bit',
-                  }
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+        'memory_model': lambda x: x == '64bit',
+    }
 
     def modification(self, profile):
-        profile.merge_overlay({
-            'VOLATILITY_MAGIC': [ 0x0, {
-            'MM_MAX_COMMIT': [ 0x0, ['VolatilityMagic', dict(value = 0x7fffffff)]],
-             }]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    0x0,
+                    {
+                        'MM_MAX_COMMIT': [
+                            0x0,
+                            ['VolatilityMagic', dict(value=0x7FFFFFFF)],
+                        ],
+                    },
+                ]
+            }
+        )
+
 
 class Win8x64DTB(obj.ProfileModification):
     """The Windows 8 32-bit DTB signature"""
 
     before = ['WindowsOverlay', 'Windows64Overlay']
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2,
-                  'memory_model': lambda x: x == '64bit',
-                  }
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+        'memory_model': lambda x: x == '64bit',
+    }
 
     def modification(self, profile):
-        profile.merge_overlay({
-            'VOLATILITY_MAGIC': [ None, {
-            'DTBSignature' : [ None, ['VolatilityMagic', dict(value = "\x03\x00\xb2\x00")]],
-            }]})
+        profile.merge_overlay(
+            {
+                'VOLATILITY_MAGIC': [
+                    None,
+                    {
+                        'DTBSignature': [
+                            None,
+                            [
+                                'VolatilityMagic',
+                                dict(value="\x03\x00\xb2\x00"),
+                            ],
+                        ],
+                    },
+                ]
+            }
+        )
+
 
 class Win8x86SyscallVTypes(obj.ProfileModification):
     """Applying the SSDT structures for Win 8 32-bit"""
 
     before = ['WindowsVTypes']
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2}
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'memory_model': lambda x: x == '32bit',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+    }
 
     def modification(self, profile):
         # Same as 2003, which basically just means there are
         # only two SSDT tables by default.
         profile.vtypes.update(ssdt_vtypes.ssdt_vtypes_2003)
 
+
 class Win8ObjectClasses(obj.ProfileModification):
-    before = ["WindowsObjectClasses", "Win7ObjectClasses", "WinPEObjectClasses", "MalwarePspCid"]
-    conditions = {'os': lambda x: x == 'windows',
-                  'major': lambda x: x == 6,
-                  'minor': lambda x: x >= 2}
+    before = [
+        "WindowsObjectClasses",
+        "Win7ObjectClasses",
+        "WinPEObjectClasses",
+        "MalwarePspCid",
+    ]
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'major': lambda x: x == 6,
+        'minor': lambda x: x >= 2,
+    }
 
     def modification(self, profile):
 
@@ -386,93 +469,131 @@ class Win8ObjectClasses(obj.ProfileModification):
         else:
             objheader = _OBJECT_HEADER
 
-        profile.object_classes.update({
+        profile.object_classes.update(
+            {
                 "_HANDLE_TABLE": handletable,
                 "_OBJECT_HEADER": objheader,
                 "_PSP_CID_TABLE": pspcidtable,
-                })
+            }
+        )
+
 
 class Win8SP0x64(obj.Profile):
     """ A Profile for Windows 8 x64 """
+
     _md_memory_model = '64bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 2
     _md_build = 9200
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win8_sp0_x64_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win8_sp0_x64_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win8SP1x64(obj.Profile):
     """ A Profile for Windows 8.1 x64 """
+
     _md_memory_model = '64bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 3
     _md_build = 9600
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win8_sp1_x64_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win8_sp1_x64_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win8SP1x64_18340(obj.Profile):
     """ A Profile for Windows 8.1 x64 (6.3.9600.18340 / 2016-05-13) """
+
     _md_memory_model = '64bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 3
     _md_build = 9600
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win8_sp1_x64_54B5A1C6_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win8_sp1_x64_54B5A1C6_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win2012x64(Win8SP0x64):
     """ A Profile for Windows Server 2012 x64 """
-    _md_build = 9201 ##FIXME: fake build number to indicate server 2012 vs windows 8
+
+    _md_build = (
+        9201  ##FIXME: fake build number to indicate server 2012 vs windows 8
+    )
     _md_product = ["NtProductLanManNt", "NtProductServer"]
+
 
 class Win2012R2x64(Win8SP1x64):
     """ A Profile for Windows Server 2012 R2 x64 """
-    _md_build = 9601 ##FIXME: fake build number to indicate server 2012 R2 vs windows 8.1
+
+    _md_build = 9601  ##FIXME: fake build number to indicate server 2012 R2 vs windows 8.1
     _md_product = ["NtProductLanManNt", "NtProductServer"]
+
 
 class Win2012R2x64_18340(Win8SP1x64_18340):
     """ A Profile for Windows Server 2012 R2 x64 (6.3.9600.18340 / 2016-05-13) """
-    _md_build = 9601 ##FIXME: fake build number to indicate server 2012 R2 vs windows 8.1
+
+    _md_build = 9601  ##FIXME: fake build number to indicate server 2012 R2 vs windows 8.1
     _md_product = ["NtProductLanManNt", "NtProductServer"]
+
 
 class Win8SP0x86(obj.Profile):
     """ A Profile for Windows 8 x86 """
+
     _md_memory_model = '32bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 2
     _md_build = 9200
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win8_sp0_x86_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win8_sp0_x86_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win8SP1x86(obj.Profile):
     """ A Profile for Windows 8.1 x86 """
+
     _md_memory_model = '32bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 3
     _md_build = 9600
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win8_sp1_x86_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win8_sp1_x86_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win81U1x64(obj.Profile):
     """ A Profile for Windows 8.1 Update 1 x64 """
+
     _md_memory_model = '64bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 3
     _md_build = 17031
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win81_u1_x64_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win81_u1_x64_vtypes'
+    )
     _md_product = ["NtProductWinNt"]
+
 
 class Win81U1x86(obj.Profile):
     """ A Profile for Windows 8.1 Update 1 x86 """
+
     _md_memory_model = '32bit'
     _md_os = 'windows'
     _md_major = 6
     _md_minor = 3
     _md_build = 17031
-    _md_vtype_module = 'volatility.plugins.overlays.windows.win81_u1_x86_vtypes'
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win81_u1_x86_vtypes'
+    )
     _md_product = ["NtProductWinNt"]

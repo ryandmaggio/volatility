@@ -26,11 +26,12 @@ import xml.etree.cElementTree as etree
 import volatility.commands as commands
 import volatility.debug as debug
 import volatility.utils as utils
+
 PAGESIZE = 4096
 
-#XML Example file format
+# XML Example file format
 #
-#<patchfile>
+# <patchfile>
 #  <patchinfo method="pagescan">
 #    <constraints>
 #      <match offset="[offset within page]">DEADBEEFC0FFEE</match>
@@ -41,14 +42,16 @@ PAGESIZE = 4096
 #    </patches>
 #    ...
 #  </patchinfo>
-#</patchfile>
+# </patchfile>
+
 
 class MultiPageScanner(object):
     """Scans a page at a time through the address space
-    
-       Designed to minimize reads/writes to the address space
+
+    Designed to minimize reads/writes to the address space
     """
-    def __init__(self, patchers, full = False):
+
+    def __init__(self, patchers, full=False):
         self.patchers = list(patchers)
         self.maxlen = 0
         self.remove_patchers = not full
@@ -57,10 +60,12 @@ class MultiPageScanner(object):
         """Calibrate the scanner to ensure fastest speed"""
         # Define the calibration functions
         timeit_fullpage = lambda: list(self.scan_page(address_space, 0, True))
-        timeit_nonfullpage = lambda: list(self.scan_page(address_space, 0, False))
+        timeit_nonfullpage = lambda: list(
+            self.scan_page(address_space, 0, False)
+        )
 
-        with_fullpage = timeit.repeat(timeit_fullpage, number = 100)
-        without_fullpage = timeit.repeat(timeit_nonfullpage, number = 100)
+        with_fullpage = timeit.repeat(timeit_fullpage, number=100)
+        without_fullpage = timeit.repeat(timeit_nonfullpage, number=100)
         return min(with_fullpage) < min(without_fullpage)
 
     def scan(self, address_space, outfd):
@@ -77,13 +82,21 @@ class MultiPageScanner(object):
         sys.stdout.flush()
 
         done = False
-        while address_space.is_valid_address(page_offset + PAGESIZE) and not done:
+        while (
+            address_space.is_valid_address(page_offset + PAGESIZE) and not done
+        ):
             sys.stdout.write("\rScanning: {0:08X}".format(page_offset))
             sys.stdout.flush()
 
             # Run through any patchers that didn't fail
-            for patcher in self.scan_page(address_space, page_offset, fullpage):
-                outfd.write("\rPatching {0} at page {1:x}\n".format(patcher.get_name(), page_offset))
+            for patcher in self.scan_page(
+                address_space, page_offset, fullpage
+            ):
+                outfd.write(
+                    "\rPatching {0} at page {1:x}\n".format(
+                        patcher.get_name(), page_offset
+                    )
+                )
                 patcher.patch(address_space, page_offset)
                 if self.remove_patchers:
                     self.patchers.remove(patcher)
@@ -95,7 +108,7 @@ class MultiPageScanner(object):
             page_offset += PAGESIZE
         sys.stdout.write("\n")
 
-    def scan_page(self, address_space, page_offset, fullpage = False):
+    def scan_page(self, address_space, page_offset, fullpage=False):
         """Runs through patchers for a single page"""
         if fullpage:
             pagedata = address_space.read(page_offset, PAGESIZE)
@@ -103,16 +116,20 @@ class MultiPageScanner(object):
         for patcher in self.patchers:
             for offset, data in patcher.get_constraints():
                 if fullpage:
-                    testdata = pagedata[offset:offset + len(data)]
+                    testdata = pagedata[offset : offset + len(data)]
                 else:
-                    testdata = address_space.read(page_offset + offset, len(data))
+                    testdata = address_space.read(
+                        page_offset + offset, len(data)
+                    )
                 if data != testdata:
                     break
             else:
                 yield patcher
 
+
 class PatcherObject(object):
     """Simple object to hold patching data"""
+
     def __init__(self, name):
         self.name = name
         self.patches = set()
@@ -131,7 +148,10 @@ class PatcherObject(object):
     def patch(self, addr_space, page_offset):
         """Writes to the address space"""
         result = True
-        for offset, patch, in self.patches:
+        for (
+            offset,
+            patch,
+        ) in self.patches:
             result = result and addr_space.write(page_offset + offset, patch)
         return result
 
@@ -146,16 +166,21 @@ class PatcherObject(object):
         """Returns the name of the patcher"""
         return self.name
 
+
 class Patcher(commands.Command):
     """Patches memory based on page scans"""
+
     def __init__(self, config, *args, **kwargs):
         commands.Command.__init__(self, config, *args, **kwargs)
-        config.add_option('XML-INPUT', short_option = 'x',
-                  help = 'Input XML file for patching binaries')
+        config.add_option(
+            'XML-INPUT',
+            short_option='x',
+            help='Input XML file for patching binaries',
+        )
 
     def calculate(self):
         """Calculates the patchers"""
-        addr_space = utils.load_as(self._config, astype = 'physical')
+        addr_space = utils.load_as(self._config, astype='physical')
         scanner = MultiPageScanner(self.parse_patchfile())
         return scanner, addr_space
 
@@ -198,7 +223,9 @@ class Patcher(commands.Command):
                         if tag.tag == 'patches':
                             patches = tag
                     if constraints is None:
-                        debug.error("Patch input file does not contain any valid constraints")
+                        debug.error(
+                            "Patch input file does not contain any valid constraints"
+                        )
 
                     # Parse the patches section
                     for tag in patches:
@@ -220,4 +247,6 @@ class Patcher(commands.Command):
                                 patcher.add_constraint(offset, data)
                     yield patcher
                 else:
-                    debug.error("Unsupported patchinfo method " + element.method)
+                    debug.error(
+                        "Unsupported patchinfo method " + element.method
+                    )

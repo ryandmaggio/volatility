@@ -18,20 +18,29 @@
 #
 
 import os
-import volatility.plugins.mac.pstasks as pstasks 
+import volatility.plugins.mac.pstasks as pstasks
 import volatility.debug as debug
+
 
 class mac_memdump(pstasks.mac_tasks):
     """ Dump addressable memory pages to a file """
 
     def __init__(self, config, *args, **kwargs):
         pstasks.mac_tasks.__init__(self, config, *args, **kwargs)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
 
     def render_text(self, outfd, data):
 
-        if (not self._config.DUMP_DIR or not 
-                    os.path.isdir(self._config.DUMP_DIR)):
+        if not self._config.DUMP_DIR or not os.path.isdir(
+            self._config.DUMP_DIR
+        ):
             debug.error("You must speficy a valid path with -D")
 
         for proc in data:
@@ -45,7 +54,9 @@ class mac_memdump(pstasks.mac_tasks):
 
             handle = open(path, "wb")
             if not handle:
-                outfd.write("Failed to open file for writing: {0}\n".format(path))
+                outfd.write(
+                    "Failed to open file for writing: {0}\n".format(path)
+                )
                 continue
 
             bytes = 0
@@ -62,4 +73,3 @@ class mac_memdump(pstasks.mac_tasks):
                 outfd.write("Error dumping process: {0}\n".format(p_comm))
             finally:
                 handle.close()
-            

@@ -31,12 +31,17 @@ from volatility.renderers.basic import Address, Address64, Hex, Bytes
 from volatility.renderers.dot import DotRenderer
 from volatility.renderers.html import HTMLRenderer, JSONRenderer
 from volatility.renderers.sqlite import SqliteRenderer
-from volatility.renderers.text import TextRenderer, FormatCellRenderer, GrepTextRenderer
+from volatility.renderers.text import (
+    TextRenderer,
+    FormatCellRenderer,
+    GrepTextRenderer,
+)
 from volatility.renderers.xlsx import XLSXRenderer
 
 
 class Command(object):
     """ Base class for each plugin command """
+
     op = ""
     opts = ""
     args = ""
@@ -49,7 +54,7 @@ class Command(object):
     text_sort_column = None
 
     def __init__(self, config, *_args, **_kwargs):
-        """ Constructor uses args as an initializer. It creates an instance
+        """Constructor uses args as an initializer. It creates an instance
         of OptionParser, populates the options, and finally parses the
         command line. Options are stored in the self.opts attribute.
         """
@@ -59,21 +64,32 @@ class Command(object):
     @staticmethod
     def register_options(config):
         """Registers options into a config object provided"""
-        config.add_option("OUTPUT", default = 'text',
-                          cache_invalidator = False,
-                          help = "Output in this format (support is module specific, see the Module Output Options below)")
+        config.add_option(
+            "OUTPUT",
+            default='text',
+            cache_invalidator=False,
+            help="Output in this format (support is module specific, see the Module Output Options below)",
+        )
 
-        config.add_option("OUTPUT-FILE", default = None,
-                          cache_invalidator = False,
-                          help = "Write output in this file")
+        config.add_option(
+            "OUTPUT-FILE",
+            default=None,
+            cache_invalidator=False,
+            help="Write output in this file",
+        )
 
-        config.add_option("VERBOSE", default = 0, action = 'count',
-                          cache_invalidator = False,
-                          short_option = 'v', help = 'Verbose information')
+        config.add_option(
+            "VERBOSE",
+            default=0,
+            action='count',
+            cache_invalidator=False,
+            short_option='v',
+            help='Verbose information',
+        )
 
     @classmethod
     def help(cls):
-        """ This function returns a string that will be displayed when a
+        """This function returns a string that will be displayed when a
         user lists available plugins.
         """
         try:
@@ -86,7 +102,7 @@ class Command(object):
         return True
 
     def calculate(self):
-        """ This function is responsible for performing all calculations
+        """This function is responsible for performing all calculations
 
         We should not have any output functions (e.g. print) in this
         function at all.
@@ -94,7 +110,6 @@ class Command(object):
         If this function is expected to take a long time to return
         some data, the function should return a generator.
         """
-
 
     def execute(self):
         """ Executes the plugin command."""
@@ -110,11 +125,16 @@ class Command(object):
                     self._config.update("PROFILE", "WinXPSP2x86")
                 else:
                     debug.error("You must set a profile!")
-           
+
             if self._config.PROFILE not in profs:
-                debug.error("Invalid profile " + self._config.PROFILE + " selected")
+                debug.error(
+                    "Invalid profile " + self._config.PROFILE + " selected"
+                )
             if not self.is_valid_profile(profs[self._config.PROFILE]()):
-                debug.error("This command does not support the profile " + self._config.PROFILE)
+                debug.error(
+                    "This command does not support the profile "
+                    + self._config.PROFILE
+                )
 
         # # Executing plugins is done in two stages - first we calculate
         data = self.calculate()
@@ -123,9 +143,19 @@ class Command(object):
         ## requested output mode:
         function_name = "render_{0}".format(self._config.OUTPUT)
         if not self._config.OUTPUT == "sqlite" and self._config.OUTPUT_FILE:
-            out_file = '{0}_{1}.txt'.format(time.strftime('%Y%m%d%H%M%S'), plugin_name) if self._config.OUTPUT_FILE == '.' else self._config.OUTPUT_FILE
+            out_file = (
+                '{0}_{1}.txt'.format(
+                    time.strftime('%Y%m%d%H%M%S'), plugin_name
+                )
+                if self._config.OUTPUT_FILE == '.'
+                else self._config.OUTPUT_FILE
+            )
             if os.path.exists(out_file):
-                debug.error("File " + out_file + " already exists.  Cowardly refusing to overwrite it...")
+                debug.error(
+                    "File "
+                    + out_file
+                    + " already exists.  Cowardly refusing to overwrite it..."
+                )
             print('Outputting to: {0}'.format(out_file))
             outfd = open(out_file, 'wb')
         else:
@@ -141,7 +171,11 @@ class Command(object):
                     _a, b = x.split("_", 1)
                     result.append(b)
 
-            print("Plugin {0} is unable to produce output in format {1}. Supported formats are {2}. Please send a feature request".format(self.__class__.__name__, self._config.OUTPUT, result))
+            print(
+                "Plugin {0} is unable to produce output in format {1}. Supported formats are {2}. Please send a feature request".format(
+                    self.__class__.__name__, self._config.OUTPUT, result
+                )
+            )
             return
 
         func(outfd, data)
@@ -186,21 +220,21 @@ class Command(object):
         else:
             if length < 5:
                 debug.error("Cannot elide a string to length less than 5")
-            even = ((length + 1) % 2)
+            even = (length + 1) % 2
             length = (length - 3) / 2
-            return string[:length + even] + "..." + string[-length:]
+            return string[: length + even] + "..." + string[-length:]
 
     def format_value(self, value, fmt):
         """ Formats an individual field using the table formatting codes"""
         profile = addrspace.BufferAddressSpace(self._config).profile
         return ("{0:" + self._formatlookup(profile, fmt) + "}").format(value)
 
-    def table_header(self, outfd, title_format_list = None):
+    def table_header(self, outfd, title_format_list=None):
         """Table header renders the title row of a table
 
-           This also stores the header types to ensure
-           everything is formatted appropriately.
-           It must be a list of tuples rather than a dict for ordering purposes.
+        This also stores the header types to ensure
+        everything is formatted appropriately.
+        It must be a list of tuples rather than a dict for ordering purposes.
         """
         titles = []
         rules = []
@@ -214,7 +248,9 @@ class Command(object):
                 spec.minwidth = max(spec.minwidth, len(k))
 
             # Get the title specification to follow the alignment of the field
-            titlespec = fmtspec.FormatSpec(formtype = 's', minwidth = max(spec.minwidth, len(k)))
+            titlespec = fmtspec.FormatSpec(
+                formtype='s', minwidth=max(spec.minwidth, len(k))
+            )
             titlespec.align = spec.align if spec.align in "<>^" else "<"
 
             # Add this to the titles, rules, and formatspecs lists
@@ -234,18 +270,22 @@ class Command(object):
             debug.error("Too many values for the table")
         for index in range(len(args)):
             spec = self._formatlist[index]
-            result = self._elide(("{0:" + spec.to_string() + "}").format(args[index]), spec.minwidth)
+            result = self._elide(
+                ("{0:" + spec.to_string() + "}").format(args[index]),
+                spec.minwidth,
+            )
             reslist.append(result)
         outfd.write(self.tablesep.join(reslist) + "\n")
 
-    text_stock_renderers = {Hex: "#x",
-                            Address: "#8x",
-                            Address64: "#16x",
-                            int: "",
-                            str: "<",
-                            float: ".2",
-                            Bytes: ""}
-
+    text_stock_renderers = {
+        Hex: "#x",
+        Address: "#8x",
+        Address64: "#16x",
+        int: "",
+        str: "<",
+        float: ".2",
+        Bytes: "",
+    }
 
     def text_cell_renderers(self, columns):
         """Returns default renderers for the columns listed"""
@@ -262,12 +302,18 @@ class Command(object):
         for column in columns:
             if not isinstance(column, renderers.Column):
                 raise TypeError("Columns must be a list of Column objects")
-            columntype = column.type if not x64 or column.type != Address else Address64
-            renderlist[column.index] = FormatCellRenderer(self.text_stock_renderers[columntype])
+            columntype = (
+                column.type if not x64 or column.type != Address else Address64
+            )
+            renderlist[column.index] = FormatCellRenderer(
+                self.text_stock_renderers[columntype]
+            )
         return renderlist
 
     def unified_output(self, data):
-        raise NotImplementedError("Rendering using the unified output format has not been implemented for this plugin.")
+        raise NotImplementedError(
+            "Rendering using the unified output format has not been implemented for this plugin."
+        )
 
     def _render(self, outfd, renderer, data):
         output = self.unified_output(data)
@@ -278,12 +324,25 @@ class Command(object):
             raise TypeError("Unified Output must return a TreeGrid object")
 
     def render_text(self, outfd, data):
-        self._render(outfd, TextRenderer(self.text_cell_renderers, sort_column = self.text_sort_column,
-                                         config = self._config), data)
+        self._render(
+            outfd,
+            TextRenderer(
+                self.text_cell_renderers,
+                sort_column=self.text_sort_column,
+                config=self._config,
+            ),
+            data,
+        )
 
     def render_greptext(self, outfd, data):
         try:
-            self._render(outfd, GrepTextRenderer(self.text_cell_renderers, sort_column = self.text_sort_column), data)
+            self._render(
+                outfd,
+                GrepTextRenderer(
+                    self.text_cell_renderers, sort_column=self.text_sort_column
+                ),
+                data,
+            )
         except NotImplementedError as why:
             debug.error(why)
         except TypeError as why:
@@ -299,7 +358,11 @@ class Command(object):
 
     def render_sqlite(self, outfd, data):
         try:
-            self._render(outfd, SqliteRenderer(self.__class__.__name__, self._config), data)
+            self._render(
+                outfd,
+                SqliteRenderer(self.__class__.__name__, self._config),
+                data,
+            )
         except NotImplementedError as why:
             debug.error(why)
         except TypeError as why:
@@ -307,7 +370,11 @@ class Command(object):
 
     def render_dot(self, outfd, data):
         try:
-            self._render(outfd, DotRenderer(self.text_cell_renderers, self._config), data)
+            self._render(
+                outfd,
+                DotRenderer(self.text_cell_renderers, self._config),
+                data,
+            )
         except NotImplementedError as why:
             debug.error(why)
         except TypeError as why:
@@ -323,7 +390,11 @@ class Command(object):
 
     def render_xlsx(self, outfd, data):
         try:
-            self._render(outfd, XLSXRenderer(self.text_cell_renderers, self._config), data)
+            self._render(
+                outfd,
+                XLSXRenderer(self.text_cell_renderers, self._config),
+                data,
+            )
         except NotImplementedError as why:
             debug.error(why)
         except TypeError as why:

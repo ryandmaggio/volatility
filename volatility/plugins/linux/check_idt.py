@@ -31,20 +31,24 @@ from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
 idt_vtype_64 = {
-    'idt_desc': [ 16 , {
-    'offset_low'    : [0,  ['unsigned short']],
-    'segment'       : [2,  ['unsigned short']],
-    'ist'           : [4,  ['unsigned short']],
-    'offset_middle' : [6,  ['unsigned short']],
-    'offset_high'   : [8,  ['unsigned int']],
-    'unused'        : [12, ['unsigned int']],  
-    }],
+    'idt_desc': [
+        16,
+        {
+            'offset_low': [0, ['unsigned short']],
+            'segment': [2, ['unsigned short']],
+            'ist': [4, ['unsigned short']],
+            'offset_middle': [6, ['unsigned short']],
+            'offset_high': [8, ['unsigned int']],
+            'unused': [12, ['unsigned int']],
+        },
+    ],
 }
 
-class LinuxIDTTypes(obj.ProfileModification):
-    conditions = {"os" : lambda x : x in ["linux"]}
 
-    def modification(self, profile):       
+class LinuxIDTTypes(obj.ProfileModification):
+    conditions = {"os": lambda x: x in ["linux"]}
+
+    def modification(self, profile):
         if profile.metadata.get('memory_model', '64bit') == "64bit":
             profile.vtypes.update(idt_vtype_64)
 
@@ -53,14 +57,16 @@ class linux_check_idt(linux_common.AbstractLinuxCommand):
     """ Checks if the IDT has been altered """
 
     def calculate(self):
-        """ 
+        """
         This works by walking the IDT table for the entries that Linux uses
         and verifies that each is a symbol in the kernel
         """
         linux_common.set_plugin_members(self)
 
         if self.profile.metadata['arch'] not in ["x64", "x86"]:
-            debug.error("This plugin is only supported on Intel-based memory captures") 
+            debug.error(
+                "This plugin is only supported on Intel-based memory captures"
+            )
 
         tblsz = 256
 
@@ -87,7 +93,13 @@ class linux_check_idt(linux_common.AbstractLinuxCommand):
         addrs = [self.addr_space.profile.get_symbol("idt_table")]
 
         for tableaddr in addrs:
-            table = obj.Object(theType = 'Array', offset = tableaddr, vm = self.addr_space, targetType = idt_type, count = tblsz)
+            table = obj.Object(
+                theType='Array',
+                offset=tableaddr,
+                vm=self.addr_space,
+                targetType=idt_type,
+                count=tblsz,
+            )
 
             for i in check_idxs:
                 ent = table[i]
@@ -98,11 +110,11 @@ class linux_check_idt(linux_common.AbstractLinuxCommand):
                 if hasattr(ent, "Address"):
                     idt_addr = ent.Address
                 else:
-                    low    = ent.offset_low
+                    low = ent.offset_low
                     middle = ent.offset_middle
-                    
+
                     if hasattr(ent, "offset_high"):
-                        high   = ent.offset_high
+                        high = ent.offset_high
                     else:
                         high = 0
 
@@ -114,23 +126,27 @@ class linux_check_idt(linux_common.AbstractLinuxCommand):
                         sym_name = "HOOKED"
                     else:
                         hooked = 0
-                        sym_name = self.profile.get_symbol_by_address("kernel", idt_addr)
+                        sym_name = self.profile.get_symbol_by_address(
+                            "kernel", idt_addr
+                        )
 
-                    yield(i, ent, idt_addr, sym_name, hooked)
+                    yield (i, ent, idt_addr, sym_name, hooked)
 
     def unified_output(self, data):
-        return TreeGrid([("Index", Address),
-                       ("Address", Address),
-                       ("Symbol", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [("Index", Address), ("Address", Address), ("Symbol", str)],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (i, _, idt_addr, sym_name, hooked) in data:
             yield (0, [Address(i), Address(idt_addr), str(sym_name)])
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Index", "[addr]"), ("Address", "[addrpad]"), ("Symbol", "<30")])
+        self.table_header(
+            outfd,
+            [("Index", "[addr]"), ("Address", "[addrpad]"), ("Symbol", "<30")],
+        )
 
         for (i, _, idt_addr, sym_name, hooked) in data:
             self.table_row(outfd, i, idt_addr, sym_name)
-

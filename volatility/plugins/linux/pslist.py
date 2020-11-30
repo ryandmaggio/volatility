@@ -30,32 +30,44 @@ import volatility.plugins.linux.common as linux_common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class linux_pslist(linux_common.AbstractLinuxCommand):
     """Gather active tasks by walking the task_struct->task list"""
 
     def __init__(self, config, *args, **kwargs):
-        linux_common.AbstractLinuxCommand.__init__(self, config, *args, **kwargs)
-        config.add_option('PID', short_option = 'p', default = None,
-                          help = 'Operate on these Process IDs (comma-separated)',
-                          action = 'store', type = 'str')
+        linux_common.AbstractLinuxCommand.__init__(
+            self, config, *args, **kwargs
+        )
+        config.add_option(
+            'PID',
+            short_option='p',
+            default=None,
+            help='Operate on these Process IDs (comma-separated)',
+            action='store',
+            type='str',
+        )
 
     @staticmethod
     def virtual_process_from_physical_offset(addr_space, offset):
-        pspace = utils.load_as(addr_space.get_config(), astype = 'physical')
-        task = obj.Object("task_struct", vm = pspace, offset = offset)
-        parent = obj.Object("task_struct", vm = addr_space, offset = task.parent)
-        
+        pspace = utils.load_as(addr_space.get_config(), astype='physical')
+        task = obj.Object("task_struct", vm=pspace, offset=offset)
+        parent = obj.Object("task_struct", vm=addr_space, offset=task.parent)
+
         for child in parent.children.list_of_type("task_struct", "sibling"):
             if child.obj_vm.vtop(child.obj_offset) == task.obj_offset:
                 return child
-        
-        return obj.NoneObject("Unable to bounce back from task_struct->parent->task_struct")
+
+        return obj.NoneObject(
+            "Unable to bounce back from task_struct->parent->task_struct"
+        )
 
     def allprocs(self):
         linux_common.set_plugin_members(self)
 
         init_task_addr = self.addr_space.profile.get_symbol("init_task")
-        init_task = obj.Object("task_struct", vm = self.addr_space, offset = init_task_addr)
+        init_task = obj.Object(
+            "task_struct", vm=self.addr_space, offset=init_task_addr
+        )
 
         # walk the ->tasks list, note that this will *not* display "swapper"
         for task in init_task.tasks:
@@ -73,29 +85,33 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
                 yield task
 
     def unified_output(self, data):
-        return TreeGrid([("Offset", Address),
-                       ("Name", str),
-                       ("Pid", int),
-                       ("Uid", str),
-                       ("Gid", str),
-                       ("DTB", Address),
-                       ("StartTime", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Offset", Address),
+                ("Name", str),
+                ("Pid", int),
+                ("Uid", str),
+                ("Gid", str),
+                ("DTB", Address),
+                ("StartTime", str),
+            ],
+            self.generator(data),
+        )
 
     def _get_task_vals(self, task):
         if task.parent.is_valid():
-            ppid       = str(task.parent.pid)
+            ppid = str(task.parent.pid)
         else:
-            ppid       = "-"
+            ppid = "-"
 
         uid = task.uid
         if uid == None or uid > 10000:
             uid = "-"
-        
+
         gid = task.gid
         if gid == None or gid > 100000:
             gid = "-"
-    
+
         start_time = task.get_task_start_time()
         if start_time == None:
             start_time = "-"
@@ -108,7 +124,7 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
         task_offset = None
         if hasattr(self, "wants_physical") and task.obj_vm.base:
             task_offset = self.addr_space.vtop(task.obj_offset)
-            
+
         if task_offset == None:
             task_offset = task.obj_offset
 
@@ -116,47 +132,69 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
 
     def generator(self, data):
         for task in data:
-            task_offset, dtb, ppid, uid, gid, start_time = self._get_task_vals(task)
+            task_offset, dtb, ppid, uid, gid, start_time = self._get_task_vals(
+                task
+            )
 
-            yield (0, [Address(task_offset),
-                                  str(task.comm),
-                                  int(task.pid),
-                                  str(uid),
-                                  str(gid), 
-                                  Address(dtb),
-                                  start_time])
+            yield (
+                0,
+                [
+                    Address(task_offset),
+                    str(task.comm),
+                    int(task.pid),
+                    str(uid),
+                    str(gid),
+                    Address(dtb),
+                    start_time,
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Offset", "[addrpad]"),
-                                  ("Name", "20"),
-                                  ("Pid", "15"),
-                                  ("PPid", "15"),
-                                  ("Uid", "15"),
-                                  ("Gid", "6"),
-                                  ("DTB", "[addrpad]"),
-                                  ("Start Time", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Offset", "[addrpad]"),
+                ("Name", "20"),
+                ("Pid", "15"),
+                ("PPid", "15"),
+                ("Uid", "15"),
+                ("Gid", "6"),
+                ("DTB", "[addrpad]"),
+                ("Start Time", ""),
+            ],
+        )
         for task in data:
-            task_offset, dtb, ppid, uid, gid, start_time = self._get_task_vals(task)
+            task_offset, dtb, ppid, uid, gid, start_time = self._get_task_vals(
+                task
+            )
 
-            self.table_row(outfd, task_offset,
-                                  task.comm,
-                                  str(task.pid),
-                                  str(ppid),
-                                  str(uid),
-                                  str(gid),
-                                  dtb,
-                                  str(start_time))
+            self.table_row(
+                outfd,
+                task_offset,
+                task.comm,
+                str(task.pid),
+                str(ppid),
+                str(uid),
+                str(gid),
+                dtb,
+                str(start_time),
+            )
+
 
 class linux_memmap(linux_pslist):
     """Dumps the memory map for linux tasks"""
 
     def unified_output(self, data):
-        return TreeGrid([("Task", str),
-                       ("Pid", int),
-                       ("Virtual", Address),
-                       ("Physical", Address),
-                       ("Size", Address)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Task", str),
+                ("Pid", int),
+                ("Virtual", Address),
+                ("Physical", Address),
+                ("Size", Address),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for task in data:
@@ -168,16 +206,39 @@ class linux_memmap(linux_pslist):
                     pa = task_space.vtop(p[0])
                     # pa can be 0, according to the old memmap, but can't == None(NoneObject)
                     if pa != None:
-                        yield (0, [str(task.comm), int(task.pid), Address(p[0]), Address(pa), Address(p[1])])
+                        yield (
+                            0,
+                            [
+                                str(task.comm),
+                                int(task.pid),
+                                Address(p[0]),
+                                Address(pa),
+                                Address(p[1]),
+                            ],
+                        )
             else:
-                yield(0, [str(task.comm), int(task.pid), Address(-1), Address(-1), Address(-1)])
+                yield (
+                    0,
+                    [
+                        str(task.comm),
+                        int(task.pid),
+                        Address(-1),
+                        Address(-1),
+                        Address(-1),
+                    ],
+                )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Task", "16"),
-                                  ("Pid", "8"),
-                                  ("Virtual", "[addrpad]"),
-                                  ("Physical", "[addrpad]"),
-                                  ("Size", "[addr]")])
+        self.table_header(
+            outfd,
+            [
+                ("Task", "16"),
+                ("Pid", "8"),
+                ("Virtual", "[addrpad]"),
+                ("Physical", "[addrpad]"),
+                ("Size", "[addr]"),
+            ],
+        )
 
         for task in data:
             task_space = task.get_process_address_space()
@@ -188,8 +249,14 @@ class linux_memmap(linux_pslist):
                     pa = task_space.vtop(p[0])
                     # pa can be 0, according to the old memmap, but can't == None(NoneObject)
                     if pa != None:
-                        self.table_row(outfd, task.comm, task.pid, p[0], pa, p[1])
-                    #else:
+                        self.table_row(
+                            outfd, task.comm, task.pid, p[0], pa, p[1]
+                        )
+                    # else:
                     #    outfd.write("0x{0:10x} 0x000000     0x{1:12x}\n".format(p[0], p[1]))
             else:
-                outfd.write("Unable to read pages for {0} pid {1}.\n".format(task.comm, task.pid))
+                outfd.write(
+                    "Unable to read pages for {0} pid {1}.\n".format(
+                        task.comm, task.pid
+                    )
+                )

@@ -27,21 +27,31 @@
 
 import os
 
-import volatility.obj   as obj
+import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.find_file as linux_find_file
+
 
 class linux_recover_filesystem(linux_common.AbstractLinuxCommand):
     """Recovers the entire cached file system from memory"""
 
     def __init__(self, config, *args, **kwargs):
-        linux_common.AbstractLinuxCommand.__init__(self, config, *args, **kwargs)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
+        linux_common.AbstractLinuxCommand.__init__(
+            self, config, *args, **kwargs
+        )
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
 
     def _fix_metadata(self, file_path, file_dentry):
         inode = file_dentry.d_inode
-        
+
         if inode and inode.is_valid():
             ents = file_path.split("/")
             out_path = os.path.join(self._config.DUMP_DIR, *ents)
@@ -52,7 +62,7 @@ class linux_recover_filesystem(linux_common.AbstractLinuxCommand):
 
     def _write_file(self, ff, file_path, file_dentry):
         inode = file_dentry.d_inode
-        
+
         if inode and inode.is_valid() and not inode.is_dir():
             ents = file_path.split("/")
             out_path = os.path.join(self._config.DUMP_DIR, *ents)
@@ -60,17 +70,19 @@ class linux_recover_filesystem(linux_common.AbstractLinuxCommand):
             try:
                 fd = open(out_path, "wb")
             except IOError as e:
-                debug.warning("Unable to process file: %s : %s" % (out_path, str(e)))
+                debug.warning(
+                    "Unable to process file: %s : %s" % (out_path, str(e))
+                )
                 return
-                
+
             for page in ff.get_file_contents(inode):
-                fd.write(page)  
-            
+                fd.write(page)
+
             fd.close()
-            
+
     def _make_path(self, file_path, file_dentry):
         inode = file_dentry.d_inode
-        
+
         if inode.is_dir():
             ents = file_path.split("/")
         else:
@@ -85,10 +97,12 @@ class linux_recover_filesystem(linux_common.AbstractLinuxCommand):
 
     def calculate(self):
         linux_common.set_plugin_members(self)
-        
+
         num_files = 0
 
-        if (not self._config.DUMP_DIR or not os.path.isdir(self._config.DUMP_DIR)):
+        if not self._config.DUMP_DIR or not os.path.isdir(
+            self._config.DUMP_DIR
+        ):
             debug.error("Please specify an existing output dir (--dump-dir)")
 
         ff = linux_find_file.linux_find_file(self._config)
@@ -103,6 +117,5 @@ class linux_recover_filesystem(linux_common.AbstractLinuxCommand):
         yield num_files
 
     def render_text(self, outfd, data):
-        for (num_files) in data: 
+        for num_files in data:
             outfd.write("Recovered %d files\n" % num_files)
-

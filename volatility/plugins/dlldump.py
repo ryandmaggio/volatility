@@ -31,26 +31,52 @@ import volatility.debug as debug
 import volatility.utils as utils
 import volatility.cache as cache
 
+
 class DLLDump(procdump.ProcDump):
     """Dump DLLs from a process address space"""
 
     def __init__(self, config, *args, **kwargs):
         procdump.ProcDump.__init__(self, config, *args, **kwargs)
         config.remove_option("OFFSET")
-        config.add_option('REGEX', short_option = 'r',
-                      help = 'Dump dlls matching REGEX',
-                      action = 'store', type = 'string')
-        config.add_option('IGNORE-CASE', short_option = 'i',
-                      help = 'Ignore case in pattern match',
-                      action = 'store_true', default = False)
-        config.add_option('OFFSET', short_option = 'o', default = None,
-                          help = 'Dump DLLs for Process with physical address OFFSET',
-                          action = 'store', type = 'int')
-        config.add_option('BASE', short_option = 'b', default = None,
-                          help = 'Dump DLLS at the specified BASE offset in the process address space',
-                          action = 'store', type = 'int')
+        config.add_option(
+            'REGEX',
+            short_option='r',
+            help='Dump dlls matching REGEX',
+            action='store',
+            type='string',
+        )
+        config.add_option(
+            'IGNORE-CASE',
+            short_option='i',
+            help='Ignore case in pattern match',
+            action='store_true',
+            default=False,
+        )
+        config.add_option(
+            'OFFSET',
+            short_option='o',
+            default=None,
+            help='Dump DLLs for Process with physical address OFFSET',
+            action='store',
+            type='int',
+        )
+        config.add_option(
+            'BASE',
+            short_option='b',
+            default=None,
+            help='Dump DLLS at the specified BASE offset in the process address space',
+            action='store',
+            type='int',
+        )
 
-    @cache.CacheDecorator(lambda self: "tests/dlldump/regex={0}/ignore_case={1}/offset={2}/base={3}".format(self._config.REGEX, self._config.IGNORE_CASE, self._config.OFFSET, self._config.BASE))
+    @cache.CacheDecorator(
+        lambda self: "tests/dlldump/regex={0}/ignore_case={1}/offset={2}/base={3}".format(
+            self._config.REGEX,
+            self._config.IGNORE_CASE,
+            self._config.OFFSET,
+            self._config.BASE,
+        )
+    )
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
@@ -60,7 +86,11 @@ class DLLDump(procdump.ProcDump):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
         if self._config.OFFSET != None:
-            data = [self.virtual_process_from_physical_offset(addr_space, self._config.OFFSET)]
+            data = [
+                self.virtual_process_from_physical_offset(
+                    addr_space, self._config.OFFSET
+                )
+            ]
         else:
             data = self.filter_tasks(tasks.pslist(addr_space))
 
@@ -78,7 +108,9 @@ class DLLDump(procdump.ProcDump):
             if ps_ad == None:
                 continue
 
-            mods = dict((mod.DllBase.v(), mod) for mod in proc.get_load_modules())
+            mods = dict(
+                (mod.DllBase.v(), mod) for mod in proc.get_load_modules()
+            )
 
             if self._config.BASE:
                 if self._config.BASE in mods:
@@ -89,33 +121,47 @@ class DLLDump(procdump.ProcDump):
             else:
                 for mod in list(mods.values()):
                     if self._config.REGEX:
-                        if not mod_re.search(str(mod.FullDllName or '')) and not mod_re.search(str(mod.BaseDllName or '')):
+                        if not mod_re.search(
+                            str(mod.FullDllName or '')
+                        ) and not mod_re.search(str(mod.BaseDllName or '')):
                             continue
                     yield proc, ps_ad, mod.DllBase.v(), mod.BaseDllName
 
     def generator(self, data):
         for proc, ps_ad, mod_base, mod_name in data:
             if not ps_ad.is_valid_address(mod_base):
-                result = "Error: DllBase is unavailable (possibly due to paging)"
+                result = (
+                    "Error: DllBase is unavailable (possibly due to paging)"
+                )
             else:
                 process_offset = ps_ad.vtop(proc.obj_offset)
-                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(proc.UniqueProcessId, process_offset, mod_base)
+                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
+                    proc.UniqueProcessId, process_offset, mod_base
+                )
                 result = self.dump_pe(ps_ad, mod_base, dump_file)
-            yield (0,
-                   [Address(proc.obj_offset),
+            yield (
+                0,
+                [
+                    Address(proc.obj_offset),
                     str(proc.ImageFileName),
                     Address(mod_base),
                     str(mod_name or ''),
-                    str(result)])
+                    str(result),
+                ],
+            )
 
     def unified_output(self, data):
 
         return renderers.TreeGrid(
-                          [("Process(V)", Address),
-                           ("Name", str),
-                           ("Module Base", Address),
-                           ("Module Name", str),
-                           ("Result", str)], self.generator(data))
+            [
+                ("Process(V)", Address),
+                ("Name", str),
+                ("Module Base", Address),
+                ("Module Name", str),
+                ("Result", str),
+            ],
+            self.generator(data),
+        )
 
     def render_text(self, outfd, data):
         if self._config.DUMP_DIR == None:
@@ -123,21 +169,31 @@ class DLLDump(procdump.ProcDump):
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        self.table_header(outfd,
-                          [("Process(V)", "[addrpad]"),
-                           ("Name", "20"),
-                           ("Module Base", "[addrpad]"),
-                           ("Module Name", "20"),
-                           ("Result", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Process(V)", "[addrpad]"),
+                ("Name", "20"),
+                ("Module Base", "[addrpad]"),
+                ("Module Name", "20"),
+                ("Result", ""),
+            ],
+        )
 
         for proc, ps_ad, mod_base, mod_name in data:
             if not ps_ad.is_valid_address(mod_base):
                 result = "Error: DllBase is paged"
             else:
                 process_offset = ps_ad.vtop(proc.obj_offset)
-                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(proc.UniqueProcessId, process_offset, mod_base)
+                dump_file = "module.{0}.{1:x}.{2:x}.dll".format(
+                    proc.UniqueProcessId, process_offset, mod_base
+                )
                 result = self.dump_pe(ps_ad, mod_base, dump_file)
-            self.table_row(outfd,
-                    proc.obj_offset,
-                    proc.ImageFileName,
-                    mod_base, str(mod_name or ''), result)
+            self.table_row(
+                outfd,
+                proc.obj_offset,
+                proc.ImageFileName,
+                mod_base,
+                str(mod_name or ''),
+                result,
+            )

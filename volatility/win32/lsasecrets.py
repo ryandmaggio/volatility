@@ -18,7 +18,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """
 @author:       Brendan Dolan-Gavitt
@@ -33,6 +33,7 @@ import volatility.win32.hive as hive
 import volatility.win32.hashdump as hashdump
 from Crypto.Hash import MD5, SHA256
 from Crypto.Cipher import ARC4, DES, AES
+
 
 def decrypt_aes(secret, key):
     """
@@ -54,6 +55,7 @@ def decrypt_aes(secret, key):
 
     return data
 
+
 def get_lsa_key(addr_space, secaddr, bootkey):
     if not bootkey:
         return None
@@ -71,8 +73,7 @@ def get_lsa_key(addr_space, secaddr, bootkey):
     if not enc_reg_value:
         return None
 
-    obf_lsa_key = secaddr.read(enc_reg_value.Data,
-            enc_reg_value.DataLength)
+    obf_lsa_key = secaddr.read(enc_reg_value.Data, enc_reg_value.DataLength)
     if not obf_lsa_key:
         return None
 
@@ -92,16 +93,17 @@ def get_lsa_key(addr_space, secaddr, bootkey):
 
     return lsa_key
 
+
 def decrypt_secret(secret, key):
     """Python implementation of SystemFunction005.
 
     Decrypts a block of data with DES using given key.
     Note that key can be longer than 7 bytes."""
     decrypted_data = ''
-    j = 0   # key index
+    j = 0  # key index
     for i in range(0, len(secret), 8):
-        enc_block = secret[i:i + 8]
-        block_key = key[j:j + 7]
+        enc_block = secret[i : i + 8]
+        block_key = key[j : j + 7]
         des_key = hashdump.str_to_key(block_key)
 
         des = DES.new(des_key, DES.MODE_ECB)
@@ -109,18 +111,21 @@ def decrypt_secret(secret, key):
         decrypted_data += des.decrypt(enc_block)
 
         j += 7
-        if len(key[j:j + 7]) < 7:
-            j = len(key[j:j + 7])
+        if len(key[j : j + 7]) < 7:
+            j = len(key[j : j + 7])
 
     (dec_data_len,) = struct.unpack("<L", decrypted_data[:4])
-    return decrypted_data[8:8 + dec_data_len]
+    return decrypted_data[8 : 8 + dec_data_len]
+
 
 def get_secret_by_name(addr_space, secaddr, name, lsakey):
     root = rawreg.get_root(secaddr)
     if not root:
         return None
 
-    enc_secret_key = rawreg.open_key(root, ["Policy", "Secrets", name, "CurrVal"])
+    enc_secret_key = rawreg.open_key(
+        root, ["Policy", "Secrets", name, "CurrVal"]
+    )
     if not enc_secret_key:
         return None
 
@@ -128,8 +133,9 @@ def get_secret_by_name(addr_space, secaddr, name, lsakey):
     if not enc_secret_value:
         return None
 
-    enc_secret = secaddr.read(enc_secret_value.Data,
-            enc_secret_value.DataLength)
+    enc_secret = secaddr.read(
+        enc_secret_value.Data, enc_secret_value.DataLength
+    )
     if not enc_secret:
         return None
 
@@ -138,6 +144,7 @@ def get_secret_by_name(addr_space, secaddr, name, lsakey):
     else:
         secret = decrypt_aes(enc_secret, lsakey)
     return secret
+
 
 def get_secrets(addr_space, sysaddr, secaddr):
     root = rawreg.get_root(secaddr)
@@ -163,8 +170,9 @@ def get_secrets(addr_space, sysaddr, secaddr):
         if not enc_secret_value:
             continue
 
-        enc_secret = secaddr.read(enc_secret_value.Data,
-                enc_secret_value.DataLength)
+        enc_secret = secaddr.read(
+            enc_secret_value.Data, enc_secret_value.DataLength
+        )
         if not enc_secret:
             continue
 
@@ -176,6 +184,7 @@ def get_secrets(addr_space, sysaddr, secaddr):
 
     return secrets
 
+
 def get_memory_secrets(addr_space, config, syshive, sechive):
     if syshive != None and sechive != None:
         sysaddr = hive.HiveAddressSpace(addr_space, config, syshive)
@@ -183,6 +192,7 @@ def get_memory_secrets(addr_space, config, syshive, sechive):
 
         return get_secrets(addr_space, sysaddr, secaddr)
     return None
+
 
 '''
 def get_file_secrets(sysfile, secfile):

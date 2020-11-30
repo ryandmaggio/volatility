@@ -27,28 +27,33 @@
 import volatility.obj as obj
 import volatility.plugins.mac.common as common
 
+
 class mac_ifconfig(common.AbstractMacCommand):
     """ Lists network interface information for all devices """
 
     def calculate(self):
-        common.set_plugin_members(self)    
+        common.set_plugin_members(self)
 
         list_head_addr = self.addr_space.profile.get_symbol("_ifnet_head")
         if list_head_addr == None:
-             list_head_addr = self.addr_space.profile.get_symbol("_dlil_ifnet_head")
+            list_head_addr = self.addr_space.profile.get_symbol(
+                "_dlil_ifnet_head"
+            )
 
-        list_head_ptr = obj.Object("Pointer", offset = list_head_addr, vm = self.addr_space)
+        list_head_ptr = obj.Object(
+            "Pointer", offset=list_head_addr, vm=self.addr_space
+        )
         ifnet = list_head_ptr.dereference_as("ifnet")
 
         while ifnet:
             name = ifnet.if_name.dereference()
             unit = ifnet.if_unit
-            prom =  ifnet.if_flags & 0x100 == 0x100 # IFF_PROMISC
-           
+            prom = ifnet.if_flags & 0x100 == 0x100  # IFF_PROMISC
+
             addr_dl = ifnet.sockaddr_dl()
 
             if addr_dl.is_valid():
-                mac = addr_dl.v() 
+                mac = addr_dl.v()
             else:
                 mac = ""
 
@@ -56,22 +61,34 @@ class mac_ifconfig(common.AbstractMacCommand):
             ips = []
 
             while ifaddr:
-                ip = ifaddr.ifa_addr.get_address() 
+                ip = ifaddr.ifa_addr.get_address()
                 if ip:
                     ips.append(ip)
 
                 ifaddr = ifaddr.ifa_link.tqe_next
-     
+
             yield (name, unit, mac, prom, ips)
             ifnet = ifnet.if_link.tqe_next
- 
+
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Interface", "10"), ("IP Address", "32"), ("Mac Address", "20"), ("Promiscuous", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Interface", "10"),
+                ("IP Address", "32"),
+                ("Mac Address", "20"),
+                ("Promiscuous", ""),
+            ],
+        )
 
         for (name, unit, mac, prom, ips) in data:
             if ips:
                 for ip in ips:
-                    self.table_row(outfd, "{0}{1}".format(name, unit), ip, mac, prom)
+                    self.table_row(
+                        outfd, "{0}{1}".format(name, unit), ip, mac, prom
+                    )
             else:
                 # an interface with no IPs
-                self.table_row(outfd, "{0}{1}".format(name, unit), "", mac, prom)
+                self.table_row(
+                    outfd, "{0}{1}".format(name, unit), "", mac, prom
+                )

@@ -30,10 +30,12 @@ urlparse_broken = False
 if check[1] != 'method':
     urlparse_broken = True
 
+
 def FirewireRW(netloc, location):
     if netloc in fw_implementations:
         return fw_implementations[netloc](location)
     return None
+
 
 class FWRaw1394(object):
     def __init__(self, location):
@@ -50,7 +52,14 @@ class FWRaw1394(object):
             self._node = h[self.bus][self.node]
             return True, "Valid"
         except IndexError:
-            return False, "Firewire node " + str(self.node) + " on bus " + str(self.bus) + " was not accessible"
+            return (
+                False,
+                "Firewire node "
+                + str(self.node)
+                + " on bus "
+                + str(self.bus)
+                + " was not accessible",
+            )
         except IOError as e:
             return False, "Firewire device IO error - " + str(e)
         return False, "Unknown Error occurred"
@@ -62,6 +71,7 @@ class FWRaw1394(object):
     def write(self, addr, buf):
         """Writes buf bytes at addr"""
         return self._node.write(addr, buf)
+
 
 class FWForensic1394(object):
     def __init__(self, location):
@@ -98,33 +108,44 @@ class FWForensic1394(object):
         """Writes buf bytes at addr"""
         return self._device.write(addr, buf)
 
+
 class FirewireAddressSpace(addrspace.BaseAddressSpace):
     """A physical layer address space that provides access via firewire"""
 
     ## We should be *almost* the AS of last resort
     order = 99
+
     def __init__(self, base, config, **kargs):
         self.as_assert(base == None, 'Must be first Address Space')
         try:
-            (scheme, netloc, path, _, _, _) = urllib.parse.urlparse(config.LOCATION)
+            (scheme, netloc, path, _, _, _) = urllib.parse.urlparse(
+                config.LOCATION
+            )
             self.as_assert(scheme == 'firewire', 'Not a firewire URN')
             if urlparse_broken:
                 if path.startswith('//') and path[2:].find('/') > 0:
                     firstslash = path[2:].find('/')
-                    netloc = path[2:firstslash + 2]
-                    path = path[firstslash + 3:]
+                    netloc = path[2 : firstslash + 2]
+                    path = path[firstslash + 3 :]
             self._fwimpl = FirewireRW(netloc, path)
         except (AttributeError, ValueError):
-            self.as_assert(False, "Unable to parse {0} as a URL".format(config.LOCATION))
+            self.as_assert(
+                False, "Unable to parse {0} as a URL".format(config.LOCATION)
+            )
         addrspace.BaseAddressSpace.__init__(self, base, config, **kargs)
-        self.as_assert(self._fwimpl is not None, "Unable to locate {0} implementation.".format(netloc))
+        self.as_assert(
+            self._fwimpl is not None,
+            "Unable to locate {0} implementation.".format(netloc),
+        )
         valid, reason = self._fwimpl.is_valid()
         self.as_assert(valid, reason)
 
         # We have a list of exclusions because we know that trying to read anything in these sections
         # will cause the target machine to bluescreen
         # Exceptions are in the form (start, length, "Reason")
-        self._exclusions = sorted([(0xa0000, 0xfffff - 0xa0000, "Upper Memory Area")])
+        self._exclusions = sorted(
+            [(0xA0000, 0xFFFFF - 0xA0000, "Upper Memory Area")]
+        )
 
         self.name = "Firewire using " + str(netloc) + " at " + str(path)
         # We have no way of knowing how big a firewire space is...
@@ -134,13 +155,15 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
 
     def intervals(self, start, size):
         """Returns a list of intervals, from start of length size, that do not include the exclusions"""
-        return self._intervals(sorted(self._exclusions), start, size + start, [])
+        return self._intervals(
+            sorted(self._exclusions), start, size + start, []
+        )
 
     def _intervals(self, exclusions, start, end, accumulator):
         """Accepts a sorted list of intervals and a start and end
-        
-           This will return a list of intervals between start and end
-           that does not contain any of the intervals in the list of exclusions.
+
+        This will return a list of intervals between start and end
+        that does not contain any of the intervals in the list of exclusions.
         """
         if not len(exclusions):
             # We're done
@@ -151,7 +174,7 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
         eend = e[1] + estart
 
         # e and range overlap
-        if (eend < start or estart > end):
+        if eend < start or estart > end:
             # Ignore this exclusion
             return self._intervals(exclusions[1:], start, end, accumulator)
         if estart < start:
@@ -164,15 +187,20 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
         else:
             if eend < end:
                 # Covers a section of the remaining length
-                return self._intervals(exclusions[1:], eend, end, accumulator + [(start, estart - start)])
+                return self._intervals(
+                    exclusions[1:],
+                    eend,
+                    end,
+                    accumulator + [(start, estart - start)],
+                )
             else:
                 # Covers the end of the remaining length
                 return accumulator + [(start, estart - start)]
 
     def read(self, offset, length):
         """Reads a specified size in bytes from the current offset
-        
-           Fills any excluded holes with zeros (so in that sense, similar to zread)
+
+        Fills any excluded holes with zeros (so in that sense, similar to zread)
         """
         ints = self.intervals(offset, length)
         output = "\x00" * length
@@ -184,16 +212,22 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
                     readdata = self._fwimpl.read(datstart, datlen)
                     # I'm not sure why, but sometimes readdata comes out longer than the requested size
                     # We just truncate it to the right length
-                    output = output[:datstart - offset] + readdata[:datlen] + output[(datstart - offset) + datlen:]
+                    output = (
+                        output[: datstart - offset]
+                        + readdata[:datlen]
+                        + output[(datstart - offset) + datlen :]
+                    )
         except IOError as e:
             print(repr(e))
             raise RuntimeError("Failed to read from firewire device")
-        self.as_assert(len(output) == length, "Firewire read lengths failed to match")
+        self.as_assert(
+            len(output) == length, "Firewire read lengths failed to match"
+        )
         return output
 
     def zread(self, offset, length):
-        """ Delegate padded reads to normal read, since errors reading 
-            the physical address should probably be reported back to the user
+        """Delegate padded reads to normal read, since errors reading
+        the physical address should probably be reported back to the user
         """
         return self.read(offset, length)
 
@@ -207,7 +241,12 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
             for i in ints:
                 datstart, datlen = i[0], i[1]
                 if datlen > 0:
-                    self._fwimpl.write(datstart, data[(datstart - offset):(datstart - offset) + datlen])
+                    self._fwimpl.write(
+                        datstart,
+                        data[
+                            (datstart - offset) : (datstart - offset) + datlen
+                        ],
+                    )
         except IOError:
             raise RuntimeError("Failed to write to the firewire device")
         return True
@@ -221,16 +260,19 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
         for i in self.intervals(0, self.size):
             yield i
 
+
 fw_implementations = {}
 
 try:
-    import firewire #pylint: disable-msg=F0401
+    import firewire  # pylint: disable-msg=F0401
+
     fw_implementations['raw1394'] = FWRaw1394
 except ImportError:
     pass
 
 try:
-    import forensic1394 #pylint: disable-msg=F0401
+    import forensic1394  # pylint: disable-msg=F0401
+
     fw_implementations['forensic1394'] = FWForensic1394
 except ImportError:
     pass

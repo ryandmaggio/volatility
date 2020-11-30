@@ -29,18 +29,20 @@
 
 # Protocol strings should use volatility.protos
 
-tcp_states = ("",
-              "ESTABLISHED",
-              "SYN_SENT",
-              "SYN_RECV",
-              "FIN_WAIT1",
-              "FIN_WAIT2",
-              "TIME_WAIT",
-              "CLOSE",
-              "CLOSE_WAIT",
-              "LAST_ACK",
-              "LISTEN",
-              "CLOSING")
+tcp_states = (
+    "",
+    "ESTABLISHED",
+    "SYN_SENT",
+    "SYN_RECV",
+    "FIN_WAIT1",
+    "FIN_WAIT2",
+    "TIME_WAIT",
+    "CLOSE",
+    "CLOSE_WAIT",
+    "LAST_ACK",
+    "LISTEN",
+    "CLOSING",
+)
 
 MNT_NOSUID = 0x01
 MNT_NODEV = 0x02
@@ -50,13 +52,13 @@ MNT_NODIRATIME = 0x10
 MNT_RELATIME = 0x20
 
 mnt_flags = {
-    MNT_NOSUID:     ",nosuid",
-    MNT_NODEV:      ",nodev",
-    MNT_NOEXEC:     ",noexec",
-    MNT_NOATIME:    ",noatime",
+    MNT_NOSUID: ",nosuid",
+    MNT_NODEV: ",nodev",
+    MNT_NOEXEC: ",noexec",
+    MNT_NOATIME: ",noatime",
     MNT_NODIRATIME: ",nodiratime",
-    MNT_RELATIME:   ",relatime"
-    }
+    MNT_RELATIME: ",relatime",
+}
 
 S_IFMT = 0o170000
 S_IFSOCK = 0o140000
@@ -68,5 +70,3 @@ S_IFCHR = 0o020000
 S_IFIFO = 0o010000
 S_ISUID = 0o004000
 S_ISGID = 0o002000
-
-

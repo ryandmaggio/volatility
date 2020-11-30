@@ -28,6 +28,7 @@ import volatility.plugins.gui.constants as consts
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address, Hex, Bytes
 
+
 class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
     """Extract the contents of the windows clipboard"""
 
@@ -35,23 +36,24 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
         kernel_space = utils.load_as(self._config)
 
         # Dictionary of MM_SESSION_SPACEs by ID
-        sesses = dict((int(session.SessionId), session)
+        sesses = dict(
+            (int(session.SessionId), session)
             for session in self.session_spaces(kernel_space)
-                )
+        )
 
         # Dictionary of session USER objects by handle
         session_handles = {}
 
-        # If various objects cannot be found or associated, 
+        # If various objects cannot be found or associated,
         # we'll return none objects
         e0 = obj.NoneObject("Unknown tagCLIPDATA")
         e1 = obj.NoneObject("Unknown tagWINDOWSTATION")
         e2 = obj.NoneObject("Unknown tagCLIP")
 
-        # Handle type filter 
-        filters = [lambda x : str(x.bType) == "TYPE_CLIPDATA"]
+        # Handle type filter
+        filters = [lambda x: str(x.bType) == "TYPE_CLIPDATA"]
 
-        # Load tagCLIPDATA handles from all sessions 
+        # Load tagCLIPDATA handles from all sessions
         for sid, session in list(sesses.items()):
             handles = {}
             shared_info = session.find_shared_info()
@@ -62,24 +64,24 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
                 handles[int(handle.phead.h)] = handle
             session_handles[sid] = handles
 
-        # Each WindowStation 
+        # Each WindowStation
         for wndsta in windowstations.WndScan(self._config).calculate():
             session = sesses.get(int(wndsta.dwSessionId), None)
-            # The session is unknown 
+            # The session is unknown
             if not session:
                 continue
             handles = session_handles.get(int(session.SessionId), None)
-            # No handles in the session 
+            # No handles in the session
             if not handles:
                 continue
             clip_array = wndsta.pClipBase.dereference()
-            # The tagCLIP array is empty or the pointer is invalid 
+            # The tagCLIP array is empty or the pointer is invalid
             if not clip_array:
                 continue
-            # Resolve tagCLIPDATA from tagCLIP.hData 
+            # Resolve tagCLIPDATA from tagCLIP.hData
             for clip in clip_array:
                 handle = handles.get(int(clip.hData), e0)
-                # Remove this handle from the list 
+                # Remove this handle from the list
                 if handle:
                     handles.pop(int(clip.hData))
                 yield session, wndsta, clip, handle
@@ -89,20 +91,24 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
         # found or if pClipData or cNumClipFormats were corrupt
         for sid in list(sesses.keys()):
             handles = session_handles.get(sid, None)
-            # No handles in the session 
+            # No handles in the session
             if not handles:
                 continue
             for handle in list(handles.values()):
                 yield sesses[sid], e1, e2, handle
 
     def unified_output(self, data):
-        return TreeGrid([("Session", int),
-                       ("WindowStation", str),
-                       ("Format", str),
-                       ("Handle", Hex),
-                       ("Object", Address),
-                       ("Data", Bytes)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Session", int),
+                ("WindowStation", str),
+                ("Format", str),
+                ("Handle", Hex),
+                ("Object", Address),
+                ("Data", Bytes),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for session, wndsta, clip, handle in data:
@@ -128,29 +134,37 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
             clip_data = ""
             if handle:
                 try:
-                    clip_data = ''.join([chr(c) for c in handle.reference_object().abData])
+                    clip_data = ''.join(
+                        [chr(c) for c in handle.reference_object().abData]
+                    )
                 except AttributeError:
                     pass
 
-            yield(0, [int(session.SessionId),
-                str(wndsta.Name),
-                str(fmt),
-                Hex(handle_value),
-                Address(handle.phead.v()),
-                Bytes(clip_data)
-                ])
-
+            yield (
+                0,
+                [
+                    int(session.SessionId),
+                    str(wndsta.Name),
+                    str(fmt),
+                    Hex(handle_value),
+                    Address(handle.phead.v()),
+                    Bytes(clip_data),
+                ],
+            )
 
     def render_text(self, outfd, data):
 
-        self.table_header(outfd,
-                         [("Session", "10"),
-                          ("WindowStation", "12"),
-                          ("Format", "18"),
-                          ("Handle", "[addr]"),
-                          ("Object", "[addrpad]"),
-                          ("Data", "50"),
-                         ])
+        self.table_header(
+            outfd,
+            [
+                ("Session", "10"),
+                ("WindowStation", "12"),
+                ("Format", "18"),
+                ("Handle", "[addr]"),
+                ("Object", "[addrpad]"),
+                ("Data", "50"),
+            ],
+        )
 
         for session, wndsta, clip, handle in data:
 
@@ -158,8 +172,8 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
             if not clip:
                 fmt = obj.NoneObject("Format unknown")
             else:
-                # Try to get the format name, but failing that, print 
-                # the format number in hex instead. 
+                # Try to get the format name, but failing that, print
+                # the format number in hex instead.
                 if clip.fmt.v() in consts.CLIPBOARD_FORMAT_ENUM:
                     fmt = str(clip.fmt)
                 else:
@@ -177,13 +191,15 @@ class Clipboard(common.AbstractWindowsCommand, sessions.SessionsMixin):
             if handle and "TEXT" in fmt:
                 clip_data = handle.reference_object().as_string(fmt)
 
-            self.table_row(outfd,
-                           session.SessionId,
-                           wndsta.Name,
-                           fmt,
-                           handle_value,
-                           handle.phead.v(),
-                           clip_data)
+            self.table_row(
+                outfd,
+                session.SessionId,
+                wndsta.Name,
+                fmt,
+                handle_value,
+                handle.phead.v(),
+                clip_data,
+            )
 
             # Print an additional hexdump if --verbose is specified
             if self._config.VERBOSE and handle:

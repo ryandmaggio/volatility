@@ -27,15 +27,17 @@
 @organization: Volatility Foundation
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 import sys
 
 if sys.version_info < (2, 6, 0):
-    sys.stderr.write("Volatility requires python version 2.6, please upgrade your python installation.")
+    sys.stderr.write(
+        "Volatility requires python version 2.6, please upgrade your python installation."
+    )
     sys.exit(1)
 
 try:
-    import psyco #pylint: disable-msg=W0611,F0401
+    import psyco  # pylint: disable-msg=W0611,F0401
 except ImportError:
     pass
 
@@ -47,6 +49,7 @@ if False:
 import textwrap
 import operator
 import volatility.conf as conf
+
 config = conf.ConfObject()
 import volatility.constants as constants
 import volatility.registry as registry
@@ -58,13 +61,18 @@ import volatility.addrspace as addrspace
 import volatility.commands as commands
 import volatility.scan as scan
 
-config.add_option("INFO", default = None, action = "store_true",
-                  cache_invalidator = False,
-                  help = "Print information about all registered objects")
+config.add_option(
+    "INFO",
+    default=None,
+    action="store_true",
+    cache_invalidator=False,
+    help="Print information about all registered objects",
+)
+
 
 def list_plugins():
     result = "\n\tSupported Plugin Commands:\n\n"
-    cmds = registry.get_plugin_classes(commands.Command, lower = True)
+    cmds = registry.get_plugin_classes(commands.Command, lower=True)
     profs = registry.get_plugin_classes(obj.Profile)
     if config.PROFILE == None:
         config.update("PROFILE", "WinXPSP2x86")
@@ -92,30 +100,39 @@ def list_plugins():
 
     return result
 
+
 def command_help(command):
     outputs = []
     for item in dir(command):
         if item.startswith("render_"):
             outputs.append(item.split("render_", 1)[-1])
-    outputopts = "\nModule Output Options: " + \
-        "{0}\n".format("{0}".format("\n".join([", ".join(o for o in sorted(outputs))])))
+    outputopts = "\nModule Output Options: " + "{0}\n".format(
+        "{0}".format("\n".join([", ".join(o for o in sorted(outputs))]))
+    )
 
-    result = textwrap.dedent("""
+    result = textwrap.dedent(
+        """
     ---------------------------------
     Module {0}
-    ---------------------------------\n""".format(command.__class__.__name__))
+    ---------------------------------\n""".format(
+            command.__class__.__name__
+        )
+    )
 
     return outputopts + result + command.help() + "\n\n"
 
+
 def print_info():
     """ Returns the results """
-    categories = {addrspace.BaseAddressSpace: 'Address Spaces',
-                  commands.Command : 'Plugins',
-                  obj.Profile: 'Profiles',
-                  scan.ScannerCheck: 'Scanner Checks'}
+    categories = {
+        addrspace.BaseAddressSpace: 'Address Spaces',
+        commands.Command: 'Plugins',
+        obj.Profile: 'Profiles',
+        scan.ScannerCheck: 'Scanner Checks',
+    }
     for c, n in sorted(categories.items(), key=operator.itemgetter(1)):
-        lower = (c == commands.Command)
-        plugins = registry.get_plugin_classes(c, lower = lower)
+        lower = c == commands.Command
+        plugins = registry.get_plugin_classes(c, lower=lower)
         print("\n")
         print("{0}".format(n))
         print("-" * len(n))
@@ -133,11 +150,16 @@ def print_info():
         for (name, doc) in result:
             print("{0:{2}} - {1:15}".format(name, doc, max_length))
 
+
 def main():
 
     # Get the version information on every output from the beginning
     # Exceptionally useful for debugging/telling people what's going on
-    sys.stderr.write("Volatility Foundation Volatility Framework {0}\n".format(constants.VERSION))
+    sys.stderr.write(
+        "Volatility Foundation Volatility Framework {0}\n".format(
+            constants.VERSION
+        )
+    )
     sys.stderr.flush()
 
     # Setup the debugging format
@@ -160,7 +182,7 @@ def main():
 
     module = None
     ## Try to find the first thing that looks like a module name
-    cmds = registry.get_plugin_classes(commands.Command, lower = True)
+    cmds = registry.get_plugin_classes(commands.Command, lower=True)
     for m in config.args:
         if m in list(cmds.keys()):
             module = m
@@ -185,8 +207,11 @@ def main():
     except exceptions.VolatilityException as e:
         print(e)
 
+
 if __name__ == "__main__":
-    config.set_usage(usage = "Volatility - A memory forensics analysis platform.")
+    config.set_usage(
+        usage="Volatility - A memory forensics analysis platform."
+    )
     config.add_help_hook(list_plugins)
 
     try:

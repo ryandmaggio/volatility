@@ -36,18 +36,29 @@ class mac_print_boot_cmdline(common.AbstractMacCommand):
         common.set_plugin_members(self)
 
         pe_state_addr = self.addr_space.profile.get_symbol("_PE_state")
-        pe_state = obj.Object("PE_state", offset = pe_state_addr, vm = self.addr_space)
-        bootargs = pe_state.bootArgs.dereference_as("boot_args")      
- 
+        pe_state = obj.Object(
+            "PE_state", offset=pe_state_addr, vm=self.addr_space
+        )
+        bootargs = pe_state.bootArgs.dereference_as("boot_args")
+
         yield bootargs.CommandLine
- 
+
     def unified_output(self, data):
-        return TreeGrid([("Command Line", str),
-                         ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Command Line", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for cmdline in data:
-            yield(0, [str(cmdline),])
+            yield (
+                0,
+                [
+                    str(cmdline),
+                ],
+            )
 
     def render_text(self, outfd, data):
         self.table_header(outfd, [("Command Line", "")])

@@ -29,13 +29,21 @@ from . import common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class mac_check_syscalls(common.AbstractMacCommand):
     """ Checks to see if system call table entries are hooked """
- 
+
     def __init__(self, config, *args, **kwargs):
         common.AbstractMacCommand.__init__(self, config, *args, **kwargs)
-        self._config.add_option('syscall-indexes', short_option = 'i', default = None, help = 'Path to unistd_{32,64}.h from the target machine', action = 'store', type = 'str')
-   
+        self._config.add_option(
+            'syscall-indexes',
+            short_option='i',
+            default=None,
+            help='Path to unistd_{32,64}.h from the target machine',
+            action='store',
+            type='str',
+        )
+
     def _parse_handler_names(self):
         index_names = {}
 
@@ -61,7 +69,7 @@ class mac_check_syscalls(common.AbstractMacCommand):
 
     def calculate(self):
         common.set_plugin_members(self)
-        
+
         if self._config.SYSCALL_INDEXES:
             index_names = self._parse_handler_names()
         else:
@@ -71,34 +79,50 @@ class mac_check_syscalls(common.AbstractMacCommand):
 
         table_addr = self.addr_space.profile.get_symbol("_sysent")
 
-        nsysent = obj.Object("int", offset = self.addr_space.profile.get_symbol("_nsysent"), vm = self.addr_space)
+        nsysent = obj.Object(
+            "int",
+            offset=self.addr_space.profile.get_symbol("_nsysent"),
+            vm=self.addr_space,
+        )
         if nsysent == None or nsysent == 0:
             return
 
-        sysents = obj.Object(theType = "Array", offset = table_addr, vm = self.addr_space, count = nsysent, targetType = "sysent")
+        sysents = obj.Object(
+            theType="Array",
+            offset=table_addr,
+            vm=self.addr_space,
+            count=nsysent,
+            targetType="sysent",
+        )
         if sysents == None:
             return
 
         for (i, sysent) in enumerate(sysents):
             ent_addr = sysent.sy_call.v()
-            hooked  = ent_addr not in sym_addrs
+            hooked = ent_addr not in sym_addrs
 
             if index_names:
                 sym_name = index_names[i]
             else:
-                sym_name = self.profile.get_symbol_by_address("kernel", ent_addr)
+                sym_name = self.profile.get_symbol_by_address(
+                    "kernel", ent_addr
+                )
                 if not sym_name:
                     sym_name = "N/A"
 
             yield (table_addr, "SyscallTable", i, ent_addr, sym_name, hooked)
- 
+
     def unified_output(self, data):
-        return TreeGrid([("Table Name", str),
-                         ("Index", int),
-                         ("Address", Address),
-                         ("Symbol", str),
-                         ("Status", str),
-                         ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Table Name", str),
+                ("Index", int),
+                ("Address", Address),
+                ("Symbol", str),
+                ("Status", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (_, table_name, i, call_addr, sym_name, hooked) in data:
@@ -106,20 +130,31 @@ class mac_check_syscalls(common.AbstractMacCommand):
             if hooked:
                 status = "HOOKED"
 
-            yield(0, [
-                str(table_name),
-                int(i),
-                Address(call_addr),
-                str(sym_name),
-                str(status),
-                ])
+            yield (
+                0,
+                [
+                    str(table_name),
+                    int(i),
+                    Address(call_addr),
+                    str(sym_name),
+                    str(status),
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Table Name", "15"), ("Index", "6"), ("Address", "[addrpad]"), ("Symbol", "<30"), ("Status", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Table Name", "15"),
+                ("Index", "6"),
+                ("Address", "[addrpad]"),
+                ("Symbol", "<30"),
+                ("Status", ""),
+            ],
+        )
         for (_, table_name, i, call_addr, sym_name, hooked) in data:
             status = "OK"
             if hooked:
                 status = "HOOKED"
 
             self.table_row(outfd, table_name, i, call_addr, sym_name, status)
-

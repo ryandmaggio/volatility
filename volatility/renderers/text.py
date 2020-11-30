@@ -7,8 +7,10 @@ from volatility.renderers.basic import Address, Address64, Hex, Renderer
 
 __author__ = 'mike'
 
+
 class CellRenderer(object):
     """Class to handle rendering of a particular cell in a text grid"""
+
     # The minimum width that the renderer will produce for a value
     width = 0
 
@@ -46,7 +48,9 @@ class FormatCellRenderer(CellRenderer):
 class TextRenderer(Renderer):
     min_column_width = 5
 
-    def __init__(self, cell_renderers_func, max_width = 200, sort_column = None, config = None):
+    def __init__(
+        self, cell_renderers_func, max_width=200, sort_column=None, config=None
+    ):
         """Accepts a cell_renderer function, an optional maximum width and optional sort column.
 
         The signature of the cell_renderers_function is:
@@ -63,7 +67,9 @@ class TextRenderer(Renderer):
     def partition_width(self, widths):
         """Determines if the widths are over the maximum available space, and if so shrinks them"""
         if math.fsum(widths) + (len(widths) - 1) > self.max_width:
-            remainder = (int(math.fsum(widths)) + (len(widths) - 1)) - self.max_width
+            remainder = (
+                int(math.fsum(widths)) + (len(widths) - 1)
+            ) - self.max_width
             # Take from the largest column first, eventually evening out
             for i in range(remainder):
                 col_index = widths.index(max(widths))
@@ -81,10 +87,9 @@ class TextRenderer(Renderer):
         else:
             if length < self.min_column_width:
                 return string
-            even = ((length + 1) % 2)
+            even = (length + 1) % 2
             length = (length - 3) / 2
-            return string[:length + even] + "..." + string[-length:]
-
+            return string[: length + even] + "..." + string[-length:]
 
     def _validate_grid(self, grid):
         if not isinstance(grid, renderers.TreeGrid):
@@ -94,7 +99,9 @@ class TextRenderer(Renderer):
             raise TypeError("cell_renderers must be of type list")
         for item in self._cell_renderers:
             if not isinstance(item, CellRenderer):
-                raise TypeError("Items within the cell_renderers list must be of type CellRenderer")
+                raise TypeError(
+                    "Items within the cell_renderers list must be of type CellRenderer"
+                )
 
     def render(self, outfd, grid):
         """Renders a text grid based on the contents of each element"""
@@ -102,7 +109,7 @@ class TextRenderer(Renderer):
         if self.sort_column:
             sort_key = ColumnSortKey(grid, self.sort_column).key
 
-        self._validate_grid(grid)# Determine number of columns
+        self._validate_grid(grid)  # Determine number of columns
 
         # if self._config and self._config.VERBOSE:
         #     qtr = QuickTextRenderer(self._cell_renderers_func)
@@ -112,14 +119,18 @@ class TextRenderer(Renderer):
         #     output.write("\n")
         #     output.flush()
 
-        grid_depth = grid.visit(None, lambda x, y: max(y, grid.path_depth(x)), 0)
+        grid_depth = grid.visit(
+            None, lambda x, y: max(y, grid.path_depth(x)), 0
+        )
 
         # Determine max width of each column
         grid_max_widths = [0] * len(grid.columns)
 
-        def gridwidth(node, accumulator = None):
+        def gridwidth(node, accumulator=None):
             for vindex in range(len(node.values)):
-                entry = self._cell_renderers[vindex].render(node.values[vindex])
+                entry = self._cell_renderers[vindex].render(
+                    node.values[vindex]
+                )
                 accumulator[vindex] = max(len(entry), accumulator[vindex])
             return accumulator
 
@@ -134,7 +145,9 @@ class TextRenderer(Renderer):
         if new_grid_widths == grid_max_widths:
             for i in range(len(grid.columns)):
                 index = i + (1 if grid_depth > 1 else 0)
-                grid_max_widths[index] = max(grid_max_widths[index], len(grid.columns[i].name))
+                grid_max_widths[index] = max(
+                    grid_max_widths[index], len(grid.columns[i].name)
+                )
 
         for i in range(len(grid.columns)):
             index = i + (1 if grid_depth > 1 else 0)
@@ -152,7 +165,13 @@ class TextRenderer(Renderer):
             else:
                 column = grid.columns[index]
             cols += [
-                self._elide(("{0:<" + str(grid_max_widths[index]) + "}").format(column.name), grid_max_widths[index])]
+                self._elide(
+                    ("{0:<" + str(grid_max_widths[index]) + "}").format(
+                        column.name
+                    ),
+                    grid_max_widths[index],
+                )
+            ]
         outfd.write(" ".join(cols) + "\r\n")
 
         def print_row(node, accumulator):
@@ -160,22 +179,31 @@ class TextRenderer(Renderer):
             for index in range(len(grid_max_widths)):
                 if grid_depth > 1:
                     if index == 0:
-                        row += [(" " * (grid.path_depth(node) - 1)) + ">" + (
-                            " " * (grid_max_widths[0] - grid.path_depth(node)))]
+                        row += [
+                            (" " * (grid.path_depth(node) - 1))
+                            + ">"
+                            + (
+                                " "
+                                * (grid_max_widths[0] - grid.path_depth(node))
+                            )
+                        ]
                         continue
                     else:
                         column = grid.columns[index - 1]
                 else:
                     column = grid.columns[index]
 
-                column_text = self._cell_renderers[column.index].render(node.values[column.index])
+                column_text = self._cell_renderers[column.index].render(
+                    node.values[column.index]
+                )
                 row += [self._elide(column_text, grid_max_widths[index])]
             accumulator += [" ".join(row)]
             return accumulator
 
         output = []
-        grid.visit(None, print_row, output, sort_key = sort_key)
+        grid.visit(None, print_row, output, sort_key=sort_key)
         outfd.write("\r\n".join(output) + "\r\n")
+
 
 class GrepTextRenderer(TextRenderer):
     def render(self, outfd, grid):
@@ -187,14 +215,21 @@ class GrepTextRenderer(TextRenderer):
         # If the grid_max_widths have not been limited,
         headers = []
         for i in range(len(grid.columns)):
-            grid_max_widths[i] = max(grid_max_widths[i], len(grid.columns[i].name))
+            grid_max_widths[i] = max(
+                grid_max_widths[i], len(grid.columns[i].name)
+            )
             headers += [grid.columns[i].name]
         outfd.write("|".join(headers) + "\n")
 
         def print_row(node, outfd):
             outfd.write(">" * grid.path_depth(node))
             for column in grid.columns:
-                outfd.write("|" + self._cell_renderers[column.index].render(node.values[column.index]))
+                outfd.write(
+                    "|"
+                    + self._cell_renderers[column.index].render(
+                        node.values[column.index]
+                    )
+                )
             outfd.write("\n")
             outfd.flush()
             return outfd

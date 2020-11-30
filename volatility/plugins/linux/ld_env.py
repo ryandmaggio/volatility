@@ -27,19 +27,17 @@
 
 import volatility.plugins.linux.pslist as linux_pslist
 
+
 class linux_dynamic_env(linux_pslist.linux_pslist):
     """Recover a process' dynamic environment variables"""
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Pid", "8"), 
-                                  ("Name", "20"),
-                                  ("Vars", "")])
-    
+        self.table_header(outfd, [("Pid", "8"), ("Name", "20"), ("Vars", "")])
+
         for task in data:
             varstr = ""
 
             for (key, val) in task.bash_environment():
                 varstr = varstr + "%s=%s " % (key, val)
-                                
-            self.table_row(outfd, task.pid, task.comm, varstr)
 
+            self.table_row(outfd, task.pid, task.comm, varstr)

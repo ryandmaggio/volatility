@@ -38,9 +38,11 @@ from volatility.renderers.basic import Address
 
 try:
     import distorm3
+
     has_distorm = True
 except ImportError:
     has_distorm = False
+
 
 class linux_check_syscall(linux_common.AbstractLinuxCommand):
     """ Checks if the system call table has been altered """
@@ -50,7 +52,7 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
         Returns the size of the table based on the next symbol
         """
 
-        # take this from the size of an address in the profile 
+        # take this from the size of an address in the profile
         divisor = self.profile.get_obj_size("address")
 
         next_sym_addr = self.profile.get_next_symbol_address(table_name)
@@ -63,13 +65,21 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
         this is a fast way to determine the number of system calls
         """
 
-        return len([n for n in self.profile.get_all_symbol_names() if n.startswith("__syscall_meta__")])
+        return len(
+            [
+                n
+                for n in self.profile.get_all_symbol_names()
+                if n.startswith("__syscall_meta__")
+            ]
+        )
 
     def _get_table_info_other(self, table_addr, table_name):
         table_size_meta = self._get_table_size_meta()
         table_size_syms = self._get_table_size(table_addr, table_name)
 
-        sizes = [size for size in [table_size_meta, table_size_syms] if size > 0]
+        sizes = [
+            size for size in [table_size_meta, table_size_syms] if size > 0
+        ]
 
         table_size = min(sizes)
 
@@ -86,7 +96,9 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
         if not has_distorm:
             return table_size
 
-        memory_model = self.addr_space.profile.metadata.get('memory_model', '32bit')
+        memory_model = self.addr_space.profile.metadata.get(
+            'memory_model', '32bit'
+        )
 
         if memory_model == '32bit':
             mode = distorm3.Decode32Bits
@@ -105,7 +117,7 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
                         continue
 
                     if op.mnemonic == 'CMP':
-                        table_size = (op.operands[1].value) & 0xffffffff
+                        table_size = (op.operands[1].value) & 0xFFFFFFFF
                         break
 
                 break
@@ -129,25 +141,33 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
     def _compute_hook_sym_name(self, visible_mods, hidden_mods, call_addr):
         mod_found = 0
         for (module, _, __) in visible_mods:
-            if module.module_core <= call_addr <= module.module_core + module.core_size:
+            if (
+                module.module_core
+                <= call_addr
+                <= module.module_core + module.core_size
+            ):
                 mod_found = 1
                 break
 
         if mod_found == 0:
             for module in hidden_mods:
-                if module.module_core <= call_addr <= module.module_core + module.core_size:
+                if (
+                    module.module_core
+                    <= call_addr
+                    <= module.module_core + module.core_size
+                ):
                     mod_found = 1
                     break
 
-        if mod_found == 1:        
+        if mod_found == 1:
             sym = module.get_symbol_for_address(call_addr)
             sym_name = "HOOKED: %s/%s" % (module.name, sym)
-        else:    
+        else:
             sym_name = "HOOKED: UNKNOWN"
 
         return sym_name
 
-    def _index_name(self, table_name, index_info, i):   
+    def _index_name(self, table_name, index_info, i):
         index_names = index_info[table_name]
 
         if len(list(index_names.keys())) == 0:
@@ -156,7 +176,7 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
             ret = index_names[i]
         else:
             ret = "<INDEX NOT FOUND %d>" % i
-        
+
         return ret
 
     def _find_index(self, index_names, line_index):
@@ -176,14 +196,20 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
 
         return ret
 
-    def get_syscalls(self, index_info = None, get_hidden = False, compute_name = True):
+    def get_syscalls(
+        self, index_info=None, get_hidden=False, compute_name=True
+    ):
         linux_common.set_plugin_members(self)
 
         if get_hidden:
-            hidden_mods = list(linux_hidden_modules.linux_hidden_modules(self._config).calculate())
+            hidden_mods = list(
+                linux_hidden_modules.linux_hidden_modules(
+                    self._config
+                ).calculate()
+            )
         else:
-            hidden_mods = []    
-   
+            hidden_mods = []
+
         if compute_name:
             visible_mods = linux_lsmod.linux_lsmod(self._config).calculate()
         else:
@@ -192,7 +218,9 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
         if index_info == None:
             index_info = self._find_and_parse_index_file()
 
-        table_name = self.addr_space.profile.metadata.get('memory_model', '32bit')
+        table_name = self.addr_space.profile.metadata.get(
+            'memory_model', '32bit'
+        )
         sym_addrs = self.profile.get_all_addresses()
         sys_call_info = self._get_table_info("sys_call_table")
         addrs = [(table_name, sys_call_info)]
@@ -204,7 +232,13 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
             addrs.append(("32bit", ia32_info))
 
         for (table_name, (tableaddr, tblsz)) in addrs:
-            table = obj.Object(theType = 'Array', offset = tableaddr, vm = self.addr_space, targetType = 'unsigned long', count = tblsz + 1)
+            table = obj.Object(
+                theType='Array',
+                offset=tableaddr,
+                vm=self.addr_space,
+                targetType='unsigned long',
+                count=tblsz + 1,
+            )
 
             for (i, call_addr) in enumerate(table):
                 if not call_addr:
@@ -216,59 +250,82 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
 
                 if not call_addr in sym_addrs:
                     hooked = 1
-                    sym_name = self._compute_hook_sym_name(visible_mods, hidden_mods, call_addr)
+                    sym_name = self._compute_hook_sym_name(
+                        visible_mods, hidden_mods, call_addr
+                    )
                 else:
-                    hooked = 0 
-                    sym_name = self.profile.get_symbol_by_address("kernel", call_addr)
+                    hooked = 0
+                    sym_name = self.profile.get_symbol_by_address(
+                        "kernel", call_addr
+                    )
 
-                yield (tableaddr, table_name, i, idx_name, call_addr, sym_name, hooked)
+                yield (
+                    tableaddr,
+                    table_name,
+                    i,
+                    idx_name,
+                    call_addr,
+                    sym_name,
+                    hooked,
+                )
 
     def get_unistd_paths(self):
         linux_common.set_plugin_members(self)
-        
+
         if self.profile.metadata.get('memory_model', '32bit') == "32bit":
             is_32 = True
-            paths32 = ["/usr/include/i386-linux-gnu/asm/unistd_32.h", "/usr/include/asm/unistd_32.h"]
+            paths32 = [
+                "/usr/include/i386-linux-gnu/asm/unistd_32.h",
+                "/usr/include/asm/unistd_32.h",
+            ]
             paths64 = []
         else:
             is_32 = False
-            paths32 = ["/usr/include/x86_64-linux-gnu/asm/unistd_32.h", "/usr/include/asm/unistd_32.h"]
-            paths64 = ["/usr/include/x86_64-linux-gnu/asm/unistd_64.h", "/usr/include/asm/unistd_64.h"]
+            paths32 = [
+                "/usr/include/x86_64-linux-gnu/asm/unistd_32.h",
+                "/usr/include/asm/unistd_32.h",
+            ]
+            paths64 = [
+                "/usr/include/x86_64-linux-gnu/asm/unistd_64.h",
+                "/usr/include/asm/unistd_64.h",
+            ]
 
         return is_32, paths32, paths64
 
     def parse_index_file(self, index_lines):
         index_names = {}
 
-        for line in index_lines.split("\n"): 
+        for line in index_lines.split("\n"):
             ents = line.split()
 
             if len(ents) == 3 and ents[0] == "#define":
-                name  = ents[1].replace("__NR_", "")
+                name = ents[1].replace("__NR_", "")
 
-                index = ents[2] 
+                index = ents[2]
                 if index[0] == "(":
                     index = self._find_index(index_names, index)
                 else:
                     try:
                         index = int(index)
                     except ValueError:
-                        index = 999999  #well beyond any valid table index
+                        index = 999999  # well beyond any valid table index
 
                 index_names[index] = name
-    
+
         return index_names
 
-    def _find_and_parse_index_file(self): 
+    def _find_and_parse_index_file(self):
         is_32, paths32, paths64 = self.get_unistd_paths()
 
-        index_tables = {"32bit" : {}, "64bit" : {}}
+        index_tables = {"32bit": {}, "64bit": {}}
 
         find_file = linux_find_file.linux_find_file(self._config)
         for (_, _, file_path, file_dentry) in find_file.walk_sbs():
-            # stop enumerating files (slow) once we find our wanted information 
-            if (is_32 and len(list(index_tables["32bit"].keys())) > 0) or \
-                (len(list(index_tables["32bit"].keys())) > 0 and len(list(index_tables["64bit"].keys())) > 0):
+            # stop enumerating files (slow) once we find our wanted information
+            if (is_32 and len(list(index_tables["32bit"].keys())) > 0) or (
+                len(list(index_tables["32bit"].keys())) > 0
+                and len(list(index_tables["64bit"].keys())) > 0
+            ):
                 break
 
             elif file_path in paths32:
@@ -286,41 +343,96 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
             inode = file_dentry.d_inode
             for page in find_file.get_file_contents(inode):
                 buf = buf + page
-            
+
             if len(buf) < 1024:
                 continue
 
-            index_tables[table] = self.parse_index_file(buf) 
+            index_tables[table] = self.parse_index_file(buf)
 
         return index_tables
 
     def calculate(self):
-        """ 
-        This works by walking the system call table 
+        """
+        This works by walking the system call table
         and verifies that each is a symbol in the kernel
         """
         linux_common.set_plugin_members(self)
 
         if not has_distorm:
-            debug.warning("distorm not installed. The best method to calculate the system call table size will not be used.")
-                        
-        for (tableaddr, table_name, i, idx_name, call_addr, sym_name, hooked) in self.get_syscalls(None, True, True): 
-            yield (tableaddr, table_name, i, idx_name, call_addr, sym_name, hooked)
- 
+            debug.warning(
+                "distorm not installed. The best method to calculate the system call table size will not be used."
+            )
+
+        for (
+            tableaddr,
+            table_name,
+            i,
+            idx_name,
+            call_addr,
+            sym_name,
+            hooked,
+        ) in self.get_syscalls(None, True, True):
+            yield (
+                tableaddr,
+                table_name,
+                i,
+                idx_name,
+                call_addr,
+                sym_name,
+                hooked,
+            )
+
     def unified_output(self, data):
-        return TreeGrid([("TableName", str),
-                       ("Index", int),
-                       ("SystemCall", str),
-                       ("HandlerAddress", Address),
-                       ("Symbol", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("TableName", str),
+                ("Index", int),
+                ("SystemCall", str),
+                ("HandlerAddress", Address),
+                ("Symbol", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
-        for (tableaddr, table_name, i, idx_name, call_addr, sym_name, _) in data:
-            yield (0, [str(table_name), int(i), str(idx_name), Address(call_addr), str(sym_name)])
+        for (
+            tableaddr,
+            table_name,
+            i,
+            idx_name,
+            call_addr,
+            sym_name,
+            _,
+        ) in data:
+            yield (
+                0,
+                [
+                    str(table_name),
+                    int(i),
+                    str(idx_name),
+                    Address(call_addr),
+                    str(sym_name),
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Table Name", "6"), ("Index", "5"), ("System Call", "24"), ("Handler Address", "[addrpad]"), ("Symbol", "<60")])
-        for (tableaddr, table_name, i, idx_name, call_addr, sym_name, _) in data:
+        self.table_header(
+            outfd,
+            [
+                ("Table Name", "6"),
+                ("Index", "5"),
+                ("System Call", "24"),
+                ("Handler Address", "[addrpad]"),
+                ("Symbol", "<60"),
+            ],
+        )
+        for (
+            tableaddr,
+            table_name,
+            i,
+            idx_name,
+            call_addr,
+            sym_name,
+            _,
+        ) in data:
             self.table_row(outfd, table_name, i, idx_name, call_addr, sym_name)
-

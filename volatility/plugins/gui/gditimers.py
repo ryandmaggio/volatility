@@ -22,16 +22,18 @@ import volatility.plugins.common as common
 import volatility.utils as utils
 import volatility.plugins.gui.sessions as sessions
 
+
 class GDITimers(common.AbstractWindowsCommand, sessions.SessionsMixin):
     """Print installed GDI timers and callbacks"""
 
     @staticmethod
     def is_valid_profile(profile):
-        version = (profile.metadata.get('major', 0), 
-                   profile.metadata.get('minor', 0))
+        version = (
+            profile.metadata.get('major', 0),
+            profile.metadata.get('minor', 0),
+        )
 
-        return (profile.metadata.get('os', '') == 'windows' and
-                version < (6, 2))
+        return profile.metadata.get('os', '') == 'windows' and version < (6, 2)
 
     def calculate(self):
         kernel_as = utils.load_as(self._config)
@@ -42,7 +44,7 @@ class GDITimers(common.AbstractWindowsCommand, sessions.SessionsMixin):
             if not shared_info:
                 continue
 
-            filters = [lambda x : str(x.bType) == "TYPE_TIMER"]
+            filters = [lambda x: str(x.bType) == "TYPE_TIMER"]
 
             for handle in shared_info.handles(filters):
                 timer = handle.reference_object()
@@ -50,32 +52,37 @@ class GDITimers(common.AbstractWindowsCommand, sessions.SessionsMixin):
 
     def render_text(self, outfd, data):
 
-        self.table_header(outfd,
-                         [("Sess", "^6"),
-                          ("Handle", "[addr]"),
-                          ("Object", "[addrpad]"),
-                          ("Thread", "8"),
-                          ("Process", "20"),
-                          ("nID", "[addr]"),
-                          ("Rate(ms)", "10"),
-                          ("Countdown(ms)", "10"),
-                          ("Func", "[addrpad]"),
-                         ])
+        self.table_header(
+            outfd,
+            [
+                ("Sess", "^6"),
+                ("Handle", "[addr]"),
+                ("Object", "[addrpad]"),
+                ("Thread", "8"),
+                ("Process", "20"),
+                ("nID", "[addr]"),
+                ("Rate(ms)", "10"),
+                ("Countdown(ms)", "10"),
+                ("Func", "[addrpad]"),
+            ],
+        )
 
         for session, handle, timer in data:
 
-            # Get the process info from the object handle header if 
-            # available, otherwise from the timer object itself. 
+            # Get the process info from the object handle header if
+            # available, otherwise from the timer object itself.
             p = handle.Process or timer.pti.ppi.Process
             process = "{0}:{1}".format(p.ImageFileName, p.UniqueProcessId)
 
-            self.table_row(outfd,
-                            session.SessionId,
-                            handle.phead.h,
-                            timer.obj_offset,
-                            timer.pti.pEThread.Cid.UniqueThread,
-                            process,
-                            timer.nID,
-                            timer.cmsRate,
-                            timer.cmsCountdown,
-                            timer.pfn)
+            self.table_row(
+                outfd,
+                session.SessionId,
+                handle.phead.h,
+                timer.obj_offset,
+                timer.pti.pEThread.Cid.UniqueThread,
+                process,
+                timer.nID,
+                timer.cmsRate,
+                timer.cmsCountdown,
+                timer.pfn,
+            )

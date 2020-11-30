@@ -29,18 +29,19 @@ import volatility.plugins.mac.common as common
 import volatility.plugins.mac.list_zones as list_zones
 import volatility.plugins.mac.pslist as pslist
 
+
 class mac_dead_vnodes(pslist.mac_pslist):
     """ Lists freed vnode structures """
 
     def calculate(self):
         common.set_plugin_members(self)
-    
+
         zones = list_zones.mac_list_zones(self._config).calculate()
 
         for zone in zones:
             name = str(zone.zone_name.dereference())
             if name == "vnodes":
-                vnodes = zone.get_free_elements("vnode")        
+                vnodes = zone.get_free_elements("vnode")
                 for vnode in vnodes:
                     yield vnode
 
@@ -49,6 +50,3 @@ class mac_dead_vnodes(pslist.mac_pslist):
             path = vnode.full_path()
             if path:
                 outfd.write("{0:s}\n".format(path))
-
-
-

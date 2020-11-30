@@ -31,31 +31,50 @@ import volatility.debug as debug
 import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.pslist as linux_pslist
 
+
 class linux_procdump(linux_pslist.linux_pslist):
     """Dumps a process's executable image to disk"""
 
     def __init__(self, config, *args, **kwargs):
         linux_pslist.linux_pslist.__init__(self, config, *args, **kwargs)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
 
     def render_text(self, outfd, data):
         if not self._config.DUMP_DIR:
-            debug.error("-D/--dump-dir must given that specifies an existing directory")
+            debug.error(
+                "-D/--dump-dir must given that specifies an existing directory"
+            )
 
-        self.table_header(outfd, [("Offset", "[addrpad]"),
-                                  ("Name", "20"),
-                                  ("Pid", "15"),
-                                  ("Address", "[addrpad]"),
-                                  ("Output File", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Offset", "[addrpad]"),
+                ("Name", "20"),
+                ("Pid", "15"),
+                ("Address", "[addrpad]"),
+                ("Output File", ""),
+            ],
+        )
         for task in data:
             if not task.mm:
                 continue
-    
-            file_path = linux_common.write_elf_file(self._config.DUMP_DIR, task, task.mm.start_code)
 
-            self.table_row(outfd, task.obj_offset,
-                                  task.comm,
-                                  str(task.pid),
-                                  task.mm.start_code, 
-                                  file_path)
+            file_path = linux_common.write_elf_file(
+                self._config.DUMP_DIR, task, task.mm.start_code
+            )
 
+            self.table_row(
+                outfd,
+                task.obj_offset,
+                task.comm,
+                str(task.pid),
+                task.mm.start_code,
+                file_path,
+            )

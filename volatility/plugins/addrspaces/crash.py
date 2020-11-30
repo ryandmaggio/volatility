@@ -26,12 +26,14 @@ import struct
 import volatility.obj as obj
 import volatility.addrspace as addrspace
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 page_shift = 12
 
+
 class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
     """ This AS supports windows Crash Dump format """
+
     order = 30
     dumpsig = 'PAGEDUMP'
     headertype = "_DMP_HEADER"
@@ -45,18 +47,29 @@ class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
         addrspace.AbstractRunBasedMemory.__init__(self, base, config, **kwargs)
 
         ## Must start with the magic PAGEDUMP
-        self.as_assert((base.read(0, 8) == self.dumpsig), "Header signature invalid")
+        self.as_assert(
+            (base.read(0, 8) == self.dumpsig), "Header signature invalid"
+        )
 
-        self.as_assert(self.profile.has_type(self.headertype), self.headertype + " not available in profile")
+        self.as_assert(
+            self.profile.has_type(self.headertype),
+            self.headertype + " not available in profile",
+        )
         self.header = obj.Object(self.headertype, 0, base)
 
-        self.as_assert((self.header.DumpType == 0x1), "Unsupported dump format")
+        self.as_assert(
+            (self.header.DumpType == 0x1), "Unsupported dump format"
+        )
 
         offset = self.headerpages
         for x in self.header.PhysicalMemoryBlockBuffer.Run:
-            self.runs.append((x.BasePage.v() * 0x1000,
-                              offset * 0x1000,
-                              x.PageCount.v() * 0x1000))
+            self.runs.append(
+                (
+                    x.BasePage.v() * 0x1000,
+                    offset * 0x1000,
+                    x.PageCount.v() * 0x1000,
+                )
+            )
             offset += x.PageCount.v()
 
         self.dtb = self.header.DirectoryTableBase.v()
@@ -72,7 +85,7 @@ class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
         string = self.read(addr, 4)
         if not string:
             return obj.NoneObject("Could not read data at " + str(addr))
-        longval, = self._long_struct.unpack(string)
+        (longval,) = self._long_struct.unpack(string)
         return longval
 
     def get_available_addresses(self):
@@ -83,8 +96,10 @@ class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
     def close(self):
         self.base.close()
 
+
 class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
     """ This AS supports windows Crash Dump format """
+
     order = 30
     dumpsig = 'PAGEDU64'
     headertype = "_DMP_HEADER64"

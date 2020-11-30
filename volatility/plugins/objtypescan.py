@@ -23,6 +23,7 @@ import volatility.utils as utils
 import volatility.poolscan as poolscan
 import volatility.obj as obj
 
+
 class ObjectTypeScanner(poolscan.PoolScanner):
     """Pool scanner for object type objects"""
 
@@ -32,22 +33,29 @@ class ObjectTypeScanner(poolscan.PoolScanner):
         self.struct_name = "_OBJECT_TYPE"
         self.object_type = "Type"
         self.pooltag = obj.VolMagic(address_space).ObjectTypePoolTag.v()
-        size = 0xc8 # self.address_space.profile.get_obj_size("_OBJECT_TYPE")
+        size = 0xC8  # self.address_space.profile.get_obj_size("_OBJECT_TYPE")
 
         self.checks = [
-                ('CheckPoolSize', dict(condition = lambda x: x >= size)),
-                ('CheckPoolType', dict(paged = False, non_paged = True, free = True)),
-                #('CheckPoolIndex', dict(value = 0)),
-                ]
+            ('CheckPoolSize', dict(condition=lambda x: x >= size)),
+            ('CheckPoolType', dict(paged=False, non_paged=True, free=True)),
+            # ('CheckPoolIndex', dict(value = 0)),
+        ]
+
 
 class ObjectTypeKeyModification(obj.ProfileModification):
     before = ['WindowsVTypes']
     conditions = {'os': lambda x: x == 'windows'}
 
     def modification(self, profile):
-        profile.merge_overlay({
-            '_OBJECT_TYPE': [ None, {'Key': [ None, ['String', dict(length = 4)]]}]
-            })
+        profile.merge_overlay(
+            {
+                '_OBJECT_TYPE': [
+                    None,
+                    {'Key': [None, ['String', dict(length=4)]]},
+                ]
+            }
+        )
+
 
 class ObjTypeScan(common.AbstractScanCommand):
     """Scan for Windows object type objects"""
@@ -55,38 +63,51 @@ class ObjTypeScan(common.AbstractScanCommand):
     scanners = [ObjectTypeScanner]
 
     def unified_output(self, data):
-
         def generator(data):
             for object_type in data:
-                yield (0, [
-                    Address(object_type.obj_offset),
-                    Hex(object_type.TotalNumberOfObjects),
-                    Hex(object_type.TotalNumberOfHandles),
-                    str(object_type.Key),
-                    str(object_type.Name or ''),
-                    str(object_type.TypeInfo.PoolType)])
+                yield (
+                    0,
+                    [
+                        Address(object_type.obj_offset),
+                        Hex(object_type.TotalNumberOfObjects),
+                        Hex(object_type.TotalNumberOfHandles),
+                        str(object_type.Key),
+                        str(object_type.Name or ''),
+                        str(object_type.TypeInfo.PoolType),
+                    ],
+                )
 
-
-        return renderers.TreeGrid( [("Offset", Address),
-                                  ("nObjects", Hex),
-                                  ("nHandles", Hex),
-                                  ("Key", str),
-                                  ("Name", str),
-                                  ("PoolType", str)],
-                                 generator(data))
+        return renderers.TreeGrid(
+            [
+                ("Offset", Address),
+                ("nObjects", Hex),
+                ("nHandles", Hex),
+                ("Key", str),
+                ("Name", str),
+                ("PoolType", str),
+            ],
+            generator(data),
+        )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Offset", "[addrpad]"), 
-                                  ("nObjects", "[addr]"), 
-                                  ("nHandles", "[addr]"), 
-                                  ("Key", "8"), 
-                                  ("Name", "30"),  
-                                  ("PoolType", "20")])
+        self.table_header(
+            outfd,
+            [
+                ("Offset", "[addrpad]"),
+                ("nObjects", "[addr]"),
+                ("nHandles", "[addr]"),
+                ("Key", "8"),
+                ("Name", "30"),
+                ("PoolType", "20"),
+            ],
+        )
         for object_type in data:
-            self.table_row(outfd, 
-                            object_type.obj_offset, 
-                            object_type.TotalNumberOfObjects, 
-                            object_type.TotalNumberOfHandles, 
-                            str(object_type.Key), 
-                            str(object_type.Name or ''), 
-                            object_type.TypeInfo.PoolType)
+            self.table_row(
+                outfd,
+                object_type.obj_offset,
+                object_type.TotalNumberOfObjects,
+                object_type.TotalNumberOfHandles,
+                str(object_type.Key),
+                str(object_type.Name or ''),
+                object_type.TypeInfo.PoolType,
+            )

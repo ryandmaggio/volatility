@@ -18,7 +18,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """
 @author:       Brendan Dolan-Gavitt
@@ -34,27 +34,283 @@ from Crypto.Cipher import ARC4, DES
 from struct import unpack, pack
 
 odd_parity = [
-  1, 1, 2, 2, 4, 4, 7, 7, 8, 8, 11, 11, 13, 13, 14, 14,
-  16, 16, 19, 19, 21, 21, 22, 22, 25, 25, 26, 26, 28, 28, 31, 31,
-  32, 32, 35, 35, 37, 37, 38, 38, 41, 41, 42, 42, 44, 44, 47, 47,
-  49, 49, 50, 50, 52, 52, 55, 55, 56, 56, 59, 59, 61, 61, 62, 62,
-  64, 64, 67, 67, 69, 69, 70, 70, 73, 73, 74, 74, 76, 76, 79, 79,
-  81, 81, 82, 82, 84, 84, 87, 87, 88, 88, 91, 91, 93, 93, 94, 94,
-  97, 97, 98, 98, 100, 100, 103, 103, 104, 104, 107, 107, 109, 109, 110, 110,
-  112, 112, 115, 115, 117, 117, 118, 118, 121, 121, 122, 122, 124, 124, 127, 127,
-  128, 128, 131, 131, 133, 133, 134, 134, 137, 137, 138, 138, 140, 140, 143, 143,
-  145, 145, 146, 146, 148, 148, 151, 151, 152, 152, 155, 155, 157, 157, 158, 158,
-  161, 161, 162, 162, 164, 164, 167, 167, 168, 168, 171, 171, 173, 173, 174, 174,
-  176, 176, 179, 179, 181, 181, 182, 182, 185, 185, 186, 186, 188, 188, 191, 191,
-  193, 193, 194, 194, 196, 196, 199, 199, 200, 200, 203, 203, 205, 205, 206, 206,
-  208, 208, 211, 211, 213, 213, 214, 214, 217, 217, 218, 218, 220, 220, 223, 223,
-  224, 224, 227, 227, 229, 229, 230, 230, 233, 233, 234, 234, 236, 236, 239, 239,
-  241, 241, 242, 242, 244, 244, 247, 247, 248, 248, 251, 251, 253, 253, 254, 254
+    1,
+    1,
+    2,
+    2,
+    4,
+    4,
+    7,
+    7,
+    8,
+    8,
+    11,
+    11,
+    13,
+    13,
+    14,
+    14,
+    16,
+    16,
+    19,
+    19,
+    21,
+    21,
+    22,
+    22,
+    25,
+    25,
+    26,
+    26,
+    28,
+    28,
+    31,
+    31,
+    32,
+    32,
+    35,
+    35,
+    37,
+    37,
+    38,
+    38,
+    41,
+    41,
+    42,
+    42,
+    44,
+    44,
+    47,
+    47,
+    49,
+    49,
+    50,
+    50,
+    52,
+    52,
+    55,
+    55,
+    56,
+    56,
+    59,
+    59,
+    61,
+    61,
+    62,
+    62,
+    64,
+    64,
+    67,
+    67,
+    69,
+    69,
+    70,
+    70,
+    73,
+    73,
+    74,
+    74,
+    76,
+    76,
+    79,
+    79,
+    81,
+    81,
+    82,
+    82,
+    84,
+    84,
+    87,
+    87,
+    88,
+    88,
+    91,
+    91,
+    93,
+    93,
+    94,
+    94,
+    97,
+    97,
+    98,
+    98,
+    100,
+    100,
+    103,
+    103,
+    104,
+    104,
+    107,
+    107,
+    109,
+    109,
+    110,
+    110,
+    112,
+    112,
+    115,
+    115,
+    117,
+    117,
+    118,
+    118,
+    121,
+    121,
+    122,
+    122,
+    124,
+    124,
+    127,
+    127,
+    128,
+    128,
+    131,
+    131,
+    133,
+    133,
+    134,
+    134,
+    137,
+    137,
+    138,
+    138,
+    140,
+    140,
+    143,
+    143,
+    145,
+    145,
+    146,
+    146,
+    148,
+    148,
+    151,
+    151,
+    152,
+    152,
+    155,
+    155,
+    157,
+    157,
+    158,
+    158,
+    161,
+    161,
+    162,
+    162,
+    164,
+    164,
+    167,
+    167,
+    168,
+    168,
+    171,
+    171,
+    173,
+    173,
+    174,
+    174,
+    176,
+    176,
+    179,
+    179,
+    181,
+    181,
+    182,
+    182,
+    185,
+    185,
+    186,
+    186,
+    188,
+    188,
+    191,
+    191,
+    193,
+    193,
+    194,
+    194,
+    196,
+    196,
+    199,
+    199,
+    200,
+    200,
+    203,
+    203,
+    205,
+    205,
+    206,
+    206,
+    208,
+    208,
+    211,
+    211,
+    213,
+    213,
+    214,
+    214,
+    217,
+    217,
+    218,
+    218,
+    220,
+    220,
+    223,
+    223,
+    224,
+    224,
+    227,
+    227,
+    229,
+    229,
+    230,
+    230,
+    233,
+    233,
+    234,
+    234,
+    236,
+    236,
+    239,
+    239,
+    241,
+    241,
+    242,
+    242,
+    244,
+    244,
+    247,
+    247,
+    248,
+    248,
+    251,
+    251,
+    253,
+    253,
+    254,
+    254,
 ]
 
 # Permutation matrix for boot key
-p = [ 0x8, 0x5, 0x4, 0x2, 0xb, 0x9, 0xd, 0x3,
-      0x0, 0x6, 0x1, 0xc, 0xe, 0xa, 0xf, 0x7 ]
+p = [
+    0x8,
+    0x5,
+    0x4,
+    0x2,
+    0xB,
+    0x9,
+    0xD,
+    0x3,
+    0x0,
+    0x6,
+    0x1,
+    0xC,
+    0xE,
+    0xA,
+    0xF,
+    0x7,
+]
 
 # Constants for SAM decrypt algorithm
 aqwerty = "!@#$%^&*()qwertyUIOPAzxcvbnmQQQQQQQQQQQQ)(*@&%\0"
@@ -65,6 +321,7 @@ lmkey = "KGS!@#$%"
 
 empty_lm = bytes.fromhex("aad3b435b51404eeaad3b435b51404ee")
 empty_nt = bytes.fromhex("31d6cfe0d16ae931b73c59d7e0c089c0")
+
 
 def str_to_key(s):
     key = []
@@ -77,9 +334,10 @@ def str_to_key(s):
     key.append(((ord(s[5]) & 0x3F) << 1) | (ord(s[6]) >> 7))
     key.append(ord(s[6]) & 0x7F)
     for i in range(8):
-        key[i] = (key[i] << 1)
+        key[i] = key[i] << 1
         key[i] = odd_parity[key[i]]
     return "".join(chr(k) for k in key)
+
 
 def sid_to_key(sid):
     s1 = ""
@@ -95,6 +353,7 @@ def sid_to_key(sid):
 
     return str_to_key(s1), str_to_key(s2)
 
+
 def hash_lm(pw):
     pw = pw[:14].upper()
     pw = pw + ('\0' * (14 - len(pw)))
@@ -102,8 +361,10 @@ def hash_lm(pw):
     d2 = DES.new(str_to_key(pw[7:]), DES.MODE_ECB)
     return d1.encrypt(lmkey) + d2.encrypt(lmkey)
 
+
 def hash_nt(pw):
     return MD4.new(pw.encode('utf-16-le')).digest()
+
 
 def find_control_set(sysaddr):
     root = rawreg.get_root(sysaddr)
@@ -119,6 +380,7 @@ def find_control_set(sysaddr):
             return v.Data
 
     return 1
+
 
 def get_bootkey(sysaddr):
     cs = find_control_set(sysaddr)
@@ -147,6 +409,7 @@ def get_bootkey(sysaddr):
         bootkey_scrambled += bootkey[p[i]]
 
     return bootkey_scrambled
+
 
 def get_hbootkey(samaddr, bootkey):
     sam_account_path = ["SAM", "Domains", "Account"]
@@ -178,6 +441,7 @@ def get_hbootkey(samaddr, bootkey):
 
     return hbootkey
 
+
 def get_user_keys(samaddr):
     user_key_path = ["SAM", "Domains", "Account", "Users"]
 
@@ -190,6 +454,7 @@ def get_user_keys(samaddr):
         return []
 
     return [k for k in rawreg.subkeys(user_key) if k.Name != "Names"]
+
 
 def decrypt_single_hash(rid, hbootkey, enc_hash, lmntstr):
     (des_k1, des_k2) = sid_to_key(rid)
@@ -204,6 +469,7 @@ def decrypt_single_hash(rid, hbootkey, enc_hash, lmntstr):
     hash = d1.decrypt(obfkey[:8]) + d2.decrypt(obfkey[8:])
 
     return hash
+
 
 def decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey):
     # LM Hash
@@ -220,6 +486,7 @@ def decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey):
 
     return lmhash, nthash
 
+
 def encrypt_single_hash(rid, hbootkey, hash, lmntstr):
     (des_k1, des_k2) = sid_to_key(rid)
     d1 = DES.new(des_k1, DES.MODE_ECB)
@@ -234,6 +501,7 @@ def encrypt_single_hash(rid, hbootkey, hash, lmntstr):
     obfkey = rc4.encrypt(enc_hash)
 
     return obfkey
+
 
 def encrypt_hashes(rid, lm_hash, nt_hash, hbootkey):
     # LM Hash
@@ -250,6 +518,7 @@ def encrypt_hashes(rid, lm_hash, nt_hash, hbootkey):
 
     return enc_lmhash, enc_nthash
 
+
 def get_user_hashes(user_key, hbootkey):
     samaddr = user_key.obj_vm
     rid = int(str(user_key.Name), 16)
@@ -260,22 +529,23 @@ def get_user_hashes(user_key, hbootkey):
     if not V:
         return None
 
-    lm_offset = unpack("<L", V[0x9c:0xa0])[0] + 0xCC + 4
-    lm_len = unpack("<L", V[0xa0:0xa4])[0] - 4
-    nt_offset = unpack("<L", V[0xa8:0xac])[0] + 0xCC + 4
-    nt_len = unpack("<L", V[0xac:0xb0])[0] - 4
+    lm_offset = unpack("<L", V[0x9C:0xA0])[0] + 0xCC + 4
+    lm_len = unpack("<L", V[0xA0:0xA4])[0] - 4
+    nt_offset = unpack("<L", V[0xA8:0xAC])[0] + 0xCC + 4
+    nt_len = unpack("<L", V[0xAC:0xB0])[0] - 4
 
     if lm_len:
-        enc_lm_hash = V[lm_offset:lm_offset + 0x10]
+        enc_lm_hash = V[lm_offset : lm_offset + 0x10]
     else:
         enc_lm_hash = ""
 
     if nt_len:
-        enc_nt_hash = V[nt_offset:nt_offset + 0x10]
+        enc_nt_hash = V[nt_offset : nt_offset + 0x10]
     else:
         enc_nt_hash = ""
 
     return decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey)
+
 
 def get_user_name(user_key):
     samaddr = user_key.obj_vm
@@ -286,14 +556,15 @@ def get_user_name(user_key):
     if not V:
         return None
 
-    name_offset = unpack("<L", V[0x0c:0x10])[0] + 0xCC
+    name_offset = unpack("<L", V[0x0C:0x10])[0] + 0xCC
     name_length = unpack("<L", V[0x10:0x14])[0]
 
     if name_length > len(V):
         return None
 
-    username = V[name_offset:name_offset + name_length].decode('utf-16-le')
+    username = V[name_offset : name_offset + name_length].decode('utf-16-le')
     return username
+
 
 def get_user_desc(user_key):
     samaddr = user_key.obj_vm
@@ -305,16 +576,21 @@ def get_user_desc(user_key):
         return None
 
     desc_offset = unpack("<L", V[0x24:0x28])[0] + 0xCC
-    desc_length = unpack("<L", V[0x28:0x2c])[0]
+    desc_length = unpack("<L", V[0x28:0x2C])[0]
 
-    desc = V[desc_offset:desc_offset + desc_length].decode('utf-16-le')
+    desc = V[desc_offset : desc_offset + desc_length].decode('utf-16-le')
     return desc
+
 
 def dump_hashes(sysaddr, samaddr):
     if sysaddr == None:
-        yield obj.NoneObject("SYSTEM address is None: Did you use the correct profile?")
+        yield obj.NoneObject(
+            "SYSTEM address is None: Did you use the correct profile?"
+        )
     if samaddr == None:
-        yield obj.NoneObject("SAM address is None: Did you use the correct profile?")
+        yield obj.NoneObject(
+            "SAM address is None: Did you use the correct profile?"
+        )
     bootkey = get_bootkey(sysaddr)
     hbootkey = get_hbootkey(samaddr, bootkey)
 
@@ -322,31 +598,41 @@ def dump_hashes(sysaddr, samaddr):
         for user in get_user_keys(samaddr):
             ret = get_user_hashes(user, hbootkey)
             if not ret:
-                yield obj.NoneObject("Cannot get user hashes for {0}".format(user))
+                yield obj.NoneObject(
+                    "Cannot get user hashes for {0}".format(user)
+                )
             else:
                 lmhash, nthash = ret
                 if not lmhash:
                     lmhash = empty_lm
                 if not nthash:
                     nthash = empty_nt
-                ## temporary fix to prevent UnicodeDecodeError backtraces 
+                ## temporary fix to prevent UnicodeDecodeError backtraces
                 ## however this can cause truncated user names as a result
                 name = get_user_name(user)
                 if name is not None:
                     name = name.encode('ascii', 'ignore')
                 else:
                     name = "(unavailable)"
-                yield "{0}:{1}:{2}:{3}:::".format(name, int(str(user.Name), 16),
-                                                  lmhash.encode('hex'), nthash.encode('hex'))
+                yield "{0}:{1}:{2}:{3}:::".format(
+                    name,
+                    int(str(user.Name), 16),
+                    lmhash.encode('hex'),
+                    nthash.encode('hex'),
+                )
     else:
         yield obj.NoneObject("Hbootkey is not valid")
+
 
 def dump_memory_hashes(addr_space, config, syshive, samhive):
     if syshive != None and samhive != None:
         sysaddr = hive.HiveAddressSpace(addr_space, config, syshive)
         samaddr = hive.HiveAddressSpace(addr_space, config, samhive)
         return dump_hashes(sysaddr, samaddr)
-    return obj.NoneObject("SYSTEM or SAM address is None: Did you use the correct profile?")
+    return obj.NoneObject(
+        "SYSTEM or SAM address is None: Did you use the correct profile?"
+    )
+
 
 def dump_file_hashes(syshive_fname, samhive_fname):
     sysaddr = hive.HiveFileAddressSpace(syshive_fname)

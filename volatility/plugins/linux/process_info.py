@@ -1,6 +1,6 @@
 #
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details. 
+# General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
@@ -24,17 +24,32 @@ import volatility.plugins.linux.threads as linux_threads
 
 # Because we want to address registers like "registers.eip"
 # TODO: replace with linux_info_regs
-registers = collections.namedtuple('registers',
-                                   [
-                                       'r15', 'r14', 'r13', 'r12',
-                                       'rbp', 'rbx',
-                                       'r11', 'r10', 'r9', 'r8',
-                                       'rax', 'rcx', 'rdx',
-                                       'rsi', 'rdi',
-                                       'unknown',
-                                       'rip',
-                                       'cs', 'eflags', 'rsp', 'ss'
-                                       ])
+registers = collections.namedtuple(
+    'registers',
+    [
+        'r15',
+        'r14',
+        'r13',
+        'r12',
+        'rbp',
+        'rbx',
+        'r11',
+        'r10',
+        'r9',
+        'r8',
+        'rax',
+        'rcx',
+        'rdx',
+        'rsi',
+        'rdi',
+        'unknown',
+        'rip',
+        'cs',
+        'eflags',
+        'rsp',
+        'ss',
+    ],
+)
 
 # TODO: these were the initial registers, they might be valid for x86
 # To investigate: view kernel stack using this module
@@ -49,7 +64,7 @@ registers = collections.namedtuple('registers',
 #                                    ]) #test
 
 
-#registers = collections.namedtuple('registers', ['ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp', 'eax', 'eds', 'ees', 'efs', 'egs', 'orig_eax', 'eip', 'ecs', 'flags', 'esp', 'ess'])
+# registers = collections.namedtuple('registers', ['ebx', 'ecx', 'edx', 'esi', 'edi', 'ebp', 'eax', 'eds', 'ees', 'efs', 'egs', 'orig_eax', 'eip', 'ecs', 'flags', 'esp', 'ess'])
 
 address_size = 8
 
@@ -89,14 +104,14 @@ def int_list(pages, size):
     for page in pages:
         curr = 0
         while curr < 4096 and curr < size:
-            yield struct.unpack(fmt, page[curr:curr + address_size])[0]
+            yield struct.unpack(fmt, page[curr : curr + address_size])[0]
             curr += address_size
 
 
 # workaround for a bug, it is fixed by now
 def _neg_fix(addr):
     return addr
-    #return 0xffffffff + addr if addr < 0 else addr
+    # return 0xffffffff + addr if addr < 0 else addr
 
 
 # print as hex (0x12345678)
@@ -122,7 +137,7 @@ def read_addr_range(start, end, addr_space):
         start += pagesize
 
 
-def read_null_list( start, end, addr_space):
+def read_null_list(start, end, addr_space):
     """
     Read a number of pages and split it on 0-bytes.
 
@@ -133,7 +148,8 @@ def read_null_list( start, end, addr_space):
     """
     return null_list(read_addr_range(start, end, addr_space), end - start)
 
-def read_int_list( start, end, addr_space):
+
+def read_int_list(start, end, addr_space):
     """
     Read a number of pages and split it into integers.
 
@@ -143,6 +159,7 @@ def read_int_list( start, end, addr_space):
     @return: a list of integers.
     """
     return int_list(read_addr_range(start, end, addr_space), end - start)
+
 
 def read_registers(task, addr_space):
     """
@@ -154,11 +171,10 @@ def read_registers(task, addr_space):
     """
     return list(
         read_int_list(
-            task.thread.sp0 - (21 * address_size),
-            task.thread.sp0,
-            addr_space
+            task.thread.sp0 - (21 * address_size), task.thread.sp0, addr_space
         )
     )
+
 
 # Main command class
 class linux_process_info:
@@ -174,7 +190,7 @@ class linux_process_info:
         self.get_threads = linux_threads.linux_threads(config).get_threads
 
     def read_addr_range(self, start, end, addr_space=None):
-        """ Read an address range with the task address space as default.
+        """Read an address range with the task address space as default.
 
         @param start: Start address
         @param end: End address
@@ -204,7 +220,9 @@ class linux_process_info:
         @param addr_space: The virtual address space
         @return: a list of strings
         """
-        return null_list(self.read_addr_range(start, end, addr_space), end - start)
+        return null_list(
+            self.read_addr_range(start, end, addr_space), end - start
+        )
 
     def read_int_list(self, start, end, addr_space=None):
         """
@@ -215,7 +233,9 @@ class linux_process_info:
         @param addr_space: The virtual address space
         @return: a list of integers.
         """
-        return int_list(self.read_addr_range(start, end, addr_space), end - start)
+        return int_list(
+            self.read_addr_range(start, end, addr_space), end - start
+        )
 
     def analyze(self, task):
         """
@@ -227,9 +247,9 @@ class linux_process_info:
         self.proc_as = task.get_process_address_space()
         p = process_info(task)
         p.kernel_as = self.addr_space
-        #print(p.stack)
-        #linux_volshell.linux_volshell(self._config).render_text.dt('mm_struct')
-        #linux_volshell.linux_volshell(self._config).render_text.dt('mm_struct', task.mm)
+        # print(p.stack)
+        # linux_volshell.linux_volshell(self._config).render_text.dt('mm_struct')
+        # linux_volshell.linux_volshell(self._config).render_text.dt('mm_struct', task.mm)
 
         # kernel thread?
         p.maps = list(task.get_proc_maps())
@@ -245,12 +265,19 @@ class linux_process_info:
             p.vm_stack_high = last.vm_end
             p.vm_stack_low = last.vm_start
 
-
-        p.env = self.read_null_list(_neg_fix(task.mm.env_start), _neg_fix(task.mm.env_end))
+        p.env = self.read_null_list(
+            _neg_fix(task.mm.env_start), _neg_fix(task.mm.env_end)
+        )
         # We care only about the actual stack, not arguments and such
-        p.stack = self.read_int_list(_neg_fix(p.vm_stack_low), _neg_fix(task.mm.start_stack))
-        p.rest_stack = self.read_int_list(_neg_fix(task.mm.start_stack), _neg_fix(task.mm.env_start))
-        p.args = self.read_null_list(_neg_fix(task.mm.arg_start), _neg_fix(task.mm.arg_end))
+        p.stack = self.read_int_list(
+            _neg_fix(p.vm_stack_low), _neg_fix(task.mm.start_stack)
+        )
+        p.rest_stack = self.read_int_list(
+            _neg_fix(task.mm.start_stack), _neg_fix(task.mm.env_start)
+        )
+        p.args = self.read_null_list(
+            _neg_fix(task.mm.arg_start), _neg_fix(task.mm.arg_end)
+        )
 
         reglist = read_registers(task, self.addr_space)
         p.reg = registers(*reglist)
@@ -272,25 +299,26 @@ class linux_process_info:
 
     def render_text(self, outfd, data):
         self.outfd = outfd
-        #pm = linux_proc_maps.linux_proc_maps(self._config)
-        #pm.render_text(outfd, pm.calculate())
-        #for process in data:
-            #mm = process.task.mm
-            #print("Heap  Start: {0} End: {1}".format(hex(mm.start_brk), hex(mm.brk)))
-            #print("Stack Start: {0} End: {1}".format(hex(mm.start_stack), hex(mm.arg_start)))
-            #print("Args  Start: {0} End: {1}".format(hex(mm.arg_start), hex(mm.arg_end)))
-            #print("Env   Start: {0} End: {1}".format(hex(mm.env_start), hex(mm.env_end)))
-            #self.render_registers(process.reg)
-            #main_addrspace = process.task.get_process_address_space()
-            #print(main_addrspace, self.addr_space)
-            #print(process.task.mm.mm_users.d())
-            # outfd.write("{:16s} {:6s} {:18s} {:18s} {:18s}\n".format(
-            #     "Thread Name",
-            #     "PID",
-            #     "task.thread.usersp",
-            #     "task.thread.sp0",
-            #     "Register esp"
-            # ))
+        # pm = linux_proc_maps.linux_proc_maps(self._config)
+        # pm.render_text(outfd, pm.calculate())
+        # for process in data:
+        # mm = process.task.mm
+        # print("Heap  Start: {0} End: {1}".format(hex(mm.start_brk), hex(mm.brk)))
+        # print("Stack Start: {0} End: {1}".format(hex(mm.start_stack), hex(mm.arg_start)))
+        # print("Args  Start: {0} End: {1}".format(hex(mm.arg_start), hex(mm.arg_end)))
+        # print("Env   Start: {0} End: {1}".format(hex(mm.env_start), hex(mm.env_end)))
+        # self.render_registers(process.reg)
+        # main_addrspace = process.task.get_process_address_space()
+        # print(main_addrspace, self.addr_space)
+        # print(process.task.mm.mm_users.d())
+        # outfd.write("{:16s} {:6s} {:18s} {:18s} {:18s}\n".format(
+        #     "Thread Name",
+        #     "PID",
+        #     "task.thread.usersp",
+        #     "task.thread.sp0",
+        #     "Register esp"
+        # ))
+
     #         for task in process.threads:
     #             #print(task.thread.d())
     #             #thread_p = self.analyze(task)
@@ -314,14 +342,14 @@ class linux_process_info:
     #                 ))
     #             else:
     #                 outfd.write("Map looked like stack\n")
-            #cProfile.run("self.render_list(process.get_pointers())")
-            #self.render_list(process.get_unique_data_pointers())
-            #self.render_list(process.get_data_pointers_from_heap())
-            #self.render_annotated_list(process.annotated_stack())
-            # still broken
-            #self.render_stack_frames(process.stack_frames)
-            #exit(0)
-            #self.render_annotated_list(stack)kleutvieul
+    # cProfile.run("self.render_list(process.get_pointers())")
+    # self.render_list(process.get_unique_data_pointers())
+    # self.render_list(process.get_data_pointers_from_heap())
+    # self.render_annotated_list(process.annotated_stack())
+    # still broken
+    # self.render_stack_frames(process.stack_frames)
+    # exit(0)
+    # self.render_annotated_list(stack)kleutvieul
 
     def render_stack_frames(self, stack_frames):
         """
@@ -330,8 +358,12 @@ class linux_process_info:
         @return: None
         """
         for stack_frame in stack_frames:
-            self.table_header(self.outfd, [('Stack Frame', '16'), ('Value', '[addrpad]')])
-            self.table_row(self.outfd, "Frame Number", stack_frame.frame_number)
+            self.table_header(
+                self.outfd, [('Stack Frame', '16'), ('Value', '[addrpad]')]
+            )
+            self.table_row(
+                self.outfd, "Frame Number", stack_frame.frame_number
+            )
             self.table_row(self.outfd, "Offset", stack_frame.offset)
             self.table_row(self.outfd, "Return Address", stack_frame.ret)
 
@@ -341,7 +373,9 @@ class linux_process_info:
         @param reg: registers named tuple
         @return: None
         """
-        self.table_header(self.outfd, [('Register', '8'), ('Value', '[addrpad]')])
+        self.table_header(
+            self.outfd, [('Register', '8'), ('Value', '[addrpad]')]
+        )
         for k in reg._fields:
             self.table_row(self.outfd, k, getattr(reg, k))
 
@@ -351,7 +385,9 @@ class linux_process_info:
         @param l: address list
         @return: None
         """
-        self.table_header(self.outfd, [('Address', '[addrpad]'), ('Value', '[addrpad]')])
+        self.table_header(
+            self.outfd, [('Address', '[addrpad]'), ('Value', '[addrpad]')]
+        )
         for address, value in l:
             self.table_row(self.outfd, address, value)
 
@@ -361,7 +397,14 @@ class linux_process_info:
         @param ann_list: a 3-tuple list
         @return: None
         """
-        self.table_header(self.outfd, [('Address', '[addrpad]'), ('Value', '[addrpad]'), ('Annotation', '50')])
+        self.table_header(
+            self.outfd,
+            [
+                ('Address', '[addrpad]'),
+                ('Value', '[addrpad]'),
+                ('Annotation', '50'),
+            ],
+        )
         for (address, value, annotation) in ann_list:
             self.table_row(self.outfd, address, value, annotation)
 
@@ -374,7 +417,6 @@ class process_info(object):
     def __init__(self, task):
         self.task = task
         self.mm = task.mm
-
 
         ####
         # obj.CType is really slow (__getattr__), so we do this
@@ -395,7 +437,7 @@ class process_info(object):
         self.vm_stack_low = None
         self.vm_stack_high = None
         self.stack_frames = None
-        #self.threads = None
+        # self.threads = None
         self.thread_stacks = None
         self.thread_stack_ranges = None
 
@@ -408,8 +450,12 @@ class process_info(object):
         self._exec_maps = None
         self._exec_maps_ranges = None
 
-        self.is_pointer_dict = dict(stack=self.is_stack_pointer, heap=self.is_heap_pointer,
-                                    constant=self.is_constant_pointer, code=self.is_code_pointer)
+        self.is_pointer_dict = dict(
+            stack=self.is_stack_pointer,
+            heap=self.is_heap_pointer,
+            constant=self.is_constant_pointer,
+            code=self.is_code_pointer,
+        )
 
     @property
     def maps(self):
@@ -448,7 +494,7 @@ class process_info(object):
         @return: None
         """
         self._reg = value
-        #self._generate_stack_frames()
+        # self._generate_stack_frames()
 
     @property
     def stack(self):
@@ -467,8 +513,8 @@ class process_info(object):
         """
         self._stack = list(value)
         self._calculate_stack_offset()
-        #self._generate_thread_stack_list()
-        #self._generate_stack_frames()
+        # self._generate_thread_stack_list()
+        # self._generate_stack_frames()
 
     @property
     def threads(self):
@@ -499,7 +545,6 @@ class process_info(object):
             reglist.append(registers(*read_registers(task, self.kernel_as)))
         return reglist
 
-
     def get_stack_value(self, address):
         """
         Read a value from the stack, by using the stack list (old code).
@@ -524,17 +569,23 @@ class process_info(object):
         if not self.threads or not self.maps:
             self.thread_stacks = None
         else:
-            thread_sps = [self.thread_registers[i].rsp for i, task in enumerate(self.threads)]
+            thread_sps = [
+                self.thread_registers[i].rsp
+                for i, task in enumerate(self.threads)
+            ]
             thread_sps.sort()
             self.thread_stacks = []
             self.thread_stack_ranges = []
-            #for i in range(len(thread_sps)):
+            # for i in range(len(thread_sps)):
             i = 0
             for m in self.maps:
-                if i < len(thread_sps) and m.vm_start <= thread_sps[i] <= m.vm_end:
+                if (
+                    i < len(thread_sps)
+                    and m.vm_start <= thread_sps[i] <= m.vm_end
+                ):
                     self.thread_stacks.append(m)
                     self.thread_stack_ranges.append((m.vm_start, m.vm_end))
-                    i+=1
+                    i += 1
 
     def _calculate_stack_offset(self):
         """
@@ -624,7 +675,9 @@ class process_info(object):
         @param addr: An address
         @return: True or False
         """
-        return self.is_code_pointer(addr) and not self.is_program_code_pointer(addr)
+        return self.is_code_pointer(addr) and not self.is_program_code_pointer(
+            addr
+        )
 
     def is_code_pointer(self, addr):
         """
@@ -643,7 +696,12 @@ class process_info(object):
         @param addr: An address
         @return: True or False
         """
-        return self.is_heap_pointer(addr) or self.is_stack_pointer(addr) or self.is_constant_pointer(addr) or self.is_thread_stack_pointer(addr)
+        return (
+            self.is_heap_pointer(addr)
+            or self.is_stack_pointer(addr)
+            or self.is_constant_pointer(addr)
+            or self.is_thread_stack_pointer(addr)
+        )
 
     def is_pointer(self, addr, space=None):
         """
@@ -692,7 +750,7 @@ class process_info(object):
             pointer_iter = self.get_pointers()
 
         store = []
-        
+
         for address, value in pointer_iter:
             if value not in store:
                 yield address, value
@@ -728,8 +786,8 @@ class process_info(object):
         @return: An iterator of pointers
         """
         return self.get_pointers(
-            cond = self.is_data_pointer,
-            space = read_int_list(self.mm_start_brk, self.mm_brk, self.proc_as)
+            cond=self.is_data_pointer,
+            space=read_int_list(self.mm_start_brk, self.mm_brk, self.proc_as),
         )
 
     def get_data_pointers_from_map(self, m):
@@ -739,9 +797,8 @@ class process_info(object):
         @return: An iterator of pointers
         """
         return self.get_pointers(
-            cond = self.is_data_pointer,
-
-            space = read_int_list(m.vm_start, m.vm_end, self.proc_as)
+            cond=self.is_data_pointer,
+            space=read_int_list(m.vm_start, m.vm_end, self.proc_as),
         )
 
     def get_data_pointers_from_threads(self):
@@ -749,7 +806,9 @@ class process_info(object):
         Find data pointers from all threads
         @return: An iterator of all pointers on thread stacks
         """
-        iterators = [self.get_data_pointers_from_map(m) for m in self.thread_stacks]
+        iterators = [
+            self.get_data_pointers_from_map(m) for m in self.thread_stacks
+        ]
         return self.get_unique_pointers(itertools.chain(*iterators))
 
     def get_pointers_from_stack(self):
@@ -776,6 +835,3 @@ class process_info(object):
         @return: An annotated address list of the stack
         """
         return self.annotate_addr_list(self._stack)
-
-
-

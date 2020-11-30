@@ -32,6 +32,7 @@
 from optparse import OptionParser
 import hashlib, os, sys
 
+
 class VtypeHolder(object):
 
     unstable_var_prefix = "unknown_"
@@ -45,7 +46,7 @@ class VtypeHolder(object):
         self.basis = None
 
     def _rename_types(self, vtypes, namemap):
-        # Apply the namemap within the types 
+        # Apply the namemap within the types
         for t in vtypes:
             for m in vtypes[t][1]:
                 memb = vtypes[t][1][m]
@@ -91,7 +92,7 @@ class VtypeHolder(object):
         else:
             return t
 
-    def as_string(self, msizes = True):
+    def as_string(self, msizes=True):
         if not self.vtypes:
             return ""
 
@@ -102,21 +103,28 @@ class VtypeHolder(object):
         output = arrayname + " = {\n"
         for t in sorted(self.vtypes):
             output += "  '{0}': [ {1:#x}, {{\n".format(t, self.vtypes[t][0])
-            for m in sorted(self.vtypes[t][1], key = lambda m: self.vtypes[t][1][m][0]):
+            for m in sorted(
+                self.vtypes[t][1], key=lambda m: self.vtypes[t][1][m][0]
+            ):
                 if msizes:
-                    output += "    '{0}': [{1:#x}, {2}],\n".format(m, self.vtypes[t][1][m][0], self.vtypes[t][1][m][1])
+                    output += "    '{0}': [{1:#x}, {2}],\n".format(
+                        m, self.vtypes[t][1][m][0], self.vtypes[t][1][m][1]
+                    )
                 else:
-                    output += "    '{0}': [None, {1}],\n".format(m, self.vtypes[t][1][m][1])
+                    output += "    '{0}': [None, {1}],\n".format(
+                        m, self.vtypes[t][1][m][1]
+                    )
             output += "   }],\n"
         output += "}\n"
-
 
         if self.basis:
             fn, an = self.basis
             fn = os.path.splitext(os.path.basename(fn))[0]
             output += "\n# We must use deepcopy to avoid overlays affecting multiple profiles\nimport copy\n"
             output += "import {0}\n".format(fn)
-            output += "{0} = copy.deepcopy({1}.{2})\n".format(self.arrayname, fn, an)
+            output += "{0} = copy.deepcopy({1}.{2})\n".format(
+                self.arrayname, fn, an
+            )
             if self.dellist:
                 for i in self.dellist:
                     output += "del {0}['{1}']\n".format(self.arrayname, i)
@@ -127,7 +135,9 @@ class VtypeHolder(object):
     def load(self, filename):
         self.filename = filename
         locs, globs = {}, {}
-        exec(compile(open(filename, "rb").read(), filename, 'exec'), globs, locs)
+        exec(
+            compile(open(filename, "rb").read(), filename, 'exec'), globs, locs
+        )
         for i in list(locs.keys()):
             if i.endswith('_types'):
                 self.arrayname = i
@@ -137,21 +147,36 @@ class VtypeHolder(object):
         if not self.vtypes:
             return False
         namemap = {}
-        unnamed = [t for t in self.vtypes if t.startswith(self.unstable_var_prefix)]
+        unnamed = [
+            t for t in self.vtypes if t.startswith(self.unstable_var_prefix)
+        ]
 
         # Create the namemap
         for t in unnamed:
-            newname = "__volstablename_" + hashlib.md5(str(self._tuplify(self.vtypes, self.vtypes[t]))).hexdigest() #pylint: disable-msg=E1101
+            newname = (
+                "__volstablename_"
+                + hashlib.md5(
+                    str(self._tuplify(self.vtypes, self.vtypes[t]))
+                ).hexdigest()
+            )  # pylint: disable-msg=E1101
             if t in namemap:
-                print("Conflicting names for {0}: {1} and {2}".format(t, newname, self.namemap[t]))
+                print(
+                    "Conflicting names for {0}: {1} and {2}".format(
+                        t, newname, self.namemap[t]
+                    )
+                )
             if newname in self.vtypes:
-                print("Constructed name for {0} ({1}) already exists in vtypes".format(t, newname))
+                print(
+                    "Constructed name for {0} ({1}) already exists in vtypes".format(
+                        t, newname
+                    )
+                )
             namemap[t] = newname
 
         self.namemap = namemap
         self.vtypes = self._rename_types(self.vtypes, namemap)
 
-    def decanonicalize(self, namemap = None):
+    def decanonicalize(self, namemap=None):
         if not self.vtypes:
             return False
         if not namemap:
@@ -166,7 +191,9 @@ class VtypeHolder(object):
         self.vtypes = self._rename_types(self.vtypes, newnamemap)
 
         # Rename the dellist members
-        dellist = [ newnamemap[x] if x in newnamemap else x for x in self.dellist]
+        dellist = [
+            newnamemap[x] if x in newnamemap else x for x in self.dellist
+        ]
         self.dellist = dellist
 
     def diff(self, base):
@@ -175,8 +202,12 @@ class VtypeHolder(object):
         removelist = []
         for i in base.vtypes:
             if i in self.vtypes:
-                inithash = hashlib.md5(str(self._tuplify(base.vtypes, base.vtypes[i]))).hexdigest() #pylint: disable-msg=E1101
-                diffhash = hashlib.md5(str(self._tuplify(self.vtypes, self.vtypes[i]))).hexdigest() #pylint: disable-msg=E1101
+                inithash = hashlib.md5(
+                    str(self._tuplify(base.vtypes, base.vtypes[i]))
+                ).hexdigest()  # pylint: disable-msg=E1101
+                diffhash = hashlib.md5(
+                    str(self._tuplify(self.vtypes, self.vtypes[i]))
+                ).hexdigest()  # pylint: disable-msg=E1101
                 if inithash == diffhash:
                     removelist.append(i)
             else:
@@ -184,9 +215,10 @@ class VtypeHolder(object):
         for i in removelist:
             del self.vtypes[i]
 
+
 if __name__ == '__main__':
     usage = "usage: %prog [options] <file1> <file2>"
-    parser = OptionParser(usage = usage)
+    parser = OptionParser(usage=usage)
     (opts, args) = parser.parse_args()
 
     if len(args) != 2:

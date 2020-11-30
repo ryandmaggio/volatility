@@ -26,6 +26,7 @@ import volatility.debug as debug
 import volatility.cache as cache
 import volatility.win32.tasks as tasks
 
+
 class HibInfo(common.AbstractWindowsCommand):
     """Dump hibernation file information"""
 
@@ -42,21 +43,25 @@ class HibInfo(common.AbstractWindowsCommand):
 
                 peb = obj.NoneObject("Cannot locate a valid PEB")
 
-                # Find the PEB by cycling through processes. This method works 
-                # on all versions of Windows x86 and x64. 
+                # Find the PEB by cycling through processes. This method works
+                # on all versions of Windows x86 and x64.
                 for task in tasks.pslist(addr_space):
                     if task.Peb:
                         peb = task.Peb
                         break
 
-                result = {'header': adrs.get_header(),
-                          'sr': sr,
-                          'peb': peb,
-                          'adrs': adrs }
+                result = {
+                    'header': adrs.get_header(),
+                    'sr': sr,
+                    'peb': peb,
+                    'adrs': adrs,
+                }
             adrs = adrs.base
 
         if result == None:
-            debug.error("Memory Image could not be identified or did not contain hiberation information")
+            debug.error(
+                "Memory Image could not be identified or did not contain hiberation information"
+            )
 
         return result
 
@@ -79,4 +84,8 @@ class HibInfo(common.AbstractWindowsCommand):
         outfd.write(" CR4[PSE]: {0}\n".format((sr.Cr4 >> 4) & 1))
         outfd.write(" CR4[PAE]: {0}\n".format((sr.Cr4 >> 5) & 1))
 
-        outfd.write("\nWindows Version is {0}.{1} ({2})\n\n".format(peb.OSMajorVersion, peb.OSMinorVersion, peb.OSBuildNumber))
+        outfd.write(
+            "\nWindows Version is {0}.{1} ({2})\n\n".format(
+                peb.OSMajorVersion, peb.OSMinorVersion, peb.OSBuildNumber
+            )
+        )

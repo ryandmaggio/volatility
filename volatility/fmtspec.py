@@ -18,8 +18,9 @@
 
 import re
 
+
 class FormatSpec(object):
-    def __init__(self, string = '', **kwargs):
+    def __init__(self, string='', **kwargs):
         self.fill = ''
         self.align = ''
         self.sign = ''
@@ -34,7 +35,16 @@ class FormatSpec(object):
         # Ensure we parse the remaining arguments after the string to that they override
         self.from_specs(**kwargs)
 
-    def from_specs(self, fill = None, align = None, sign = None, altform = None, minwidth = None, precision = None, formtype = None):
+    def from_specs(
+        self,
+        fill=None,
+        align=None,
+        sign=None,
+        altform=None,
+        minwidth=None,
+        precision=None,
+        formtype=None,
+    ):
         ## Allow setting individual elements using kwargs
         if fill is not None:
             self.fill = fill

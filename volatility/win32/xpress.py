@@ -18,7 +18,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 #  The source code in this file was inspired by the work of Matthieu Suiche,
-#  http://sandman.msuiche.net/, and the information presented released as 
+#  http://sandman.msuiche.net/, and the information presented released as
 #  part of the Microsoft Interoperability Initiative:
 #  http://download.microsoft.com/download/a/e/6/ae6e4142-aa58-45c6-8dcf-a657e5900cd3/%5BMS-DRSR%5D.pdf
 #  A special thanks to Matthieu for all his help!
@@ -29,13 +29,15 @@
 @contact:      bdolangavitt@wesleyan.edu
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 from struct import unpack
 from struct import error as StructError
 
+
 def recombine(outbuf):
     return "".join(outbuf[k] for k in sorted(outbuf.keys()))
+
 
 def xpress_decode(inputBuffer):
     outputBuffer = {}
@@ -48,11 +50,13 @@ def xpress_decode(inputBuffer):
     # the check to see if we're at the end of the output buffer
     # with a check to see if we still have any input left.
     while inputIndex < len(inputBuffer):
-        if (indicatorBit == 0):
+        if indicatorBit == 0:
             # in pseudocode this was indicatorBit = ..., but that makes no
             # sense, so I think this was intended...
             try:
-                indicator = unpack("<L", inputBuffer[inputIndex:inputIndex + 4])[0]
+                indicator = unpack(
+                    "<L", inputBuffer[inputIndex : inputIndex + 4]
+                )[0]
             except StructError:
                 return recombine(outputBuffer)
 
@@ -60,8 +64,8 @@ def xpress_decode(inputBuffer):
             indicatorBit = 32
 
         indicatorBit = indicatorBit - 1
-        # check whether the bit specified by indicatorBit is set or not 
-        # set in indicator. For example, if indicatorBit has value 4 
+        # check whether the bit specified by indicatorBit is set or not
+        # set in indicator. For example, if indicatorBit has value 4
         # check whether the 4th bit of the value in indicator is set
         if not (indicator & (1 << indicatorBit)):
             try:
@@ -77,13 +81,15 @@ def xpress_decode(inputBuffer):
             # that it is actually wider. First we try 3 bits, then 3
             # bits plus a nibble, then a byte, and finally two bytes (an
             # unsigned short). Also, if we are using a nibble, then every
-            # other time we get the nibble from the high part of the previous 
+            # other time we get the nibble from the high part of the previous
             # byte used as a length nibble.
             # Thus if a nibble byte is F2, we would first use the low part (2),
             # and then at some later point get the nibble from the high part (F).
 
             try:
-                length = unpack("<H", inputBuffer[inputIndex:inputIndex + 2])[0]
+                length = unpack(
+                    "<H", inputBuffer[inputIndex : inputIndex + 2]
+                )[0]
             except StructError:
                 return recombine(outputBuffer)
 
@@ -107,7 +113,9 @@ def xpress_decode(inputBuffer):
                     inputIndex += 1
                     if length == 255:
                         try:
-                            length = unpack("<H", inputBuffer[inputIndex:inputIndex + 2])[0]
+                            length = unpack(
+                                "<H", inputBuffer[inputIndex : inputIndex + 2]
+                            )[0]
                         except StructError:
                             return recombine(outputBuffer)
                         inputIndex = inputIndex + 2
@@ -118,7 +126,9 @@ def xpress_decode(inputBuffer):
 
             while length != 0:
                 try:
-                    outputBuffer[outputIndex] = outputBuffer[outputIndex - offset - 1]
+                    outputBuffer[outputIndex] = outputBuffer[
+                        outputIndex - offset - 1
+                    ]
                 except KeyError:
                     return recombine(outputBuffer)
                 outputIndex += 1
@@ -126,8 +136,9 @@ def xpress_decode(inputBuffer):
 
     return recombine(outputBuffer)
 
+
 try:
-    import pyxpress #pylint: disable-msg=F0401
+    import pyxpress  # pylint: disable-msg=F0401
 
     xpress_decode = pyxpress.decode
 except ImportError:
@@ -135,5 +146,6 @@ except ImportError:
 
 if __name__ == "__main__":
     import sys
+
     dec_data = xpress_decode(open(sys.argv[1]).read())
     sys.stdout.write(dec_data)

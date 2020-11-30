@@ -31,13 +31,28 @@ import volatility.addrspace as addrspace
 import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.pslist as linux_pslist
 
+
 class linux_process_hollow(linux_pslist.linux_pslist):
     """Checks for signs of process hollowing"""
 
     def __init__(self, config, *args, **kwargs):
         linux_pslist.linux_pslist.__init__(self, config, *args, **kwargs)
-        self._config.add_option('BASE', short_option = 'b', default = None, help = 'The address of the ELF file in memory', action = 'store', type='long' )
-        self._config.add_option('PATH', short_option = 'P', default = None, help = 'The path of the known good file', action = 'store', type='str') 
+        self._config.add_option(
+            'BASE',
+            short_option='b',
+            default=None,
+            help='The address of the ELF file in memory',
+            action='store',
+            type='long',
+        )
+        self._config.add_option(
+            'PATH',
+            short_option='P',
+            default=None,
+            help='The path of the known good file',
+            action='store',
+            type='str',
+        )
 
     # TODO:
     # make aware of if application or library
@@ -55,8 +70,8 @@ class linux_process_hollow(linux_pslist.linux_pslist):
         known_good = fd.read()
         fd.close()
 
-        bufferas = addrspace.BufferAddressSpace(self._config, data = known_good)
-        elf_hdr = obj.Object("elf_hdr", offset = 0, vm = bufferas)  
+        bufferas = addrspace.BufferAddressSpace(self._config, data=known_good)
+        elf_hdr = obj.Object("elf_hdr", offset=0, vm=bufferas)
 
         tasks = linux_pslist.linux_pslist.calculate(self)
 
@@ -66,9 +81,9 @@ class linux_process_hollow(linux_pslist.linux_pslist):
             for vma in task.get_proc_maps():
                 if self._config.BASE != vma.vm_start:
                     continue
-                
+
                 for sym in elf_hdr.symbols():
-                    if sym.st_value == 0 or (sym.st_info & 0xf) != 2:
+                    if sym.st_value == 0 or (sym.st_info & 0xF) != 2:
                         continue
 
                     symname = elf_hdr.symbol_name(sym)
@@ -89,8 +104,10 @@ class linux_process_hollow(linux_pslist.linux_pslist):
                         else:
                             full_address = vma.vm_start + sym.st_value
 
-                    mem_buffer  = proc_as.read(vm_start + sym_offset, sym.st_size)
-                    
+                    mem_buffer = proc_as.read(
+                        vm_start + sym_offset, sym.st_size
+                    )
+
                     if sym.st_value > vma.vm_start:
                         disk_off = sym.st_value - vm_start
                     else:
@@ -102,22 +119,17 @@ class linux_process_hollow(linux_pslist.linux_pslist):
                     if mem_buffer != None and disk_buffer != mem_buffer:
                         yield task, symname, full_address
                     elif mem_buffer == None:
-                        print("Function %s paged out in memory" % symname)   
-     
+                        print("Function %s paged out in memory" % symname)
+
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Task", "16"),
-                                  ("PID", "6"),
-                                  ("Symbol Name", "32"),
-                                  ("Symbol Address", "[addrpad]"),                 
-                                  ])
+        self.table_header(
+            outfd,
+            [
+                ("Task", "16"),
+                ("PID", "6"),
+                ("Symbol Name", "32"),
+                ("Symbol Address", "[addrpad]"),
+            ],
+        )
         for (task, symname, address) in data:
             self.table_row(outfd, str(task.comm), task.pid, symname, address)
-
-
-
-
-
-
-
-
-

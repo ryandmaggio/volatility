@@ -25,7 +25,7 @@
 @organization: Volatility Foundation
 """
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 import volatility.plugins.registry.hivescan as hs
 import volatility.obj as obj
@@ -34,12 +34,14 @@ import volatility.cache as cache
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class HiveList(hs.HiveScan):
     """Print list of registry hives.
 
     You can supply the offset of a specific hive. Otherwise
     this module will use the results from hivescan automatically.
     """
+
     # Declare meta information associated with this plugin
 
     meta_info = {}
@@ -52,38 +54,60 @@ class HiveList(hs.HiveScan):
     meta_info['version'] = '1.0'
 
     def unified_output(self, data):
-        return TreeGrid([("Virtual", Address),
-                       ("Physical", Address),
-                       ("Name", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [("Virtual", Address), ("Physical", Address), ("Name", str)],
+            self.generator(data),
+        )
 
     def generator(self, data):
         hive_offsets = []
 
         for hive in data:
-            if hive.Hive.Signature == 0xbee0bee0 and hive.obj_offset not in hive_offsets:
+            if (
+                hive.Hive.Signature == 0xBEE0BEE0
+                and hive.obj_offset not in hive_offsets
+            ):
                 name = hive.get_name()
                 # Spec of 10 rather than 8 width, since the # puts 0x at the start, which is included in the width
-                yield (0, [Address(hive.obj_offset), Address(hive.obj_vm.vtop(hive.obj_offset)), str(name)])
+                yield (
+                    0,
+                    [
+                        Address(hive.obj_offset),
+                        Address(hive.obj_vm.vtop(hive.obj_offset)),
+                        str(name),
+                    ],
+                )
                 hive_offsets.append(hive.obj_offset)
 
     def render_text(self, outfd, result):
-        self.table_header(outfd, [('Virtual', '[addrpad]'),
-                                  ('Physical', '[addrpad]'),
-                                  ('Name', ''),
-                                  ])
+        self.table_header(
+            outfd,
+            [
+                ('Virtual', '[addrpad]'),
+                ('Physical', '[addrpad]'),
+                ('Name', ''),
+            ],
+        )
 
         hive_offsets = []
         for hive in result:
-            if hive.Hive.Signature == 0xbee0bee0 and hive.obj_offset not in hive_offsets:
+            if (
+                hive.Hive.Signature == 0xBEE0BEE0
+                and hive.obj_offset not in hive_offsets
+            ):
                 name = hive.get_name()
                 # Spec of 10 rather than 8 width, since the # puts 0x at the start, which is included in the width
-                self.table_row(outfd, hive.obj_offset, hive.obj_vm.vtop(hive.obj_offset), name)
+                self.table_row(
+                    outfd,
+                    hive.obj_offset,
+                    hive.obj_vm.vtop(hive.obj_offset),
+                    name,
+                )
                 hive_offsets.append(hive.obj_offset)
 
     @cache.CacheDecorator("tests/hivelist")
     def calculate(self):
-        flat = utils.load_as(self._config, astype = 'physical')
+        flat = utils.load_as(self._config, astype='physical')
         addr_space = utils.load_as(self._config)
 
         hives = hs.HiveScan.calculate(self)
@@ -95,10 +119,15 @@ class HiveList(hs.HiveScan):
         ## could go from physical to virtual memory easier.
         for hive in hives:
             if hive.HiveList.Flink.v():
-                start_hive_offset = hive.HiveList.Flink.v() - addr_space.profile.get_obj_offset('_CMHIVE', 'HiveList')
+                start_hive_offset = (
+                    hive.HiveList.Flink.v()
+                    - addr_space.profile.get_obj_offset('_CMHIVE', 'HiveList')
+                )
 
                 ## Now instantiate the first hive in virtual address space as normal
-                start_hive = obj.Object("_CMHIVE", start_hive_offset, addr_space)
+                start_hive = obj.Object(
+                    "_CMHIVE", start_hive_offset, addr_space
+                )
 
                 for hive in start_hive.HiveList:
                     yield hive

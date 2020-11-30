@@ -28,18 +28,26 @@ import os
 
 import volatility.obj as obj
 import volatility.debug as debug
-import volatility.plugins.mac.pstasks as pstasks 
+import volatility.plugins.mac.pstasks as pstasks
 import volatility.plugins.mac.common as common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class mac_notesapp(pstasks.mac_tasks):
     """ Finds contents of Notes messages """
 
-    def __init__(self, config, *args, **kwargs):         
-        pstasks.mac_tasks.__init__(self, config, *args, **kwargs)         
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
- 
+    def __init__(self, config, *args, **kwargs):
+        pstasks.mac_tasks.__init__(self, config, *args, **kwargs)
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
+
     def calculate(self):
         common.set_plugin_members(self)
 
@@ -55,7 +63,9 @@ class mac_notesapp(pstasks.mac_tasks):
                 if map.get_perms() != "rw-" or map.get_path() != "":
                     continue
 
-                buffer = proc_as.zread(map.start.v(), map.end.v() - map.start.v())
+                buffer = proc_as.zread(
+                    map.start.v(), map.end.v() - map.start.v()
+                )
 
                 if not buffer:
                     continue
@@ -72,43 +82,49 @@ class mac_notesapp(pstasks.mac_tasks):
                     end_idx = buffer[iter_idx:].find("</html>")
                     if end_idx == -1:
                         break
- 
-                    msg = buffer[iter_idx:iter_idx + end_idx + 7]
-                    
+
+                    msg = buffer[iter_idx : iter_idx + end_idx + 7]
+
                     yield proc, map.start.v() + iter_idx, msg
-                    
+
                     iter_idx = iter_idx + end_idx
-                        
-                    
+
     def unified_output(self, data):
         if self._config.DUMP_DIR == None:
             debug.error("Please specify a dump directory (--dump-dir)")
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        return TreeGrid([("Pid", int),
-                          ("Name", str),
-                          ("Start", Address),
-                          ("Size", int),
-                          ("Path", str),
-                          ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Pid", int),
+                ("Name", str),
+                ("Start", Address),
+                ("Size", int),
+                ("Path", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (proc, start, msg) in data:
             fname = "Notes.{0}.{1:x}.txt".format(proc.p_pid, start)
-            file_path = os.path.join(self._config.DUMP_DIR, fname)            
+            file_path = os.path.join(self._config.DUMP_DIR, fname)
 
             fd = open(file_path, "wb+")
             fd.write(msg)
             fd.close()
 
-            yield(0,[
+            yield (
+                0,
+                [
                     int(proc.p_pid),
                     str(proc.p_comm),
                     Address(start),
                     int(len(msg)),
                     str(file_path),
-                    ])
+                ],
+            )
 
     def render_text(self, outfd, data):
         if self._config.DUMP_DIR == None:
@@ -116,24 +132,25 @@ class mac_notesapp(pstasks.mac_tasks):
         if not os.path.isdir(self._config.DUMP_DIR):
             debug.error(self._config.DUMP_DIR + " is not a directory")
 
-        self.table_header(outfd, [("Pid", "8"), 
-                          ("Name", "20"),
-                          ("Start", "[addrpad]"),
-                          ("Size", "8"),
-                          ("Path", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Pid", "8"),
+                ("Name", "20"),
+                ("Start", "[addrpad]"),
+                ("Size", "8"),
+                ("Path", ""),
+            ],
+        )
 
         for (proc, start, msg) in data:
             fname = "Notes.{0}.{1:x}.txt".format(proc.p_pid, start)
-            file_path = os.path.join(self._config.DUMP_DIR, fname)            
+            file_path = os.path.join(self._config.DUMP_DIR, fname)
 
             fd = open(file_path, "wb+")
             fd.write(msg)
             fd.close()
 
-            self.table_row(outfd, 
-                           str(proc.p_pid), 
-                           proc.p_comm, 
-                           start,
-                           len(msg),
-                           file_path)
-
+            self.table_row(
+                outfd, str(proc.p_pid), proc.p_comm, start, len(msg), file_path
+            )

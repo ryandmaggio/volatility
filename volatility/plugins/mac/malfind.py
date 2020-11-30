@@ -31,6 +31,7 @@ import volatility.plugins.malware.malfind as malfind
 import volatility.plugins.mac.common as mac_common
 import volatility.plugins.mac.pstasks as mac_pstasks
 
+
 class mac_malfind(mac_pstasks.mac_tasks):
     """Looks for suspicious process mappings"""
 
@@ -47,32 +48,44 @@ class mac_malfind(mac_pstasks.mac_tasks):
 
             for map in task.get_proc_maps():
                 if map.is_suspicious():
-                    fname = map.get_path()                    
+                    fname = map.get_path()
                     prots = map.get_perms()
 
                     content = proc_as.zread(map.start, 64)
 
-                    outfd.write("Process: {0} Pid: {1} Address: {2:#x} File: {3}\n".format(
-                        task.p_comm, task.p_pid, map.start, fname))
+                    outfd.write(
+                        "Process: {0} Pid: {1} Address: {2:#x} File: {3}\n".format(
+                            task.p_comm, task.p_pid, map.start, fname
+                        )
+                    )
 
                     outfd.write("Protection: {0}\n".format(prots))
 
                     outfd.write("\n")
 
-                    outfd.write("{0}\n".format("\n".join(
-                        ["{0:#010x}  {1:<48}  {2}".format(map.start + o, h, ''.join(c))
-                        for o, h, c in utils.Hexdump(content)
-                        ])))
+                    outfd.write(
+                        "{0}\n".format(
+                            "\n".join(
+                                [
+                                    "{0:#010x}  {1:<48}  {2}".format(
+                                        map.start + o, h, ''.join(c)
+                                    )
+                                    for o, h, c in utils.Hexdump(content)
+                                ]
+                            )
+                        )
+                    )
 
                     outfd.write("\n")
-                    outfd.write("\n".join(
-                        ["{0:#x} {1:<16} {2}".format(o, h, i)
-                        for o, i, h in malfind.Disassemble(content, map.start, bits = bits)
-                        ]))
-                
+                    outfd.write(
+                        "\n".join(
+                            [
+                                "{0:#x} {1:<16} {2}".format(o, h, i)
+                                for o, i, h in malfind.Disassemble(
+                                    content, map.start, bits=bits
+                                )
+                            ]
+                        )
+                    )
+
                     outfd.write("\n\n")
-
-       
-
-
- 

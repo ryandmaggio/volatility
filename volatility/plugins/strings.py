@@ -28,32 +28,58 @@ import volatility.plugins.filescan as filescan
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class Strings(common.AbstractWindowsCommand):
     """Match physical offsets to virtual addresses (may take a while, VERY verbose)"""
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
 
-        config.add_option('STRING-FILE', short_option = 's', default = None,
-                          help = 'File output in strings format (offset:string)',
-                          action = 'store', type = 'str')
-        config.add_option("SCAN", short_option = 'S', default = False,
-                          action = 'store_true', help = 'Use PSScan if no offset is provided')
-        config.add_option('OFFSET', short_option = 'o', default = None,
-                          help = 'EPROCESS offset (in hex) in the physical address space',
-                          action = 'store', type = 'int')
-        config.add_option('PID', short_option = 'p', default = None,
-                          help = 'Operate on these Process IDs (comma-separated)',
-                          action = 'store', type = 'str')
-        config.add_option('LOOKUP-PID', short_option = 'L', default = False,
-                          action = 'store_true', help = 'Lookup the ImageFileName of PIDs')
-  
+        config.add_option(
+            'STRING-FILE',
+            short_option='s',
+            default=None,
+            help='File output in strings format (offset:string)',
+            action='store',
+            type='str',
+        )
+        config.add_option(
+            "SCAN",
+            short_option='S',
+            default=False,
+            action='store_true',
+            help='Use PSScan if no offset is provided',
+        )
+        config.add_option(
+            'OFFSET',
+            short_option='o',
+            default=None,
+            help='EPROCESS offset (in hex) in the physical address space',
+            action='store',
+            type='int',
+        )
+        config.add_option(
+            'PID',
+            short_option='p',
+            default=None,
+            help='Operate on these Process IDs (comma-separated)',
+            action='store',
+            type='str',
+        )
+        config.add_option(
+            'LOOKUP-PID',
+            short_option='L',
+            default=False,
+            action='store_true',
+            help='Lookup the ImageFileName of PIDs',
+        )
+
     def get_processes(self, addr_space):
         """Enumerate processes based on user options.
 
         :param      addr_space | <addrspace.AbstractVirtualAddressSpace>
 
-        :returns    <list> 
+        :returns    <list>
         """
 
         bounce_back = taskmods.DllList.virtual_process_from_physical_offset
@@ -77,33 +103,33 @@ class Strings(common.AbstractWindowsCommand):
         return tasks
 
     @classmethod
-    def get_modules(cls, addr_space):    
-        """Enumerate the kernel modules. 
+    def get_modules(cls, addr_space):
+        """Enumerate the kernel modules.
 
         :param      addr_space | <addrspace.AbstractVirtualAddressSpace>
-        
+
         :returns    <tuple>
         """
-        
+
         modules = win32.modules.lsmod(addr_space)
         mask = addr_space.address_mask
         mods = dict((mask(mod.DllBase), mod) for mod in modules)
         mod_addrs = sorted(mods.keys())
-         
+
         return (mods, mod_addrs)
 
     @classmethod
     def find_module(cls, mods, mod_addrs, addr_space, vpage):
-        """Determine which module owns a virtual page. 
+        """Determine which module owns a virtual page.
 
         :param      mods        | <list>
                     mod_addrs   | <list>
                     addr_space  | <addrspace.AbstractVirtualAddressSpace>
-                    vpage       | <int> 
-        
+                    vpage       | <int>
+
         :returns    <_LDR_DATA_TABLE_ENTRY> || None
         """
-        
+
         mask = addr_space.address_mask
         return win32.tasks.find_module(mods, mod_addrs, mask(vpage))
 
@@ -112,7 +138,7 @@ class Strings(common.AbstractWindowsCommand):
         """Get the name of a kernel module.
 
         :param      module      | <_LDR_DATA_TABLE_ENTRY>
-        
+
         :returns    <str>
         """
 
@@ -120,10 +146,10 @@ class Strings(common.AbstractWindowsCommand):
 
     @classmethod
     def get_task_pid(cls, task):
-        """Get the PID of a process. 
+        """Get the PID of a process.
 
         :param      task   | <_EPROCESS>
-        
+
         :returns    <int>
         """
 
@@ -131,8 +157,9 @@ class Strings(common.AbstractWindowsCommand):
 
     def calculate(self):
 
-        if (self._config.STRING_FILE is None or 
-                    not os.path.exists(self._config.STRING_FILE)):
+        if self._config.STRING_FILE is None or not os.path.exists(
+            self._config.STRING_FILE
+        ):
             debug.error("Strings file not found")
 
         addr_space = utils.load_as(self._config)
@@ -141,10 +168,14 @@ class Strings(common.AbstractWindowsCommand):
         base = addr_space.base
         while base:
             layers.append(base)
-            base = base.base 
+            base = base.base
 
         if len(layers) > 2:
-            debug.error("Raw memory needed, got {0} (convert with imagecopy)".format(layers[1].__class__.__name__))
+            debug.error(
+                "Raw memory needed, got {0} (convert with imagecopy)".format(
+                    layers[1].__class__.__name__
+                )
+            )
 
         tasks = self.get_processes(addr_space)
 
@@ -161,26 +192,29 @@ class Strings(common.AbstractWindowsCommand):
             pids = ["FREE MEMORY:-1"]
             if offset & 0xFFFFFFFFFFFFF000 in reverse_map:
                 if self._config.LOOKUP_PID:
-                    pids = ["{0}{2}:{1:08x}".format(
-                        pid[0],
-                        pid[2] | (offset & 0xFFF),
-                        '' if not pid[1] else '={}'.format(pid[1])
-                    ) for pid in reverse_map[offset & 0xFFFFFFFFFFFFF000][1:]]
+                    pids = [
+                        "{0}{2}:{1:08x}".format(
+                            pid[0],
+                            pid[2] | (offset & 0xFFF),
+                            '' if not pid[1] else '={}'.format(pid[1]),
+                        )
+                        for pid in reverse_map[offset & 0xFFFFFFFFFFFFF000][1:]
+                    ]
                 else:
-                    pids = ["{0}:{1:08x}".format(
-                        pid[0],
-                        pid[2] | (offset & 0xFFF)
-                    ) for pid in reverse_map[offset & 0xFFFFFFFFFFFFF000][1:]]
+                    pids = [
+                        "{0}:{1:08x}".format(pid[0], pid[2] | (offset & 0xFFF))
+                        for pid in reverse_map[offset & 0xFFFFFFFFFFFFF000][1:]
+                    ]
 
             yield offset, pids, "{0}".format(string.strip())
 
     @classmethod
     def parse_line(cls, line):
-        """Parses a line of strings. 
+        """Parses a line of strings.
 
         :param      cls     | <Strings>
                     line    | <str>
-        
+
         :returns    <tuple>
         """
         # Remove any leading spaces to handle nasty strings output
@@ -196,12 +230,12 @@ class Strings(common.AbstractWindowsCommand):
 
     @classmethod
     def get_reverse_map(cls, addr_space, tasks):
-        """Generates a reverse mapping of physical addresses 
+        """Generates a reverse mapping of physical addresses
         to the kernel and/or tasks.
 
         :param      addr_space  | <addrspace.AbstractVirtualAddressSpace>
-                    tasks       | <list> 
-    
+                    tasks       | <list>
+
         :returns    <dict>
         """
 
@@ -217,25 +251,29 @@ class Strings(common.AbstractWindowsCommand):
         reverse_map = {}
 
         (mods, mod_addrs) = cls.get_modules(addr_space)
-   
+
         debug.debug("Calculating kernel mapping...\n")
         available_pages = addr_space.get_available_pages()
         for (vpage, vpage_size) in available_pages:
             kpage = addr_space.vtop(vpage)
             for i in range(0, vpage_size, 0x1000):
-                # Since the output will always be mutable, we 
+                # Since the output will always be mutable, we
                 # don't need to reinsert into the list
                 pagelist = reverse_map.get(kpage + i, None)
                 if pagelist is None:
                     pagelist = [True]
                     reverse_map[kpage + i] = pagelist
                 # Try to lookup the owning kernel module
-                module = cls.find_module(mods, mod_addrs, addr_space, vpage + i)
+                module = cls.find_module(
+                    mods, mod_addrs, addr_space, vpage + i
+                )
                 if module:
                     hint = cls.get_module_name(module)
                 else:
                     hint = 'kernel'
-                pagelist.append((hint, None, vpage + i))  # None is placeholder (used by tasks)
+                pagelist.append(
+                    (hint, None, vpage + i)
+                )  # None is placeholder (used by tasks)
 
         debug.debug("Calculating task mappings...\n")
         for task in tasks:
@@ -247,38 +285,50 @@ class Strings(common.AbstractWindowsCommand):
                 for (vpage, vpage_size) in available_pages:
                     physpage = task_space.vtop(vpage)
                     for i in range(0, vpage_size, 0x1000):
-                        # Since the output will always be mutable, we 
+                        # Since the output will always be mutable, we
                         # don't need to reinsert into the list
                         pagelist = reverse_map.get(physpage + i, None)
                         if pagelist is None:
                             pagelist = [False]
                             reverse_map[physpage + i] = pagelist
                         if not pagelist[0]:
-                            pagelist.append((process_id, task.ImageFileName, vpage + i))
+                            pagelist.append(
+                                (process_id, task.ImageFileName, vpage + i)
+                            )
 
             except (AttributeError, ValueError, TypeError):
                 # Handle most errors, but not all of them
                 continue
-        
+
         return reverse_map
 
     def unified_output(self, data):
-        return TreeGrid([("Offset(P)", Address),
-                       ("Attribution", str),
-                       ("Offset(V)", Address),
-                       ("String", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Offset(P)", Address),
+                ("Attribution", str),
+                ("Offset(V)", Address),
+                ("String", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for offset, pids, string in data:
             for p in pids:
                 item, addr = p.split(":")
-                yield (0, [Address(offset),
+                yield (
+                    0,
+                    [
+                        Address(offset),
                         str(item),
                         Address(int(addr, 16)),
-                        str(string)])
+                        str(string),
+                    ],
+                )
 
     def render_text(self, outfd, data):
         for offset, pids, string in data:
-            outfd.write("{0} [{1}] {2}\n".format(offset, ' '.join(pids), string))
-
+            outfd.write(
+                "{0} [{1}] {2}\n".format(offset, ' '.join(pids), string)
+            )

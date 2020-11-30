@@ -42,114 +42,138 @@ import volatility.win32 as win32
 from volatility.renderers import TreeGrid
 
 supported_controls = {
-    'edit'   : 'COMCTL_EDIT',
+    'edit': 'COMCTL_EDIT',
     'listbox': 'COMCTL_LISTBOX',
 }
 
 editbox_vtypes_xp_x86 = {
-    'COMCTL_EDIT': [0xEE, {
-        'hBuf': [0x00, ['unsigned long']],
-        'hWnd': [0x38, ['unsigned long']],
-        'parenthWnd': [0x58, ['unsigned long']],
-        'nChars': [0x0C, ['unsigned long']],
-        'selStart': [0x14, ['unsigned long']],
-        'selEnd': [0x18, ['unsigned long']],
-        'pwdChar': [0x30, ['unsigned short']],
-        'undoBuf': [0x80, ['unsigned long']],
-        'undoPos': [0x84, ['long']],
-        'undoLen': [0x88, ['long']],
-        'bEncKey': [0xEC, ['unsigned char']],
-    }],
-    'COMCTL_LISTBOX': [0x40, {
-        'hWnd': [0x00, ['unsigned long']],
-        'parenthWnd': [0x04, ['unsigned long']],
-        'atomHandle': [0x08, ['unsigned long']],
-        'firstVisibleRow': [0x10, ['unsigned long']],
-        'caretPos': [0x14, ['long']],
-        'rowsVisible': [0x1C, ['unsigned long']],
-        'itemCount': [0x20, ['unsigned long']],
-        'stringsStart': [0x2C, ['unsigned long']],
-        'stringsLength': [0x34, ['unsigned long']]
-    }],
+    'COMCTL_EDIT': [
+        0xEE,
+        {
+            'hBuf': [0x00, ['unsigned long']],
+            'hWnd': [0x38, ['unsigned long']],
+            'parenthWnd': [0x58, ['unsigned long']],
+            'nChars': [0x0C, ['unsigned long']],
+            'selStart': [0x14, ['unsigned long']],
+            'selEnd': [0x18, ['unsigned long']],
+            'pwdChar': [0x30, ['unsigned short']],
+            'undoBuf': [0x80, ['unsigned long']],
+            'undoPos': [0x84, ['long']],
+            'undoLen': [0x88, ['long']],
+            'bEncKey': [0xEC, ['unsigned char']],
+        },
+    ],
+    'COMCTL_LISTBOX': [
+        0x40,
+        {
+            'hWnd': [0x00, ['unsigned long']],
+            'parenthWnd': [0x04, ['unsigned long']],
+            'atomHandle': [0x08, ['unsigned long']],
+            'firstVisibleRow': [0x10, ['unsigned long']],
+            'caretPos': [0x14, ['long']],
+            'rowsVisible': [0x1C, ['unsigned long']],
+            'itemCount': [0x20, ['unsigned long']],
+            'stringsStart': [0x2C, ['unsigned long']],
+            'stringsLength': [0x34, ['unsigned long']],
+        },
+    ],
 }
 
 editbox_vtypes_xp_x64 = {
-    'COMCTL_EDIT': [ 0x142, {
-        'hBuf': [0x00, ['unsigned long']],
-        'hWnd': [0x40, ['unsigned long']],
-        'parenthWnd': [0x60, ['unsigned long']],
-        'nChars': [0x10, ['unsigned long']],
-        'selStart': [0x18, ['unsigned long']],
-        'selEnd': [0x20, ['unsigned long']],
-        'pwdChar': [0x34, ['unsigned short']],
-        'undoBuf': [0xA8, ['address']],
-        'undoPos': [0xB0, ['long']],
-        'undoLen': [0xB4, ['long']],
-        'bEncKey': [0x140, ['unsigned char']]
-    }],
-    'COMCTL_LISTBOX': [ 0x100, {
-        'hWnd': [0x00, ['unsigned long']],
-        'parenthWnd': [0x08, ['unsigned long']],
-        'firstVisibleRow': [0x20, ['unsigned long']],
-        'caretPos': [0x28, ['unsigned long']],
-        'rowsVisible': [0x2C, ['unsigned long']],
-        'itemCount': [0x30, ['unsigned long']],
-        'stringsStart': [0x40, ['address']],
-        'stringsLength': [0x4C, ['unsigned long']]
-    }],
+    'COMCTL_EDIT': [
+        0x142,
+        {
+            'hBuf': [0x00, ['unsigned long']],
+            'hWnd': [0x40, ['unsigned long']],
+            'parenthWnd': [0x60, ['unsigned long']],
+            'nChars': [0x10, ['unsigned long']],
+            'selStart': [0x18, ['unsigned long']],
+            'selEnd': [0x20, ['unsigned long']],
+            'pwdChar': [0x34, ['unsigned short']],
+            'undoBuf': [0xA8, ['address']],
+            'undoPos': [0xB0, ['long']],
+            'undoLen': [0xB4, ['long']],
+            'bEncKey': [0x140, ['unsigned char']],
+        },
+    ],
+    'COMCTL_LISTBOX': [
+        0x100,
+        {
+            'hWnd': [0x00, ['unsigned long']],
+            'parenthWnd': [0x08, ['unsigned long']],
+            'firstVisibleRow': [0x20, ['unsigned long']],
+            'caretPos': [0x28, ['unsigned long']],
+            'rowsVisible': [0x2C, ['unsigned long']],
+            'itemCount': [0x30, ['unsigned long']],
+            'stringsStart': [0x40, ['address']],
+            'stringsLength': [0x4C, ['unsigned long']],
+        },
+    ],
 }
 
 editbox_vtypes_vista7810_x86 = {
-    'COMCTL_EDIT': [0xF6, {
-        'hBuf': [0x00, ['unsigned long']],
-        'hWnd': [0x38, ['unsigned long']],
-        'parenthWnd': [0x58, ['unsigned long']],
-        'nChars': [0x0C, ['unsigned long']],
-        'selStart': [0x14, ['unsigned long']],
-        'selEnd': [0x18, ['unsigned long']],
-        'pwdChar': [0x30, ['unsigned short']],
-        'undoBuf': [0x88, ['unsigned long']],
-        'undoPos': [0x8C, ['long']],
-        'undoLen': [0x90, ['long']],
-        'bEncKey': [0xF4, ['unsigned char']],
-    }],
-    'COMCTL_LISTBOX': [0x40, {
-        'hWnd': [0x00, ['unsigned long']],
-        'parenthWnd': [0x04, ['unsigned long']],
-        'atomHandle': [0x08, ['unsigned long']],
-        'firstVisibleRow': [0x10, ['unsigned long']],
-        'caretPos': [0x14, ['long']],
-        'rowsVisible': [0x1C, ['unsigned long']],
-        'itemCount': [0x20, ['unsigned long']],
-        'stringsStart': [0x2C, ['unsigned long']],
-        'stringsLength': [0x34, ['unsigned long']]
-    }],
+    'COMCTL_EDIT': [
+        0xF6,
+        {
+            'hBuf': [0x00, ['unsigned long']],
+            'hWnd': [0x38, ['unsigned long']],
+            'parenthWnd': [0x58, ['unsigned long']],
+            'nChars': [0x0C, ['unsigned long']],
+            'selStart': [0x14, ['unsigned long']],
+            'selEnd': [0x18, ['unsigned long']],
+            'pwdChar': [0x30, ['unsigned short']],
+            'undoBuf': [0x88, ['unsigned long']],
+            'undoPos': [0x8C, ['long']],
+            'undoLen': [0x90, ['long']],
+            'bEncKey': [0xF4, ['unsigned char']],
+        },
+    ],
+    'COMCTL_LISTBOX': [
+        0x40,
+        {
+            'hWnd': [0x00, ['unsigned long']],
+            'parenthWnd': [0x04, ['unsigned long']],
+            'atomHandle': [0x08, ['unsigned long']],
+            'firstVisibleRow': [0x10, ['unsigned long']],
+            'caretPos': [0x14, ['long']],
+            'rowsVisible': [0x1C, ['unsigned long']],
+            'itemCount': [0x20, ['unsigned long']],
+            'stringsStart': [0x2C, ['unsigned long']],
+            'stringsLength': [0x34, ['unsigned long']],
+        },
+    ],
 }
 
 editbox_vtypes_vista7810_x64 = {
-    'COMCTL_EDIT': [0x142, {
-        'hBuf': [0x00, ['unsigned long']],
-        'hWnd': [0x40, ['unsigned long']],
-        'parenthWnd': [0x60, ['unsigned long']],
-        'nChars': [0x10, ['unsigned long']],
-        'selStart': [0x18, ['unsigned long']],
-        'selEnd': [0x20, ['unsigned long']],
-        'pwdChar': [0x34, ['unsigned short']],
-        'undoBuf': [0xA8, ['address']],
-        'undoPos': [0xB0, ['long']],
-        'undoLen': [0xB4, ['long']],
-        'bEncKey': [0x140, ['unsigned char']],
-    }],
-    'COMCTL_LISTBOX': [0x54, {
-        'hWnd': [0x00, ['unsigned long']],
-        'parenthWnd': [0x08, ['unsigned long']],
-        'firstVisibleRow': [0x20, ['unsigned long']],
-        'caretPos': [0x28, ['unsigned long']],
-        'rowsVisible': [0x2C, ['unsigned long']],
-        'itemCount': [0x30, ['unsigned long']],
-        'stringsStart': [0x40, ['address']],
-        'stringsLength': [0x4C, ['unsigned long']]
-    }],
+    'COMCTL_EDIT': [
+        0x142,
+        {
+            'hBuf': [0x00, ['unsigned long']],
+            'hWnd': [0x40, ['unsigned long']],
+            'parenthWnd': [0x60, ['unsigned long']],
+            'nChars': [0x10, ['unsigned long']],
+            'selStart': [0x18, ['unsigned long']],
+            'selEnd': [0x20, ['unsigned long']],
+            'pwdChar': [0x34, ['unsigned short']],
+            'undoBuf': [0xA8, ['address']],
+            'undoPos': [0xB0, ['long']],
+            'undoLen': [0xB4, ['long']],
+            'bEncKey': [0x140, ['unsigned char']],
+        },
+    ],
+    'COMCTL_LISTBOX': [
+        0x54,
+        {
+            'hWnd': [0x00, ['unsigned long']],
+            'parenthWnd': [0x08, ['unsigned long']],
+            'firstVisibleRow': [0x20, ['unsigned long']],
+            'caretPos': [0x28, ['unsigned long']],
+            'rowsVisible': [0x2C, ['unsigned long']],
+            'itemCount': [0x30, ['unsigned long']],
+            'stringsStart': [0x40, ['address']],
+            'stringsLength': [0x4C, ['unsigned long']],
+        },
+    ],
 }
 
 
@@ -162,13 +186,27 @@ class COMCTL_EDIT(obj.CType):
         _MAX_OUT = 50
 
         text = self.get_text(no_crlf=True)
-        text = '{}...'.format(text[:_MAX_OUT - 3]) if len(text) > _MAX_OUT else text
+        text = (
+            '{}...'.format(text[: _MAX_OUT - 3])
+            if len(text) > _MAX_OUT
+            else text
+        )
 
         undo = self.get_undo(no_crlf=True)
-        undo = '{}...'.format(undo[:_MAX_OUT - 3]) if len(undo) > _MAX_OUT else undo
+        undo = (
+            '{}...'.format(undo[: _MAX_OUT - 3])
+            if len(undo) > _MAX_OUT
+            else undo
+        )
 
         return '<{0}(Text="{1}", Len={2}, Pwd={3}, Undo="{4}", UndoLen={5})>'.format(
-            self.__class__.__name__, text, self.nChars, self.is_pwd(), undo, self.undoLen)
+            self.__class__.__name__,
+            text,
+            self.nChars,
+            self.is_pwd(),
+            undo,
+            self.undoLen,
+        )
 
     def get_text(self, no_crlf=False):
         """Get the text from the control
@@ -179,7 +217,9 @@ class COMCTL_EDIT(obj.CType):
 
         if self.nChars < 1:
             return ''
-        text_deref = obj.Object('unsigned long', offset=self.hBuf, vm=self.obj_vm)
+        text_deref = obj.Object(
+            'unsigned long', offset=self.hBuf, vm=self.obj_vm
+        )
         raw = self.obj_vm.read(text_deref, self.nChars * 2)
         if not self.pwdChar == 0x00:  # Is a password dialog
             raw = COMCTL_EDIT.rtl_run_decode_unicode_string(self.bEncKey, raw)
@@ -198,9 +238,15 @@ class COMCTL_EDIT(obj.CType):
         if self.undoLen < 1:
             return ''
         if no_crlf:
-            return self.obj_vm.read(self.undoBuf, self.undoLen * 2).decode('utf-16').replace('\r\n', '.')
+            return (
+                self.obj_vm.read(self.undoBuf, self.undoLen * 2)
+                .decode('utf-16')
+                .replace('\r\n', '.')
+            )
         else:
-            return self.obj_vm.read(self.undoBuf, self.undoLen * 2).decode('utf-16')
+            return self.obj_vm.read(self.undoBuf, self.undoLen * 2).decode(
+                'utf-16'
+            )
 
     def is_pwd(self):
         """Is this a password control?
@@ -212,8 +258,8 @@ class COMCTL_EDIT(obj.CType):
 
     def dump_meta(self, outfd):
         """Dumps the meta data of the control
-        
-        @param  outfd: 
+
+        @param  outfd:
         """
         outfd.write('nChars            : {}\n'.format(self.nChars))
         outfd.write('selStart          : {}\n'.format(self.selStart))
@@ -222,18 +268,25 @@ class COMCTL_EDIT(obj.CType):
         outfd.write('undoPos           : {}\n'.format(self.undoPos))
         outfd.write('undoLen           : {}\n'.format(self.undoLen))
         outfd.write('address-of undoBuf: {:#x}\n'.format(self.undoBuf))
-        outfd.write('undoBuf           : {}\n'.format(self.get_undo(no_crlf=True)))
+        outfd.write(
+            'undoBuf           : {}\n'.format(self.get_undo(no_crlf=True))
+        )
 
     def dump_data(self, outfd):
         """Dumps the data of the control
-        
-        @param  outfd: 
+
+        @param  outfd:
         """
         outfd.write('{}\n'.format(self.get_text()))
 
     @staticmethod
     def rtl_run_decode_unicode_string(key, data):
-        s = ''.join([chr(ord(data[i - 1]) ^ ord(data[i]) ^ key) for i in range(1, len(data))])
+        s = ''.join(
+            [
+                chr(ord(data[i - 1]) ^ ord(data[i]) ^ key)
+                for i in range(1, len(data))
+            ]
+        )
         s = chr(ord(data[0]) ^ (key | 0x43)) + s
         return s
 
@@ -247,11 +300,16 @@ class COMCTL_LISTBOX(obj.CType):
         _MAX_OUT = 50
 
         text = self.get_text(joiner='|')
-        text = '{}...'.format(text[:_MAX_OUT - 3]) if len(text) > _MAX_OUT else text
+        text = (
+            '{}...'.format(text[: _MAX_OUT - 3])
+            if len(text) > _MAX_OUT
+            else text
+        )
 
         return '<{0}(Text="{1}", Items={2}, Caret={3}>'.format(
-            self.__class__.__name__, text, self.itemCount, self.caretPos)
-    
+            self.__class__.__name__, text, self.itemCount, self.caretPos
+        )
+
     def get_text(self, joiner='\n'):
         """Get the text from the control
 
@@ -288,17 +346,18 @@ class COMCTL_LISTBOX(obj.CType):
 
 def split_null_strings(data):
     """Splits a concatenation of null-terminated utf-16 strings
-    
+
     @param  data:
     """
-    
+
     strings = []
     start = 0
     for i in range(0, len(data), 2):
-        if data[i] == '\x00' and data[i+1] == '\x00':
+        if data[i] == '\x00' and data[i + 1] == '\x00':
             strings.append(data[start:i])
-            start = i+2
+            start = i + 2
     return [s.decode('utf-16') for s in strings]
+
 
 def dump_to_file(ctrl, pid, proc_name, folder):
     """Dumps the data of the control to a file
@@ -309,7 +368,9 @@ def dump_to_file(ctrl, pid, proc_name, folder):
     @param  folder:
     """
     ctrl_safe_name = str(ctrl.__class__.__name__).split('_')[-1].lower()
-    file_name = '{0}_{1}_{2}_{3:#x}.txt'.format(pid, proc_name, ctrl_safe_name, ctrl.v())
+    file_name = '{0}_{1}_{2}_{3:#x}.txt'.format(
+        pid, proc_name, ctrl_safe_name, ctrl.v()
+    )
     with open(os.path.join(folder, file_name), 'wb') as out_file:
         out_file.write(ctrl.get_text())
 
@@ -319,7 +380,7 @@ class Editbox(common.AbstractWindowsCommand):
 
     # Add the classes for the structures
     editbox_classes = {
-        'COMCTL_EDIT'   : COMCTL_EDIT,
+        'COMCTL_EDIT': COMCTL_EDIT,
         'COMCTL_LISTBOX': COMCTL_LISTBOX,
     }
 
@@ -327,26 +388,36 @@ class Editbox(common.AbstractWindowsCommand):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
 
         # Filter specific processes
-        config.add_option('PID', short_option='p', default=None,
-                          help='Operate on these Process IDs (comma-separated)',
-                          action='store', type='str')
-        config.add_option('DUMP-DIR', short_option='D', default=None,
-                          help='Save the found text to files in this folder',
-                          action='store', type='str')
-        
+        config.add_option(
+            'PID',
+            short_option='p',
+            default=None,
+            help='Operate on these Process IDs (comma-separated)',
+            action='store',
+            type='str',
+        )
+        config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Save the found text to files in this folder',
+            action='store',
+            type='str',
+        )
+
         self.fake_32bit = False
 
     @staticmethod
     def apply_types(addr_space, meta=None):
         """Add the correct vtypes and classes for the profile
 
-        @param  addr_space:        
-        @param  meta: 
+        @param  addr_space:
+        @param  meta:
         """
 
         if not meta:
             meta = addr_space.profile.metadata
-        
+
         if meta['os'] == 'windows':
             if meta['major'] == 5:
                 if meta['memory_model'] == '32bit':
@@ -358,9 +429,13 @@ class Editbox(common.AbstractWindowsCommand):
                 addr_space.profile.compile()
             elif meta['major'] == 6:
                 if meta['memory_model'] == '32bit':
-                    addr_space.profile.vtypes.update(editbox_vtypes_vista7810_x86)
+                    addr_space.profile.vtypes.update(
+                        editbox_vtypes_vista7810_x86
+                    )
                 elif meta['memory_model'] == '64bit':
-                    addr_space.profile.vtypes.update(editbox_vtypes_vista7810_x64)
+                    addr_space.profile.vtypes.update(
+                        editbox_vtypes_vista7810_x64
+                    )
                 else:
                     debug.error("The selected address space is not supported")
                 addr_space.profile.compile()
@@ -400,93 +475,135 @@ class Editbox(common.AbstractWindowsCommand):
                 for wnd, _level in desktop.windows(desktop.DeskInfo.spwnd):
                     if wnd.Process in the_tasks:
 
-                        atom_class = mh.translate_atom(winsta, atom_tables, wnd.ClassAtom)
+                        atom_class = mh.translate_atom(
+                            winsta, atom_tables, wnd.ClassAtom
+                        )
                         if atom_class:
                             atom_class = str(atom_class)
                             if '!' in atom_class:
-                                comctl_class = atom_class.split('!')[-1].lower()
+                                comctl_class = atom_class.split('!')[
+                                    -1
+                                ].lower()
                                 if comctl_class in supported_controls:
-                                    
+
                                     # Do we need to fake being 32bit for Wow?
-                                    if wnd.Process.IsWow64 and not self.fake_32bit:
+                                    if (
+                                        wnd.Process.IsWow64
+                                        and not self.fake_32bit
+                                    ):
                                         meta = addr_space.profile.metadata
                                         meta['memory_model'] = '32bit'
                                         self.apply_types(addr_space, meta)
                                         self.fake_32bit = True
-                                    elif not wnd.Process.IsWow64 and self.fake_32bit:
-                                            self.apply_types(addr_space)
-                                            self.fake_32bit = False
-                                            
-                                    context = '{0}\\{1}\\{2}'.format(winsta.dwSessionId, winsta.Name, desktop.Name)
-                                    task_vm = wnd.Process.get_process_address_space()
-                                    wndextra_offset = wnd.v() + addr_space.profile.get_obj_size('tagWND')
-                                    wndextra = obj.Object('address', offset=wndextra_offset, vm=task_vm)
-                                    ctrl = obj.Object(supported_controls[comctl_class], offset=wndextra, vm=task_vm)
+                                    elif (
+                                        not wnd.Process.IsWow64
+                                        and self.fake_32bit
+                                    ):
+                                        self.apply_types(addr_space)
+                                        self.fake_32bit = False
+
+                                    context = '{0}\\{1}\\{2}'.format(
+                                        winsta.dwSessionId,
+                                        winsta.Name,
+                                        desktop.Name,
+                                    )
+                                    task_vm = (
+                                        wnd.Process.get_process_address_space()
+                                    )
+                                    wndextra_offset = (
+                                        wnd.v()
+                                        + addr_space.profile.get_obj_size(
+                                            'tagWND'
+                                        )
+                                    )
+                                    wndextra = obj.Object(
+                                        'address',
+                                        offset=wndextra_offset,
+                                        vm=task_vm,
+                                    )
+                                    ctrl = obj.Object(
+                                        supported_controls[comctl_class],
+                                        offset=wndextra,
+                                        vm=task_vm,
+                                    )
                                     if self._config.DUMP_DIR:
-                                        dump_to_file(ctrl, wnd.Process.UniqueProcessId,
-                                                     wnd.Process.ImageFileName, self._config.DUMP_DIR)
-                                    yield context, atom_class, wnd.Process.UniqueProcessId, \
-                                        wnd.Process.ImageFileName, wnd.Process.IsWow64, ctrl
+                                        dump_to_file(
+                                            ctrl,
+                                            wnd.Process.UniqueProcessId,
+                                            wnd.Process.ImageFileName,
+                                            self._config.DUMP_DIR,
+                                        )
+                                    yield context, atom_class, wnd.Process.UniqueProcessId, wnd.Process.ImageFileName, wnd.Process.IsWow64, ctrl
 
     def render_table(self, outfd, data):
         """Output the results as a table
-        
+
         @param  outfd: <file>
         @param  data: <generator>
         """
 
-        self.table_header(outfd, [
-            ('PID', '6'),
-            ('Process', '14'),
-            ('Control', ""),
-        ])
+        self.table_header(
+            outfd,
+            [
+                ('PID', '6'),
+                ('Process', '14'),
+                ('Control', ""),
+            ],
+        )
 
         for context, atom_class, pid, proc_name, is_wow64, ctrl in data:
             # context, atom_class and is_wow64 are ignored
             self.table_row(outfd, pid, proc_name, str(ctrl))
 
     def unified_output(self, data):
-        #output as volatility json format
-        return TreeGrid([("Wnd Context", str),
-                         ("Process ID", int),
-                         ("ImageFileName", str),
-                         ("IsWow64", str),
-                         ("atom_class", str),
-                         ("value-of WndExtra", str),
-                         ("nChars", int),
-                         ("selStart", int),
-                         ("selEnd", int),
-                         ("isPwdControl", int),
-                         ("undoPos", int),
-                         ("undoLen", int),
-                         ("address-of undoBuf", str),
-                         ("undoBuf", str),
-                         ("Data", str),
-                        ], self.generator(data))
+        # output as volatility json format
+        return TreeGrid(
+            [
+                ("Wnd Context", str),
+                ("Process ID", int),
+                ("ImageFileName", str),
+                ("IsWow64", str),
+                ("atom_class", str),
+                ("value-of WndExtra", str),
+                ("nChars", int),
+                ("selStart", int),
+                ("selEnd", int),
+                ("isPwdControl", int),
+                ("undoPos", int),
+                ("undoLen", int),
+                ("address-of undoBuf", str),
+                ("undoBuf", str),
+                ("Data", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for context, atom_class, pid, proc_name, is_wow64, ctrl in data:
-            yield (0, [
-                str(context),
-                int(pid),
-                str(proc_name),
-                str('Yes' if is_wow64 else 'No'),
-                str(atom_class),
-                str(hex(int(ctrl.v()))),
-                int(ctrl.nChars),
-                int(ctrl.selStart),
-                int(ctrl.is_pwd()),
-                int(ctrl.undoPos),
-                int(ctrl.undoLen),
-                int(ctrl.selEnd),
-                str(ctrl.undoBuf),
-                str(ctrl.get_undo(no_crlf=True)),
-                str(ctrl.get_text()),
-                ])
+            yield (
+                0,
+                [
+                    str(context),
+                    int(pid),
+                    str(proc_name),
+                    str('Yes' if is_wow64 else 'No'),
+                    str(atom_class),
+                    str(hex(int(ctrl.v()))),
+                    int(ctrl.nChars),
+                    int(ctrl.selStart),
+                    int(ctrl.is_pwd()),
+                    int(ctrl.undoPos),
+                    int(ctrl.undoLen),
+                    int(ctrl.selEnd),
+                    str(ctrl.undoBuf),
+                    str(ctrl.get_undo(no_crlf=True)),
+                    str(ctrl.get_text()),
+                ],
+            )
 
     def render_text(self, outfd, data):
         """Output the results as a text report
-        
+
         @param  outfd: <file>
         @param  data: <generator>
         """
@@ -496,7 +613,9 @@ class Editbox(common.AbstractWindowsCommand):
             outfd.write('Wnd Context       : {}\n'.format(context))
             outfd.write('Process ID        : {}\n'.format(pid))
             outfd.write('ImageFileName     : {}\n'.format(proc_name))
-            outfd.write('IsWow64           : {}\n'.format('Yes' if is_wow64 else 'No'))
+            outfd.write(
+                'IsWow64           : {}\n'.format('Yes' if is_wow64 else 'No')
+            )
             outfd.write('atom_class        : {}\n'.format(atom_class))
             outfd.write('value-of WndExtra : {:#x}\n'.format(ctrl.v()))
             ctrl.dump_meta(outfd)

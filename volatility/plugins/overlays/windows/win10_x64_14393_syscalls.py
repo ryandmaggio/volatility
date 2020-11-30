@@ -1137,7 +1137,7 @@ syscalls = [
         "stub_ValidateCompositionSurfaceHandle",
         "NtVisualCaptureBits",
         "NtUserSetClassLongPtr",
-        "NtUserSetWindowLongPtr"
+        "NtUserSetWindowLongPtr",
     ],
     [
         "NtAccessCheck",
@@ -1589,6 +1589,6 @@ syscalls = [
         "NtWaitForKeyedEvent",
         "NtWaitForWorkViaWorkerFactory",
         "NtAdjustTokenClaimsAndDeviceGroups",
-        "NtAdjustTokenClaimsAndDeviceGroups"
-    ]
+        "NtAdjustTokenClaimsAndDeviceGroups",
+    ],
 ]

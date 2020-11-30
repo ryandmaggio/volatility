@@ -28,10 +28,10 @@ VERSION = "2.6.1"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PLUGINPATH = os.path.dirname(__file__)
-# If we're in a pyinstaller executable 
+# If we're in a pyinstaller executable
 if hasattr(sys, "frozen"):
     try:
-        PLUGINPATH = sys._MEIPASS #pylint: disable-msg=W0212,E1101
+        PLUGINPATH = sys._MEIPASS  # pylint: disable-msg=W0212,E1101
     except ImportError:
         pass
 PLUGINPATH = os.path.join(PLUGINPATH, 'plugins')

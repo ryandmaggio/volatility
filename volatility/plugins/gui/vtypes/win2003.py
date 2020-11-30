@@ -20,37 +20,56 @@
 
 import volatility.obj as obj
 
+
 class Win2003x86GuiVTypes(obj.ProfileModification):
     """Apply the overlays for Windows 2003 x86 (builds on Windows XP x86)"""
 
     before = ["XP2003x86BaseVTypes"]
 
-    conditions = {'os': lambda x: x == 'windows',
-                  'memory_model': lambda x: x == '32bit',
-                  'major': lambda x: x == 5,
-                  'minor': lambda x: x == 2}
+    conditions = {
+        'os': lambda x: x == 'windows',
+        'memory_model': lambda x: x == '32bit',
+        'major': lambda x: x == 5,
+        'minor': lambda x: x == 2,
+    }
 
     def modification(self, profile):
 
-        profile.merge_overlay({
-            'tagWINDOWSTATION' : [ 0x54, {
-            'spwndClipOwner' : [ 0x18, ['pointer', ['tagWND']]],
-            'pGlobalAtomTable' : [ 0x3C, ['pointer', ['void']]],
-            }],
-            'tagTHREADINFO' : [ None, {
-            'PtiLink' : [ 0xB0, ['_LIST_ENTRY']],
-            'fsHooks' : [ 0x9C, ['unsigned long']],
-            'aphkStart' : [ 0xF8, ['array', 16, ['pointer', ['tagHOOK']]]],
-            }],
-            'tagDESKTOP' : [ None, {
-            'hsectionDesktop' : [ 0x3c, ['pointer', ['void']]],
-            'pheapDesktop' : [ 0x40, ['pointer', ['tagWIN32HEAP']]],
-            'ulHeapSize' : [ 0x44, ['unsigned long']],
-            'PtiList' : [ 0x60, ['_LIST_ENTRY']],
-            }],
-            'tagSERVERINFO' : [ None, {
-            'cHandleEntries' : [ 4, ['unsigned long']],
-            'cbHandleTable' : [ 0x1b8, ['unsigned long']],
-            }],
-        })
-
+        profile.merge_overlay(
+            {
+                'tagWINDOWSTATION': [
+                    0x54,
+                    {
+                        'spwndClipOwner': [0x18, ['pointer', ['tagWND']]],
+                        'pGlobalAtomTable': [0x3C, ['pointer', ['void']]],
+                    },
+                ],
+                'tagTHREADINFO': [
+                    None,
+                    {
+                        'PtiLink': [0xB0, ['_LIST_ENTRY']],
+                        'fsHooks': [0x9C, ['unsigned long']],
+                        'aphkStart': [
+                            0xF8,
+                            ['array', 16, ['pointer', ['tagHOOK']]],
+                        ],
+                    },
+                ],
+                'tagDESKTOP': [
+                    None,
+                    {
+                        'hsectionDesktop': [0x3C, ['pointer', ['void']]],
+                        'pheapDesktop': [0x40, ['pointer', ['tagWIN32HEAP']]],
+                        'ulHeapSize': [0x44, ['unsigned long']],
+                        'PtiList': [0x60, ['_LIST_ENTRY']],
+                    },
+                ],
+                'tagSERVERINFO': [
+                    None,
+                    {
+                        'cHandleEntries': [4, ['unsigned long']],
+                        'cbHandleTable': [0x1B8, ['unsigned long']],
+                    },
+                ],
+            }
+        )

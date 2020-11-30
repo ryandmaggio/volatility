@@ -36,51 +36,91 @@ from volatility.renderers.basic import Address
 ## documentation for thread state, registry, launch cmd etc
 
 thread_overlay = {
-                     "thread": [ None, {
-                                            "options": [None, ['Flags', {'target': 'int', 'bitmap': {    
-                                                                                                          "TH_OPT_INTMASK": 0,# interrupt / abort level 
-                                                                                                          "TH_OPT_INTMASK": 1,# interrupt / abort level 
-                                                                                                          "TH_OPT_VMPRIV": 2, # may allocate reserved memory
-                                                                                                          "TH_OPT_DTRACE": 3, # executing under dtrace_probe
-                                                                                                          "TH_OPT_SYSTEM_CRITICAL": 4, # Thread must always be allowed to run, even under heavy load 
-                                                                                                          "TH_OPT_PROC_CPULIMIT": 5, # Thread has a task-wide CPU limit applied to it 
-                                                                                                          "TH_OPT_PRVT_CPULIMIT": 6 # Thread has a thread-private CPU limit applied to it
-                                                                       }}]],
-                                            "state":   [None, ['Flags', {'target': 'int', 'bitmap': {
-                                                                                                          "TH_WAIT": 0,
-                                                                                                          "TH_SUSP": 1,
-                                                                                                          "TH_RUN": 2,
-                                                                                                          "TH_UNINT": 3,
-                                                                                                          "TH_TERMINATE": 4,
-                                                                                                          "TH_TERMINATE2": 5,
-                                                                                                          "TH_IDLE": 6, # kAppleProfileTriggerClientThreadModeIdle
-                                                                                                          "TH_IDLE_N": 6 << 16 # kAppleProfileTriggerClientThreadModeNotIdle, !TH_IDLE
-                                                                       }}]],
-                                            "sched_mode": [None, ['Flags', {'target': 'int', 'bitmap': {
-                                                                                                          "TH_MODE_REALTIME": 0,  # /* time constraints supplied */
-                                                                                                          "TH_MODE_TIMESHARE": 1, # /* use timesharing algorithm */
-                                                                                                          "TH_MODE_FAILSAFE": 2,  # /* fail-safe has tripped */
-                                                                                                          "TH_MODE_PROMOTED": 3,  # /* sched pri has been promoted */
-                                                                                                          "TH_MODE_ABORT": 4,     # /* abort interruptible waits */
-                                                                                                          "TH_MODE_ABORTSAFELY": 5, # /* ... but only those at safe point */
-                                                                                                          # "TH_MODE_ISABORTED": (TH_MODE_ABORT | TH_MODE_ABORTSAFELY) 
-                                                                                                          "TH_MODE_DEPRESS": 6,   # /* normal depress yield */
-                                                                                                          "TH_MODE_POLLDEPRESS": 7, # /* polled depress yield */
-                                                                                                          # "TH_MODE_ISDEPRESSED": (TH_MODE_DEPRESS | TH_MODE_POLLDEPRESS)
-                                                                       }}]],
-                                            "ast": [None, ['Flags', {'target': 'int', 'bitmap': { # Asynchronous System Traps
-                                                                                                          # AST_NONE , no bits set
-                                                                                                          "AST_HALT": 0,
-                                                                                                          "AST_TERMINATE": 1,
-                                                                                                          "AST_BLOCK": 2,
-                                                                                                          "AST_UNUSED": 3,
-                                                                                                          "AST_QUANTUM": 4,
-                                                                                                          "AST_APC": 5, # /* migration APC hook */
-                                                                                                          "AST_URGENT": 6
-                                                                       }}]],
+    "thread": [
+        None,
+        {
+            "options": [
+                None,
+                [
+                    'Flags',
+                    {
+                        'target': 'int',
+                        'bitmap': {
+                            "TH_OPT_INTMASK": 0,  # interrupt / abort level
+                            "TH_OPT_INTMASK": 1,  # interrupt / abort level
+                            "TH_OPT_VMPRIV": 2,  # may allocate reserved memory
+                            "TH_OPT_DTRACE": 3,  # executing under dtrace_probe
+                            "TH_OPT_SYSTEM_CRITICAL": 4,  # Thread must always be allowed to run, even under heavy load
+                            "TH_OPT_PROC_CPULIMIT": 5,  # Thread has a task-wide CPU limit applied to it
+                            "TH_OPT_PRVT_CPULIMIT": 6,  # Thread has a thread-private CPU limit applied to it
+                        },
+                    },
+                ],
+            ],
+            "state": [
+                None,
+                [
+                    'Flags',
+                    {
+                        'target': 'int',
+                        'bitmap': {
+                            "TH_WAIT": 0,
+                            "TH_SUSP": 1,
+                            "TH_RUN": 2,
+                            "TH_UNINT": 3,
+                            "TH_TERMINATE": 4,
+                            "TH_TERMINATE2": 5,
+                            "TH_IDLE": 6,  # kAppleProfileTriggerClientThreadModeIdle
+                            "TH_IDLE_N": 6
+                            << 16,  # kAppleProfileTriggerClientThreadModeNotIdle, !TH_IDLE
+                        },
+                    },
+                ],
+            ],
+            "sched_mode": [
+                None,
+                [
+                    'Flags',
+                    {
+                        'target': 'int',
+                        'bitmap': {
+                            "TH_MODE_REALTIME": 0,  # /* time constraints supplied */
+                            "TH_MODE_TIMESHARE": 1,  # /* use timesharing algorithm */
+                            "TH_MODE_FAILSAFE": 2,  # /* fail-safe has tripped */
+                            "TH_MODE_PROMOTED": 3,  # /* sched pri has been promoted */
+                            "TH_MODE_ABORT": 4,  # /* abort interruptible waits */
+                            "TH_MODE_ABORTSAFELY": 5,  # /* ... but only those at safe point */
+                            # "TH_MODE_ISABORTED": (TH_MODE_ABORT | TH_MODE_ABORTSAFELY)
+                            "TH_MODE_DEPRESS": 6,  # /* normal depress yield */
+                            "TH_MODE_POLLDEPRESS": 7,  # /* polled depress yield */
+                            # "TH_MODE_ISDEPRESSED": (TH_MODE_DEPRESS | TH_MODE_POLLDEPRESS)
+                        },
+                    },
+                ],
+            ],
+            "ast": [
+                None,
+                [
+                    'Flags',
+                    {
+                        'target': 'int',
+                        'bitmap': {  # Asynchronous System Traps
+                            # AST_NONE , no bits set
+                            "AST_HALT": 0,
+                            "AST_TERMINATE": 1,
+                            "AST_BLOCK": 2,
+                            "AST_UNUSED": 3,
+                            "AST_QUANTUM": 4,
+                            "AST_APC": 5,  # /* migration APC hook */
+                            "AST_URGENT": 6,
+                        },
+                    },
+                ],
+            ],
+        },
+    ]
+}
 
-                     }]
-                 }
 
 class queue_entry(obj.CType):
     # needed a separate walk_list function for threads since the original was task specific
@@ -104,15 +144,15 @@ class queue_entry(obj.CType):
             yield p
             p = p.tasks.prev.dereference_as("task")
 
+
 class MacObjectClasses2(obj.ProfileModification):
 
     conditions = {'os': lambda x: x == 'mac'}
     before = ['BasicObjectClasses']
 
     def modification(self, profile):
-        profile.object_classes.update({
-            'queue_entry' : queue_entry
-        })
+        profile.object_classes.update({'queue_entry': queue_entry})
+
 
 class MacObjectClasses4(obj.ProfileModification):
 
@@ -121,6 +161,7 @@ class MacObjectClasses4(obj.ProfileModification):
 
     def modification(self, profile):
         profile.merge_overlay(thread_overlay)
+
 
 # https://www.opensource.apple.com/source/xnu/xnu-124.1/osfmk/mach/vm_statistics.h
 dict_alias = {
@@ -183,9 +224,8 @@ dict_alias = {
     252: "VM_MEMORY_APPLICATION_SPECIFIC_13",
     253: "VM_MEMORY_APPLICATION_SPECIFIC_14",
     254: "VM_MEMORY_APPLICATION_SPECIFIC_15",
-    255: "VM_MEMORY_APPLICATION_SPECIFIC_16"
+    255: "VM_MEMORY_APPLICATION_SPECIFIC_16",
 }
-
 
 
 class mac_threads(mac_tasks.mac_tasks):
@@ -193,10 +233,22 @@ class mac_threads(mac_tasks.mac_tasks):
 
     def get_active_threads(self):
         threads = {}
-        real_ncpus = obj.Object("int", offset = self.addr_space.profile.get_symbol("_real_ncpus"), vm = self.addr_space)
-        cpu_data_ptrs = obj.Object(theType = 'Array', offset = self.addr_space.profile.get_symbol("_cpu_data_ptr"), vm = self.addr_space, targetType = "unsigned long long", count = real_ncpus)
+        real_ncpus = obj.Object(
+            "int",
+            offset=self.addr_space.profile.get_symbol("_real_ncpus"),
+            vm=self.addr_space,
+        )
+        cpu_data_ptrs = obj.Object(
+            theType='Array',
+            offset=self.addr_space.profile.get_symbol("_cpu_data_ptr"),
+            vm=self.addr_space,
+            targetType="unsigned long long",
+            count=real_ncpus,
+        )
         for i in range(0, real_ncpus):
-            cpu_data = obj.Object('cpu_data', offset = cpu_data_ptrs[i], vm = self.addr_space)
+            cpu_data = obj.Object(
+                'cpu_data', offset=cpu_data_ptrs[i], vm=self.addr_space
+            )
             threads[i] = cpu_data.cpu_active_thread
 
         return threads
@@ -233,22 +285,43 @@ class mac_threads(mac_tasks.mac_tasks):
                     else:
                         thread_sp = thread.machine.iss.uss.ss_32.uesp
 
-                    if map.links.start <= thread_sp and thread_sp <= map.links.end:
+                    if (
+                        map.links.start <= thread_sp
+                        and thread_sp <= map.links.end
+                    ):
                         stack_thread_id = thread.thread_id
                         map_path = "thread id {0}".format(thread.thread_id)
                         break
 
                 if "thread" in map_path:
-                # Based on the vmmap command:
-                 # current map is a stack marked as thread, then mark previous map with thread id if stack
+                    # Based on the vmmap command:
+                    # current map is a stack marked as thread, then mark previous map with thread id if stack
                     prev_proc, prev_map, prev_map_path = maps.pop()
-                    if str(dict_alias.get(int(prev_map.range_alias()), "UNKNOWN")) == "VM_MEMORY_STACK" and prev_map.get_perms() != "---" and "thread" not in prev_map_path:
+                    if (
+                        str(
+                            dict_alias.get(
+                                int(prev_map.range_alias()), "UNKNOWN"
+                            )
+                        )
+                        == "VM_MEMORY_STACK"
+                        and prev_map.get_perms() != "---"
+                        and "thread" not in prev_map_path
+                    ):
                         prev_map_path = "thread id {0}".format(stack_thread_id)
                     maps.append((prev_proc, prev_map, prev_map_path))
                 else:
-                 # if previous map is a stack marked as thread, then mark current map with thread id
+                    # if previous map is a stack marked as thread, then mark current map with thread id
                     prev_proc, prev_map, prev_map_path = maps.pop()
-                    if str(dict_alias.get(int(prev_map.range_alias()), "UNKNOWN")) == "VM_MEMORY_STACK" and prev_map.get_perms() != "---" and "thread" in prev_map_path:
+                    if (
+                        str(
+                            dict_alias.get(
+                                int(prev_map.range_alias()), "UNKNOWN"
+                            )
+                        )
+                        == "VM_MEMORY_STACK"
+                        and prev_map.get_perms() != "---"
+                        and "thread" in prev_map_path
+                    ):
                         map_path = "thread id {0}".format(stack_thread_id)
                     maps.append((prev_proc, prev_map, prev_map_path))
 
@@ -261,15 +334,58 @@ class mac_threads(mac_tasks.mac_tasks):
 
     def get_thread_registers(self, thread, bit_string):
         # http://www.opensource.apple.com/source/xnu/xnu-2050.18.24/osfmk/i386/pcb.c
-        registers_64 = ['rdi','rsi','rdx','rbp','rbx','rcx','rax','cr2','r8','r9','r10','r11','r12','r13','r14','r15','gs','fs']
-        registers_32 = ['edi','esi','edx','ebp','ebx','uesp','ecx','eax','eip','cr2','gs','cs','fs','es','ds']
+        registers_64 = [
+            'rdi',
+            'rsi',
+            'rdx',
+            'rbp',
+            'rbx',
+            'rcx',
+            'rax',
+            'cr2',
+            'r8',
+            'r9',
+            'r10',
+            'r11',
+            'r12',
+            'r13',
+            'r14',
+            'r15',
+            'gs',
+            'fs',
+        ]
+        registers_32 = [
+            'edi',
+            'esi',
+            'edx',
+            'ebp',
+            'ebx',
+            'uesp',
+            'ecx',
+            'eax',
+            'eip',
+            'cr2',
+            'gs',
+            'cs',
+            'fs',
+            'es',
+            'ds',
+        ]
         registers = {}
 
         if "64" in bit_string:
-            registers['rsp'] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_64.isf, 'rsp'))
-            registers['rip'] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_64.isf, 'rip'))
-            registers['ss'] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_64.isf, 'ss'))
-            registers['trapno'] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_64.isf, 'trapno'))
+            registers['rsp'] = "{0:#10x}".format(
+                getattr(thread.machine.iss.uss.ss_64.isf, 'rsp')
+            )
+            registers['rip'] = "{0:#10x}".format(
+                getattr(thread.machine.iss.uss.ss_64.isf, 'rip')
+            )
+            registers['ss'] = "{0:#10x}".format(
+                getattr(thread.machine.iss.uss.ss_64.isf, 'ss')
+            )
+            registers['trapno'] = "{0:#10x}".format(
+                getattr(thread.machine.iss.uss.ss_64.isf, 'trapno')
+            )
 
             # check if trap function/sysent is known or hooked
             trapfn_addr = getattr(thread.machine.iss.uss.ss_64.isf, 'trapfn')
@@ -277,21 +393,27 @@ class mac_threads(mac_tasks.mac_tasks):
             if trapfn_addr == 0:
                 trapfn_name = ''
             else:
-                trapfn_name = self.addr_space.profile.get_symbol_by_address('kernel', trapfn_addr)
+                trapfn_name = self.addr_space.profile.get_symbol_by_address(
+                    'kernel', trapfn_addr
+                )
 
             if trapfn_name == '':
-                trapfn = "UNKNOWN function at {0}".format(trapfn_addr) 
+                trapfn = "UNKNOWN function at {0}".format(trapfn_addr)
             else:
                 trapfn = "{0} at {1:#10x}".format(trapfn_name, trapfn_addr)
 
             registers['trapfn'] = trapfn
 
             for reg in registers_64:
-                registers[reg] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_64, reg))
+                registers[reg] = "{0:#10x}".format(
+                    getattr(thread.machine.iss.uss.ss_64, reg)
+                )
         else:
             for reg in registers_32:
                 if hasattr(thread.machine, "iss"):
-                    registers[reg] = "{0:#10x}".format(getattr(thread.machine.iss.uss.ss_32, reg))
+                    registers[reg] = "{0:#10x}".format(
+                        getattr(thread.machine.iss.uss.ss_32, reg)
+                    )
                 else:
                     registers[reg] = ""
 
@@ -322,14 +444,14 @@ class mac_threads(mac_tasks.mac_tasks):
             maps = self.get_stack_map(proc, thread_list, bit_string)
             # get thread stack start and size
             for thread in thread_list:
-                stack_start  = 0
-                stack_size   = 0
-                thread_args  = ""
-                registers    = {}
-                is_active    = "NO"
-                dtraced      = "NO"
-                debugged     = "NO"
-                uid          = "NONE"
+                stack_start = 0
+                stack_size = 0
+                thread_args = ""
+                registers = {}
+                is_active = "NO"
+                dtraced = "NO"
+                debugged = "NO"
+                uid = "NONE"
 
                 for proc, map, map_path in maps:
                     if "thread id {0}".format(thread.thread_id) in map_path:
@@ -357,90 +479,125 @@ class mac_threads(mac_tasks.mac_tasks):
                 if "TH_OPT_DTRACE" in str(thread.options):
                     dtraced = "YES"
 
-                #get thread User ID
-                #if thread.uthread != 0:
-                #uid = thread.uthread.dereference_as('uthread').uu_context.vc_ucred.cr_posix.cr_uid
+                # get thread User ID
+                # if thread.uthread != 0:
+                # uid = thread.uthread.dereference_as('uthread').uu_context.vc_ucred.cr_posix.cr_uid
 
                 yield proc, thread, stack_start, stack_size, thread_args, registers, is_active, dtraced, debugged, uid
 
             proc = proc.p_list.le_next.dereference()
-        
+
         self.get_active_threads()
 
     def unified_output(self, data):
-        return TreeGrid([("Offset", Address),
-                                  ("Pid", int),
-                                  ("Tid", int),
-                                  ("UID", str),
-                                  ("State", str),
-                                  ("Is Active?", str),
-                                  ("Options", str),
-                                  ("Priority", int),
-                                  ("Startup Addr", Address),
-                                  ("Stack Start Addr", Address),
-                                  ("Stack Size (bytes)", int),
-                                  ("HW Debugged",str),
-                                  ("DTraced", str),
-                                  ("Arguments", str),
-                                  ], self.generator(data))
-                          
+        return TreeGrid(
+            [
+                ("Offset", Address),
+                ("Pid", int),
+                ("Tid", int),
+                ("UID", str),
+                ("State", str),
+                ("Is Active?", str),
+                ("Options", str),
+                ("Priority", int),
+                ("Startup Addr", Address),
+                ("Stack Start Addr", Address),
+                ("Stack Size (bytes)", int),
+                ("HW Debugged", str),
+                ("DTraced", str),
+                ("Arguments", str),
+            ],
+            self.generator(data),
+        )
+
     def generator(self, data):
-        for proc, thread, stack_start, stack_size, args, registers, is_active, dtraced, debugged, uid in data:
+        for (
+            proc,
+            thread,
+            stack_start,
+            stack_size,
+            args,
+            registers,
+            is_active,
+            dtraced,
+            debugged,
+            uid,
+        ) in data:
             if not thread.is_valid():
                 continue
 
-            yield (0, [
-                        Address(thread.v()),
-                        int(proc.p_pid),
-                        int(thread.thread_id),
-                        str(uid),
-                        str(thread.state),
-                        str(is_active),
-                        str(thread.options),
-                        int(thread.sched_pri),
-                        Address(thread.continuation),
-                        Address(stack_start),
-                        int(stack_size),
-                        str(debugged),
-                        str(dtraced),
-                        str(args),
-                        ])
+            yield (
+                0,
+                [
+                    Address(thread.v()),
+                    int(proc.p_pid),
+                    int(thread.thread_id),
+                    str(uid),
+                    str(thread.state),
+                    str(is_active),
+                    str(thread.options),
+                    int(thread.sched_pri),
+                    Address(thread.continuation),
+                    Address(stack_start),
+                    int(stack_size),
+                    str(debugged),
+                    str(dtraced),
+                    str(args),
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Offset", "[addrpad]"),
-                                  ("Pid", "8"),
-                                  ("Tid", "8"),
-                                  ("UID", "8"),
-                                  ("State", "30"),
-                                  ("Is Active?","<10"),
-                                  ("Options", "30"),
-                                  ("Priority", "8"),
-                                  ("Startup Addr", "[addrpad]"),
-                                  ("Stack Start Addr", "[addrpad]"),
-                                  ("Stack Size (bytes)", "<18"),
-                                  ("HW Debugged","<11"),
-                                  ("DTraced","<7"),
-                                  ("Arguments", "")
-                          ])
+        self.table_header(
+            outfd,
+            [
+                ("Offset", "[addrpad]"),
+                ("Pid", "8"),
+                ("Tid", "8"),
+                ("UID", "8"),
+                ("State", "30"),
+                ("Is Active?", "<10"),
+                ("Options", "30"),
+                ("Priority", "8"),
+                ("Startup Addr", "[addrpad]"),
+                ("Stack Start Addr", "[addrpad]"),
+                ("Stack Size (bytes)", "<18"),
+                ("HW Debugged", "<11"),
+                ("DTraced", "<7"),
+                ("Arguments", ""),
+            ],
+        )
 
-        for proc, thread, stack_start, stack_size, args, registers, is_active, dtraced, debugged, uid in data:
+        for (
+            proc,
+            thread,
+            stack_start,
+            stack_size,
+            args,
+            registers,
+            is_active,
+            dtraced,
+            debugged,
+            uid,
+        ) in data:
             if not thread.is_valid():
                 continue
 
-            self.table_row(outfd, thread.v(),
-                                  str(proc.p_pid),
-                                  str(thread.thread_id),
-                                  str(uid),
-                                  str(thread.state),
-                                  is_active,
-                                  str(thread.options),
-                                  str(thread.sched_pri),
-                                  thread.continuation,
-                                  stack_start,
-                                  stack_size,
-                                  debugged,
-                                  dtraced,
-                                  args
-                           )
-            #for reg in registers:
+            self.table_row(
+                outfd,
+                thread.v(),
+                str(proc.p_pid),
+                str(thread.thread_id),
+                str(uid),
+                str(thread.state),
+                is_active,
+                str(thread.options),
+                str(thread.sched_pri),
+                thread.continuation,
+                stack_start,
+                stack_size,
+                debugged,
+                dtraced,
+                args,
+            )
+            # for reg in registers:
             #    outfd.write("\t{0:<10} {1:}\n".format(reg, registers[reg].strip()))

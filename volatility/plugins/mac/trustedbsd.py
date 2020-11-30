@@ -32,6 +32,7 @@ from volatility.renderers.basic import Address
 
 from .lsmod import mac_lsmod as mac_lsmod
 
+
 class mac_trustedbsd(mac_lsmod):
     """ Lists malicious trustedbsd policies """
 
@@ -49,9 +50,17 @@ class mac_trustedbsd(mac_lsmod):
         (kernel_symbol_addresses, kmods) = common.get_kernel_addrs(self)
 
         list_addr = self.addr_space.profile.get_symbol("_mac_policy_list")
-    
-        plist = obj.Object("mac_policy_list", offset = list_addr, vm = self.addr_space)
-        parray = obj.Object('Array', offset = plist.entries, vm = self.addr_space, targetType = 'mac_policy_list_element', count = plist.staticmax + 1)
+
+        plist = obj.Object(
+            "mac_policy_list", offset=list_addr, vm=self.addr_space
+        )
+        parray = obj.Object(
+            'Array',
+            offset=plist.entries,
+            vm=self.addr_space,
+            targetType='mac_policy_list_element',
+            count=plist.staticmax + 1,
+        )
 
         for ent in parray:
             # I don't know how this can happen, but the kernel makes this check all over the place
@@ -61,44 +70,64 @@ class mac_trustedbsd(mac_lsmod):
 
             name = ent.mpc.mpc_name.dereference()
 
-            ops = obj.Object("mac_policy_ops", offset = ent.mpc.mpc_ops, vm = self.addr_space)
+            ops = obj.Object(
+                "mac_policy_ops", offset=ent.mpc.mpc_ops, vm=self.addr_space
+            )
 
             # walk each member of the struct
             for check in ops_members:
                 ptr = ops.__getattr__(check)
-               
+
                 if ptr.v() != 0 and ptr.is_valid():
-                    (good, module) = common.is_known_address_name(ptr, kernel_symbol_addresses, kmods) 
+                    (good, module) = common.is_known_address_name(
+                        ptr, kernel_symbol_addresses, kmods
+                    )
 
                     yield (good, check, module, name, ptr)
 
     def unified_output(self, data):
-        return TreeGrid([("Check", str),
-                         ("Name", str),
-                         ("Pointer", Address),
-                         ("Module", str),
-                         ("Status", str),
-                         ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Check", str),
+                ("Name", str),
+                ("Pointer", Address),
+                ("Module", str),
+                ("Status", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (good, check, module, name, ptr) in data:
-                status = "HOOKED"
-                if good:
-                    status = "OK"
+            status = "HOOKED"
+            if good:
+                status = "OK"
 
-                yield(0, [
+            yield (
+                0,
+                [
                     str(check),
                     str(name),
                     Address(ptr),
                     str(module),
                     str(status),
-                    ])
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Check", "40"), ("Name", "20"), ("Pointer", "[addrpad]"), ("Module", ""), ("Status", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Check", "40"),
+                ("Name", "20"),
+                ("Pointer", "[addrpad]"),
+                ("Module", ""),
+                ("Status", ""),
+            ],
+        )
         for (good, check, module, name, ptr) in data:
-                status = "HOOKED"
-                if good:
-                    status = "OK"
+            status = "HOOKED"
+            if good:
+                status = "OK"
 
-                self.table_row(outfd, check, name, ptr, module, status)
+            self.table_row(outfd, check, name, ptr, module, status)

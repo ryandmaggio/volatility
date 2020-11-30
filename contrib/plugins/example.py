@@ -24,10 +24,12 @@ import volatility.obj as obj
 import volatility.utils as utils
 import volatility.commands as commands
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
+
 
 class DateTime(commands.Command):
     """A simple example plugin that gets the date/time information from a Windows image"""
+
     def calculate(self):
         """Calculate and carry out any processing that may take time upon the image"""
         # Load the address space
@@ -45,13 +47,15 @@ class DateTime(commands.Command):
         # Get the KUSER_SHARED_DATA location
         KUSER_SHARED_DATA = obj.VolMagic(addr_space).KUSER_SHARED_DATA.v()
         # Create the _KUSER_SHARED_DATA object at the appropriate offset
-        k = obj.Object("_KUSER_SHARED_DATA",
-                              offset = KUSER_SHARED_DATA,
-                              vm = addr_space)
+        k = obj.Object(
+            "_KUSER_SHARED_DATA", offset=KUSER_SHARED_DATA, vm=addr_space
+        )
 
         # Start reading members from it
         result['ImageDatetime'] = k.SystemTime
-        result['ImageTz'] = timefmt.OffsetTzInfo(-k.TimeZoneBias.as_windows_timestamp() / 10000000)
+        result['ImageTz'] = timefmt.OffsetTzInfo(
+            -k.TimeZoneBias.as_windows_timestamp() / 10000000
+        )
 
         # Return any results we got
         return result
@@ -62,6 +66,12 @@ class DateTime(commands.Command):
         dt = data['ImageDatetime'].as_datetime()
 
         # Display the datetime in UTC as taken from the image
-        outfd.write("Image date and time       : {0}\n".format(data['ImageDatetime']))
+        outfd.write(
+            "Image date and time       : {0}\n".format(data['ImageDatetime'])
+        )
         # Display the datetime taking into account the timezone of the image itself
-        outfd.write("Image local date and time : {0}\n".format(timefmt.display_datetime(dt, data['ImageTz'])))
+        outfd.write(
+            "Image local date and time : {0}\n".format(
+                timefmt.display_datetime(dt, data['ImageTz'])
+            )
+        )

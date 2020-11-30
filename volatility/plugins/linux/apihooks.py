@@ -32,20 +32,24 @@ import volatility.plugins.linux.pslist as linux_pslist
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
-   
+
 class linux_apihooks(linux_pslist.linux_pslist):
     """Checks for userland apihooks"""
 
     def unified_output(self, data):
-        return TreeGrid([("Pid", int),
-                       ("Name", str),
-                       ("HookVMA", str),
-                       ("HookSymbol", str),
-                       ("HookedAddress", Address),
-                       ("HookType", str),
-                       ("HookAddress", Address),
-                       ("HookLibrary", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [
+                ("Pid", int),
+                ("Name", str),
+                ("HookVMA", str),
+                ("HookSymbol", str),
+                ("HookedAddress", Address),
+                ("HookType", str),
+                ("HookAddress", Address),
+                ("HookLibrary", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         linux_common.set_plugin_members(self)
@@ -54,24 +58,44 @@ class linux_apihooks(linux_pslist.linux_pslist):
             import distorm3
         except ImportError:
             debug.error("this plugin requres the distorm library to operate.")
-         
-        for task in data:
-            for hook_desc, sym_name, addr, hook_type, hook_addr, hookfuncdesc in task.apihook_info():
-                yield (0, [int(task.pid), str(task.comm), str(hook_desc), str(sym_name),
-                        Address(addr), str(hook_type), Address(hook_addr), str(hookfuncdesc)])
 
+        for task in data:
+            for (
+                hook_desc,
+                sym_name,
+                addr,
+                hook_type,
+                hook_addr,
+                hookfuncdesc,
+            ) in task.apihook_info():
+                yield (
+                    0,
+                    [
+                        int(task.pid),
+                        str(task.comm),
+                        str(hook_desc),
+                        str(sym_name),
+                        Address(addr),
+                        str(hook_type),
+                        Address(hook_addr),
+                        str(hookfuncdesc),
+                    ],
+                )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [
-              ("Pid", "7"),
-              ("Name", "16"),
-              ("Hook VMA", "40"),
-              ("Hook Symbol", "24"),
-              ("Hooked Address", "[addrpad]"),
-              ("Type", "5"),
-              ("Hook Address", "[addrpad]"),
-              ("Hook Library", ""),
-              ])
+        self.table_header(
+            outfd,
+            [
+                ("Pid", "7"),
+                ("Name", "16"),
+                ("Hook VMA", "40"),
+                ("Hook Symbol", "24"),
+                ("Hooked Address", "[addrpad]"),
+                ("Type", "5"),
+                ("Hook Address", "[addrpad]"),
+                ("Hook Library", ""),
+            ],
+        )
 
         linux_common.set_plugin_members(self)
 
@@ -81,6 +105,22 @@ class linux_apihooks(linux_pslist.linux_pslist):
             debug.error("this plugin requres the distorm library to operate.")
 
         for task in data:
-            for hook_desc, sym_name, addr, hook_type, hook_addr, hookfuncdesc in task.apihook_info():
-                self.table_row(outfd, task.pid, task.comm, hook_desc, sym_name, addr, hook_type, hook_addr, hookfuncdesc)
-
+            for (
+                hook_desc,
+                sym_name,
+                addr,
+                hook_type,
+                hook_addr,
+                hookfuncdesc,
+            ) in task.apihook_info():
+                self.table_row(
+                    outfd,
+                    task.pid,
+                    task.comm,
+                    hook_desc,
+                    sym_name,
+                    addr,
+                    hook_type,
+                    hook_addr,
+                    hookfuncdesc,
+                )

@@ -18,7 +18,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """
 @author:       Brendan Dolan-Gavitt
@@ -37,42 +37,50 @@ RI_SIG = "ri"
 NK_SIG = "nk"
 VK_SIG = "vk"
 
-BIG_DATA_MAGIC = 0x3fd8
+BIG_DATA_MAGIC = 0x3FD8
 
 
 KEY_FLAGS = {
-    "KEY_IS_VOLATILE"   : 0x01,
-    "KEY_HIVE_EXIT"     : 0x02,
-    "KEY_HIVE_ENTRY"    : 0x04,
-    "KEY_NO_DELETE"     : 0x08,
-    "KEY_SYM_LINK"      : 0x10,
-    "KEY_COMP_NAME"     : 0x20,
-    "KEY_PREFEF_HANDLE" : 0x40,
-    "KEY_VIRT_MIRRORED" : 0x80,
-    "KEY_VIRT_TARGET"   : 0x100,
-    "KEY_VIRTUAL_STORE" : 0x200,
+    "KEY_IS_VOLATILE": 0x01,
+    "KEY_HIVE_EXIT": 0x02,
+    "KEY_HIVE_ENTRY": 0x04,
+    "KEY_NO_DELETE": 0x08,
+    "KEY_SYM_LINK": 0x10,
+    "KEY_COMP_NAME": 0x20,
+    "KEY_PREFEF_HANDLE": 0x40,
+    "KEY_VIRT_MIRRORED": 0x80,
+    "KEY_VIRT_TARGET": 0x100,
+    "KEY_VIRTUAL_STORE": 0x200,
 }
 
-VALUE_TYPES = dict(enumerate([
-    "REG_NONE",
-    "REG_SZ",
-    "REG_EXPAND_SZ",
-    "REG_BINARY",
-    "REG_DWORD",
-    "REG_DWORD_BIG_ENDIAN",
-    "REG_LINK",
-    "REG_MULTI_SZ",
-    "REG_RESOURCE_LIST",
-    "REG_FULL_RESOURCE_DESCRIPTOR",
-    "REG_RESOURCE_REQUIREMENTS_LIST",
-    "REG_QWORD",
-]))
+VALUE_TYPES = dict(
+    enumerate(
+        [
+            "REG_NONE",
+            "REG_SZ",
+            "REG_EXPAND_SZ",
+            "REG_BINARY",
+            "REG_DWORD",
+            "REG_DWORD_BIG_ENDIAN",
+            "REG_LINK",
+            "REG_MULTI_SZ",
+            "REG_RESOURCE_LIST",
+            "REG_FULL_RESOURCE_DESCRIPTOR",
+            "REG_RESOURCE_REQUIREMENTS_LIST",
+            "REG_QWORD",
+        ]
+    )
+)
 
-def get_root(address_space, stable = True):
+
+def get_root(address_space, stable=True):
     if stable:
         return obj.Object("_CM_KEY_NODE", ROOT_INDEX, address_space)
     else:
-        return obj.Object("_CM_KEY_NODE", ROOT_INDEX | 0x80000000, address_space)
+        return obj.Object(
+            "_CM_KEY_NODE", ROOT_INDEX | 0x80000000, address_space
+        )
+
 
 def open_key(root, key):
     if key == []:
@@ -85,12 +93,16 @@ def open_key(root, key):
     for s in subkeys(root):
         if s.Name.upper() == keyname.upper():
             return open_key(s, key)
-    debug.debug("Couldn't find subkey {0} of {1}".format(keyname, root.Name), 1)
-    return obj.NoneObject("Couldn't find subkey {0} of {1}".format(keyname, root.Name))
+    debug.debug(
+        "Couldn't find subkey {0} of {1}".format(keyname, root.Name), 1
+    )
+    return obj.NoneObject(
+        "Couldn't find subkey {0} of {1}".format(keyname, root.Name)
+    )
+
 
 def read_sklist(sk):
-    if (sk.Signature.v() == LH_SIG or
-        sk.Signature.v() == LF_SIG):
+    if sk.Signature.v() == LH_SIG or sk.Signature.v() == LF_SIG:
         for i in sk.List:
             yield i
 
@@ -105,14 +117,15 @@ def read_sklist(sk):
                 continue
 
             ssk = obj.Object("_CM_KEY_INDEX", ssk_off, sk.obj_vm)
-            
+
             # this protects against a cycle seen in win10x86_14393 where
             # one of a key's subkey entries pointed back at itself
             if ssk == sk:
                 break
-                
+
             for i in read_sklist(ssk):
                 yield i
+
 
 # Note: had to change SubKeyLists to be array of 2 pointers in vtypes.py
 def subkeys(key):
@@ -127,19 +140,31 @@ def subkeys(key):
                 pass
             else:
                 for i in read_sklist(sk):
-                    if i.Signature.v() == NK_SIG and i.Parent.dereference().Name == key.Name:
+                    if (
+                        i.Signature.v() == NK_SIG
+                        and i.Parent.dereference().Name == key.Name
+                    ):
                         yield i
 
+
 def values(key):
-    return [ v for v in key.ValueList.List.dereference()
-             if v.Signature.v() == VK_SIG ]
+    return [
+        v
+        for v in key.ValueList.List.dereference()
+        if v.Signature.v() == VK_SIG
+    ]
+
 
 def key_flags(key):
-    return [ k for k in KEY_FLAGS if key.Flags & KEY_FLAGS[k] ]
+    return [k for k in KEY_FLAGS if key.Flags & KEY_FLAGS[k]]
 
-value_formats = {"REG_DWORD": "<L",
-                 "REG_DWORD_BIG_ENDIAN": ">L",
-                 "REG_QWORD": "<Q"}
+
+value_formats = {
+    "REG_DWORD": "<L",
+    "REG_DWORD_BIG_ENDIAN": ">L",
+    "REG_QWORD": "<Q",
+}
+
 
 def value_data(val):
     inline = val.DataLength & 0x80000000
@@ -157,7 +182,7 @@ def value_data(val):
         big_data = obj.Object("_CM_BIG_DATA", val.Data, val.obj_vm)
         valdata = ""
         thelist = []
-        if not big_data.Count or big_data.Count > 0x80000000: 
+        if not big_data.Count or big_data.Count > 0x80000000:
             thelist = []
         else:
             for i in range(big_data.Count):
@@ -166,7 +191,7 @@ def value_data(val):
                 if not val.obj_vm.is_valid_address(chunk_addr):
                     continue
                 thelist.append(chunk_addr)
-        
+
         for chunk in thelist:
             amount_to_read = min(BIG_DATA_MAGIC, datalen)
             chunk_data = val.obj_vm.read(chunk, amount_to_read)
@@ -183,7 +208,14 @@ def value_data(val):
         return (valtype, obj.NoneObject("Value data is unreadable"))
     if valtype in ["REG_DWORD", "REG_DWORD_BIG_ENDIAN", "REG_QWORD"]:
         if len(valdata) != struct.calcsize(value_formats[valtype]):
-            return (valtype, obj.NoneObject("Value data did not match the expected data size for a {0}".format(valtype)))
+            return (
+                valtype,
+                obj.NoneObject(
+                    "Value data did not match the expected data size for a {0}".format(
+                        valtype
+                    )
+                ),
+            )
 
     if valtype in ["REG_SZ", "REG_EXPAND_SZ", "REG_LINK"]:
         valdata = valdata.decode('utf-16-le', "ignore")
@@ -192,6 +224,7 @@ def value_data(val):
     elif valtype in ["REG_DWORD", "REG_DWORD_BIG_ENDIAN", "REG_QWORD"]:
         valdata = struct.unpack(value_formats[valtype], valdata)[0]
     return (valtype, valdata)
+
 
 def walk(root):
     yield root

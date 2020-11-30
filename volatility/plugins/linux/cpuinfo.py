@@ -28,6 +28,7 @@ import volatility.plugins.linux.common as linux_common
 import volatility.obj as obj
 from volatility.renderers import TreeGrid
 
+
 class linux_cpuinfo(linux_common.AbstractLinuxIntelCommand):
     """Prints info about each active processor"""
 
@@ -50,7 +51,11 @@ class linux_cpuinfo(linux_common.AbstractLinuxIntelCommand):
 
     def get_info_single(self):
 
-        cpu = obj.Object("cpuinfo_x86", offset = self.addr_space.profile.get_symbol("boot_cpu_data"), vm = self.addr_space)
+        cpu = obj.Object(
+            "cpuinfo_x86",
+            offset=self.addr_space.profile.get_symbol("boot_cpu_data"),
+            vm=self.addr_space,
+        )
 
         yield 0, cpu
 
@@ -62,38 +67,60 @@ class linux_cpuinfo(linux_common.AbstractLinuxIntelCommand):
 
         for i, cpu in self.walk_per_cpu_var("cpu_info", "cpuinfo_x86"):
             yield i, cpu
-            
-    def get_per_cpu_symbol(self, sym_name, module = "kernel"):
+
+    def get_per_cpu_symbol(self, sym_name, module="kernel"):
         """
         In 2.6.3x, Linux changed how the symbols for per_cpu variables were named
         This handles both formats so plugins needing per-cpu vars are cleaner
         """
 
-        ret = self.addr_space.profile.get_symbol(sym_name, module = module)
+        ret = self.addr_space.profile.get_symbol(sym_name, module=module)
 
         if not ret:
-            ret = self.addr_space.profile.get_symbol("per_cpu__" + sym_name, module = module)
+            ret = self.addr_space.profile.get_symbol(
+                "per_cpu__" + sym_name, module=module
+            )
 
         return ret
 
     def online_cpus(self):
         """ returns a list of online cpus (the processor numbers) """
-        cpu_online_bits_addr  = self.addr_space.profile.get_symbol("cpu_online_bits")
-        cpu_present_map_addr  = self.addr_space.profile.get_symbol("cpu_present_map")
-        cpu_present_mask_addr = self.addr_space.profile.get_symbol("__cpu_present_mask")
+        cpu_online_bits_addr = self.addr_space.profile.get_symbol(
+            "cpu_online_bits"
+        )
+        cpu_present_map_addr = self.addr_space.profile.get_symbol(
+            "cpu_present_map"
+        )
+        cpu_present_mask_addr = self.addr_space.profile.get_symbol(
+            "__cpu_present_mask"
+        )
 
-        #later kernels..
+        # later kernels..
         if cpu_online_bits_addr:
-            bmap = obj.Object("unsigned long", offset = cpu_online_bits_addr, vm = self.addr_space)
+            bmap = obj.Object(
+                "unsigned long",
+                offset=cpu_online_bits_addr,
+                vm=self.addr_space,
+            )
 
         elif cpu_present_map_addr:
-            bmap = obj.Object("unsigned long", offset = cpu_present_map_addr, vm = self.addr_space)
+            bmap = obj.Object(
+                "unsigned long",
+                offset=cpu_present_map_addr,
+                vm=self.addr_space,
+            )
 
         elif cpu_present_mask_addr:
-            bmap = obj.Object("unsigned long", offset = cpu_present_mask_addr, vm = self.addr_space)
+            bmap = obj.Object(
+                "unsigned long",
+                offset=cpu_present_mask_addr,
+                vm=self.addr_space,
+            )
 
         else:
-            raise AttributeError("Unable to determine number of online CPUs for memory capture")
+            raise AttributeError(
+                "Unable to determine number of online CPUs for memory capture"
+            )
 
         cpus = []
         for i in range(32):
@@ -110,7 +137,13 @@ class linux_cpuinfo(linux_common.AbstractLinuxIntelCommand):
         max_cpu = cpus[-1] + 1
 
         offset_var = self.addr_space.profile.get_symbol("__per_cpu_offset")
-        per_offsets = obj.Object(theType = 'Array', targetType = 'unsigned long', count = max_cpu, offset = offset_var, vm = self.addr_space)
+        per_offsets = obj.Object(
+            theType='Array',
+            targetType='unsigned long',
+            count=max_cpu,
+            offset=offset_var,
+            vm=self.addr_space,
+        )
 
         for i in range(max_cpu):
 
@@ -119,23 +152,23 @@ class linux_cpuinfo(linux_common.AbstractLinuxIntelCommand):
             cpu_var = self.get_per_cpu_symbol(per_var)
 
             addr = cpu_var + offset.v()
-            var = obj.Object(var_type, offset = addr, vm = self.addr_space)
+            var = obj.Object(var_type, offset=addr, vm=self.addr_space)
 
             yield i, var
 
     def unified_output(self, data):
-        return TreeGrid([("Processor", int),
-                       ("Vendor", str),
-                       ("Model", str)],
-                        self.generator(data))
+        return TreeGrid(
+            [("Processor", int), ("Vendor", str), ("Model", str)],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for i, vendor_id, model_id in data:
             yield (0, [int(i), str(vendor_id), str(model_id)])
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Processor", "12"),
-                                  ("Vendor", "16"),
-                                  ("Model", "")])
+        self.table_header(
+            outfd, [("Processor", "12"), ("Vendor", "16"), ("Model", "")]
+        )
         for i, vendor_id, model_id in data:
             self.table_row(outfd, str(i), vendor_id, model_id)

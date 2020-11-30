@@ -29,7 +29,7 @@
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 # *****************************************************
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """ This module implements a class registry.
 
@@ -47,14 +47,16 @@ import os, zipfile
 import volatility.debug as debug
 import volatility.plugins as plugins
 
+
 class PluginImporter(object):
     """This class searches through a comma-separated list of plugins and
-       imports all classes found, based on their path and a fixed prefix.
+    imports all classes found, based on their path and a fixed prefix.
     """
+
     def __init__(self):
         """Gathers all the plugins from config.PLUGINS
-           Determines their namespaces and maintains a dictionary of modules to filepaths
-           Then imports all modules found
+        Determines their namespaces and maintains a dictionary of modules to filepaths
+        Then imports all modules found
         """
         self.modnames = {}
 
@@ -64,14 +66,17 @@ class PluginImporter(object):
 
             for relfile in self.walkzip(path):
                 module_path, ext = os.path.splitext(relfile)
-                namespace = ".".join(['volatility.plugins'] + [ x for x in module_path.split(os.path.sep) if x ])
-                #Lose the extension for the module name
+                namespace = ".".join(
+                    ['volatility.plugins']
+                    + [x for x in module_path.split(os.path.sep) if x]
+                )
+                # Lose the extension for the module name
                 if ext in [".py", ".pyc", ".pyo"]:
                     filepath = os.path.join(path, relfile)
                     # Handle Init files
                     initstr = '.__init__'
                     if namespace.endswith(initstr):
-                        self.modnames[namespace[:-len(initstr)]] = filepath
+                        self.modnames[namespace[: -len(initstr)]] = filepath
                     else:
                         self.modnames[namespace] = filepath
 
@@ -83,7 +88,9 @@ class PluginImporter(object):
             for dirpath, _dirnames, filenames in os.walk(path):
                 for filename in filenames:
                     # Run through files as we always used to
-                    yield os.path.join(dirpath[len(path) + len(os.path.sep):], filename)
+                    yield os.path.join(
+                        dirpath[len(path) + len(os.path.sep) :], filename
+                    )
         else:
             index = -1
             zippath = None
@@ -99,7 +106,7 @@ class PluginImporter(object):
             # Now yield the files
             if zippath:
                 zipf = zipfile.ZipFile(zippath)
-                prefix = path[len(zippath):].strip(os.path.sep)
+                prefix = path[len(zippath) :].strip(os.path.sep)
                 # If there's a prefix, ensure it ends in a slash
                 if len(prefix):
                     prefix += os.path.sep
@@ -108,7 +115,7 @@ class PluginImporter(object):
                     fn = fn.replace('/', os.path.sep)
                     if fn.startswith(prefix) and not fn.endswith(os.path.sep):
                         # We're a file in the zipfile
-                        yield fn[len(prefix):]
+                        yield fn[len(prefix) :]
 
     def run_imports(self):
         """Imports all the already found modules"""
@@ -119,33 +126,49 @@ class PluginImporter(object):
                 try:
                     __import__(i)
                 except Exception as e:
-                    #print(i)
-                    #raise e
-                    print("*** Failed to import " + i + " (" + str(e.__class__.__name__) + ": " + str(e) + ")")
+                    # print(i)
+                    # raise e
+                    print(
+                        "*** Failed to import "
+                        + i
+                        + " ("
+                        + str(e.__class__.__name__)
+                        + ": "
+                        + str(e)
+                        + ")"
+                    )
                     # This is too early to have had the debug filter lowered to include debugging messages
                     debug.post_mortem(2)
 
-def _get_subclasses(cls):
-    """ Run through subclasses of a particular class
 
-        This returns all classes descended from the main class,
-        _including_ the main class itself.  If showall is set to
-        False (the default) then classes starting with Abstract
-        will not be returned.
+def _get_subclasses(cls):
+    """Run through subclasses of a particular class
+
+    This returns all classes descended from the main class,
+    _including_ the main class itself.  If showall is set to
+    False (the default) then classes starting with Abstract
+    will not be returned.
     """
     for i in cls.__subclasses__():
         for c in _get_subclasses(i):
             yield c
     yield cls
 
-def get_plugin_classes(cls, showall = False, lower = False):
+
+def get_plugin_classes(cls, showall=False, lower=False):
     """Returns a dictionary of plugins"""
     # Plugins all make use of the Abstract concept
     result = {}
     for plugin in set(_get_subclasses(cls)):
-        if showall or not (plugin.__name__.startswith("Abstract") or plugin == cls):
+        if showall or not (
+            plugin.__name__.startswith("Abstract") or plugin == cls
+        ):
             # FIXME: This is due to not having done things correctly at the start
-            if not showall and plugin.__name__ in ['BufferAddressSpace', 'HiveFileAddressSpace', 'HiveAddressSpace']:
+            if not showall and plugin.__name__ in [
+                'BufferAddressSpace',
+                'HiveFileAddressSpace',
+                'HiveAddressSpace',
+            ]:
                 continue
             name = plugin.__name__.split('.')[-1]
             if lower:
@@ -153,8 +176,13 @@ def get_plugin_classes(cls, showall = False, lower = False):
             if name not in result:
                 result[name] = plugin
             else:
-                raise Exception("Object {0} has already been defined by {1}".format(name, plugin))
+                raise Exception(
+                    "Object {0} has already been defined by {1}".format(
+                        name, plugin
+                    )
+                )
     return result
+
 
 def register_global_options(config, cls):
     ## Register all register_options for the various classes

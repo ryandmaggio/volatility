@@ -28,14 +28,13 @@ import volatility.obj as obj
 import volatility.plugins.linux.common as linux_common
 import volatility.plugins.linux.pslist as linux_pslist
 
+
 class linux_getcwd(linux_pslist.linux_pslist):
     """Lists current working directory of each process"""
 
     def render_text(self, outfd, data):
 
-        self.table_header(outfd, [("Name", "17"),
-                                  ("Pid", "8"),
-                                  ("CWD", "")])
+        self.table_header(outfd, [("Name", "17"), ("Pid", "8"), ("CWD", "")])
 
         for task in data:
             self.table_row(outfd, str(task.comm), task.pid, task.getcwd())

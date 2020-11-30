@@ -21,7 +21,7 @@
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 # ******************************************************
 
-#pylint: disable-msg=C0111
+# pylint: disable-msg=C0111
 
 """ Configuration modules for pyflag.
 
@@ -74,13 +74,16 @@ import sys
 
 default_config = "/etc/volatilityrc"
 
+
 class PyFlagOptionParser(optparse.OptionParser):
     final = False
     help_hooks = []
 
     def _process_args(self, largs, rargs, values):
         try:
-            return optparse.OptionParser._process_args(self, largs, rargs, values)
+            return optparse.OptionParser._process_args(
+                self, largs, rargs, values
+            )
         except (optparse.BadOptionError, optparse.OptionValueError) as err:
             if self.final:
                 raise err
@@ -93,14 +96,15 @@ class PyFlagOptionParser(optparse.OptionParser):
         else:
             raise RuntimeError(msg)
 
-    def print_help(self, file = sys.stdout):
+    def print_help(self, file=sys.stdout):
         optparse.OptionParser.print_help(self, file)
 
         for cb in self.help_hooks:
             file.write(cb())
 
+
 class ConfObject(object):
-    """ This is a singleton class to manage the configuration.
+    """This is a singleton class to manage the configuration.
 
     This means it can be instantiated many times, but each instance
     refers to the global configuration (which is set in class
@@ -110,14 +114,16 @@ class ConfObject(object):
     facilitate singleton behaviour. This means all future instances
     will have the same dicts.
     """
-    optparser = PyFlagOptionParser(add_help_option = False,
-                                   version = False,
-                                   )
+
+    optparser = PyFlagOptionParser(
+        add_help_option=False,
+        version=False,
+    )
     initialised = False
 
     ## This is the globals dictionary which will be used for
     ## evaluating the configuration directives.
-    g_dict = dict(__builtins__ = None)
+    g_dict = dict(__builtins__=None)
 
     ## These are the options derived by reading any config files
     cnf_opts = {}
@@ -157,19 +163,26 @@ class ConfObject(object):
     def __init__(self):
         """ This is a singleton object kept in the class """
         if not ConfObject.initialised:
-            self.optparser.add_option("-h", "--help", action = "store_true", default = False,
-                            help = "list all available options and their default values. Default values may be set in the configuration file (" + default_config + ")")
+            self.optparser.add_option(
+                "-h",
+                "--help",
+                action="store_true",
+                default=False,
+                help="list all available options and their default values. Default values may be set in the configuration file ("
+                + default_config
+                + ")",
+            )
 
             ConfObject.initialised = True
 
-    def set_usage(self, usage = None, version = None):
+    def set_usage(self, usage=None, version=None):
         if usage:
             self.optparser.set_usage(usage)
 
         if version:
             self.optparser.version = version
 
-    def add_file(self, filename, _type = 'init'):
+    def add_file(self, filename, _type='init'):
         """ Adds a new file to parse """
         self._filenames.append(filename)
 
@@ -209,8 +222,8 @@ class ConfObject(object):
     def set_help_hook(self, cb):
         self.optparser.help_hooks = [cb]
 
-    def parse_options(self, final = True):
-        """ Parses the options from command line and any conf files
+    def parse_options(self, final=True):
+        """Parses the options from command line and any conf files
         currently added.
 
         The final parameter should be only called from main programs
@@ -251,11 +264,12 @@ class ConfObject(object):
                 ## Help can only be set on the command line
                 if getattr(self.optparse_opts, "help"):
 
-                ## Populate the metavars with the default values:
+                    ## Populate the metavars with the default values:
                     for opt in self.optparser.option_list:
                         try:
-                            opt.metavar = "{0}".format((getattr(self, opt.dest) or
-                                                        opt.dest.upper()))
+                            opt.metavar = "{0}".format(
+                                (getattr(self, opt.dest) or opt.dest.upper())
+                            )
                         except Exception as _e:
                             pass
 
@@ -266,15 +280,16 @@ class ConfObject(object):
 
             ## Set the cache invalidators on the cache now:
             import volatility.cache as cache
+
             for k, v in list(self.cache_invalidators.items()):
                 cache.CACHE.invalidate_on(k, v)
 
     def remove_option(self, option):
-        """ Removes options both from the config file parser and the
-            command line parser
+        """Removes options both from the config file parser and the
+        command line parser
 
-            This should only by used on options *before* they have been read,
-            otherwise things could get very confusing.
+        This should only by used on options *before* they have been read,
+        otherwise things could get very confusing.
         """
         option = option.lower()
 
@@ -306,10 +321,10 @@ class ConfObject(object):
         except AttributeError:
             pass
 
-    def add_option(self, option, short_option = None,
-                   cache_invalidator = True,
-                   **args):
-        """ Adds options both to the config file parser and the
+    def add_option(
+        self, option, short_option=None, cache_invalidator=True, **args
+    ):
+        """Adds options both to the config file parser and the
         command line parser.
 
         Args:
@@ -321,7 +336,7 @@ class ConfObject(object):
         option = option.lower()
 
         if cache_invalidator:
-            self.cache_invalidators[option] = lambda : self.get_value(option)
+            self.cache_invalidators[option] = lambda: self.get_value(option)
 
         normalized_option = option.replace("-", "_")
 
@@ -360,7 +375,9 @@ class ConfObject(object):
         self.docstrings[normalized_option] = args.get('help', None)
 
         if short_option:
-            self.optparser.add_option("-{0}".format(short_option), "--{0}".format(option), **args)
+            self.optparser.add_option(
+                "-{0}".format(short_option), "--{0}".format(option), **args
+            )
         else:
             self.optparser.add_option("--{0}".format(option), **args)
 
@@ -438,10 +455,16 @@ class ConfObject(object):
         except AttributeError:
             pass
 
-        raise AttributeError("Parameter {0} is not configured - try setting it on the command line (-h for help)".format(attr))
+        raise AttributeError(
+            "Parameter {0} is not configured - try setting it on the command line (-h for help)".format(
+                attr
+            )
+        )
+
 
 class DummyConfig(ConfObject):
     pass
+
 
 config = ConfObject()
 if os.access(default_config, os.R_OK):
@@ -455,8 +478,11 @@ try:
 except KeyError:
     pass
 
-config.add_option("CONF-FILE", default = default_conf_path,
-                  cache_invalidator = False,
-                  help = "User based configuration file")
+config.add_option(
+    "CONF-FILE",
+    default=default_conf_path,
+    cache_invalidator=False,
+    help="User based configuration file",
+)
 
 config.add_file(config.CONF_FILE)

@@ -32,14 +32,33 @@ import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.taskmods as taskmods
 
+
 class TokenXP2003(obj.ProfileModification):
     before = ['WindowsOverlay', 'WindowsVTypes']
     conditions = {'os': lambda x: x == 'windows', 'major': lambda x: x < 6}
+
     def modification(self, profile):
-        profile.merge_overlay({"_TOKEN" : [None,
-                {'Privileges': [None,
-                ['pointer', ['array', lambda x: x.PrivilegeCount, ['_LUID_AND_ATTRIBUTES']]]],
-                }]})
+        profile.merge_overlay(
+            {
+                "_TOKEN": [
+                    None,
+                    {
+                        'Privileges': [
+                            None,
+                            [
+                                'pointer',
+                                [
+                                    'array',
+                                    lambda x: x.PrivilegeCount,
+                                    ['_LUID_AND_ATTRIBUTES'],
+                                ],
+                            ],
+                        ],
+                    },
+                ]
+            }
+        )
+
 
 PRIVILEGE_INFO = {
     2: ('SeCreateTokenPrivilege', "Create a token object"),
@@ -63,39 +82,77 @@ PRIVILEGE_INFO = {
     20: ('SeDebugPrivilege', "Debug programs"),
     21: ('SeAuditPrivilege', "Generate security audits"),
     22: ('SeSystemEnvironmentPrivilege', "Edit firmware environment values"),
-    23: ('SeChangeNotifyPrivilege', "Receive notifications of changes to files or directories"),
+    23: (
+        'SeChangeNotifyPrivilege',
+        "Receive notifications of changes to files or directories",
+    ),
     24: ('SeRemoteShutdownPrivilege', "Force shutdown from a remote system"),
     25: ('SeUndockPrivilege', "Remove computer from docking station"),
     26: ('SeSyncAgentPrivilege', "Synch directory service data"),
-    27: ('SeEnableDelegationPrivilege', "Enable user accounts to be trusted for delegation"),
+    27: (
+        'SeEnableDelegationPrivilege',
+        "Enable user accounts to be trusted for delegation",
+    ),
     28: ('SeManageVolumePrivilege', "Manage the files on a volume"),
-    29: ('SeImpersonatePrivilege', "Impersonate a client after authentication"),
+    29: (
+        'SeImpersonatePrivilege',
+        "Impersonate a client after authentication",
+    ),
     30: ('SeCreateGlobalPrivilege', "Create global objects"),
-    31: ('SeTrustedCredManAccessPrivilege', "Access Credential Manager as a trusted caller"),
-    32: ('SeRelabelPrivilege', "Modify the mandatory integrity level of an object"),
-    33: ('SeIncreaseWorkingSetPrivilege', "Allocate more memory for user applications"),
-    34: ('SeTimeZonePrivilege', "Adjust the time zone of the computer's internal clock"),
-    35: ('SeCreateSymbolicLinkPrivilege', "Required to create a symbolic link"),
+    31: (
+        'SeTrustedCredManAccessPrivilege',
+        "Access Credential Manager as a trusted caller",
+    ),
+    32: (
+        'SeRelabelPrivilege',
+        "Modify the mandatory integrity level of an object",
+    ),
+    33: (
+        'SeIncreaseWorkingSetPrivilege',
+        "Allocate more memory for user applications",
+    ),
+    34: (
+        'SeTimeZonePrivilege',
+        "Adjust the time zone of the computer's internal clock",
+    ),
+    35: (
+        'SeCreateSymbolicLinkPrivilege',
+        "Required to create a symbolic link",
+    ),
 }
+
 
 class Privs(taskmods.DllList):
     "Display process privileges"
 
     def __init__(self, config, *args):
         taskmods.DllList.__init__(self, config, *args)
-        config.add_option("SILENT", short_option = "s", default = False,
-                          help = "Suppress less meaningful results",
-                          action = "store_true")
-        config.add_option('REGEX', short_option = 'r',
-                          help = 'Show privileges matching REGEX',
-                          action = 'store', type = 'string')
+        config.add_option(
+            "SILENT",
+            short_option="s",
+            default=False,
+            help="Suppress less meaningful results",
+            action="store_true",
+        )
+        config.add_option(
+            'REGEX',
+            short_option='r',
+            help='Show privileges matching REGEX',
+            action='store',
+            type='string',
+        )
 
     def generator(self, data):
         if self._config.REGEX:
             priv_re = re.compile(self._config.REGEX, re.I)
         for task in data:
 
-            for value, present, enabled, default in task.get_token().privileges():
+            for (
+                value,
+                present,
+                enabled,
+                default,
+            ) in task.get_token().privileges():
                 # Skip privileges whose bit positions cannot be
                 # translated to a privilege name
                 try:
@@ -106,7 +163,9 @@ class Privs(taskmods.DllList):
                 # that have been explicitly enabled by the process or that
                 # appear to have been DKOM'd via Ceasar's proposed attack.
                 if self._config.SILENT:
-                    if not ((enabled and not default) or (enabled and not present)):
+                    if not (
+                        (enabled and not default) or (enabled and not present)
+                    ):
                         continue
 
                 # Set the attributes
@@ -122,51 +181,71 @@ class Privs(taskmods.DllList):
                     if not priv_re.search(name):
                         continue
 
-                yield (0,
-                       [int(task.UniqueProcessId),
+                yield (
+                    0,
+                    [
+                        int(task.UniqueProcessId),
                         str(task.ImageFileName),
                         int(value),
                         str(name),
                         ",".join(attributes),
-                        str(desc)])
+                        str(desc),
+                    ],
+                )
 
     def unified_output(self, data):
 
-        return renderers.TreeGrid([("Pid", int),
-                                 ("Process", str),
-                                 ("Value", int),
-                                 ("Privilege", str),
-                                 ("Attributes", str),
-                                 ("Description", str)],
-                                  self.generator(data))
+        return renderers.TreeGrid(
+            [
+                ("Pid", int),
+                ("Process", str),
+                ("Value", int),
+                ("Privilege", str),
+                ("Attributes", str),
+                ("Description", str),
+            ],
+            self.generator(data),
+        )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Pid", "8"), 
-                                  ("Process", "16"), 
-                                  ("Value", "6"),
-                                  ("Privilege", "36"), 
-                                  ("Attributes", "24"), 
-                                  ("Description", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Pid", "8"),
+                ("Process", "16"),
+                ("Value", "6"),
+                ("Privilege", "36"),
+                ("Attributes", "24"),
+                ("Description", ""),
+            ],
+        )
 
         if self._config.REGEX:
             priv_re = re.compile(self._config.REGEX, re.I)
 
         for task in data:
-            for value, present, enabled, default in task.get_token().privileges():
-                # Skip privileges whose bit positions cannot be 
-                # translated to a privilege name 
+            for (
+                value,
+                present,
+                enabled,
+                default,
+            ) in task.get_token().privileges():
+                # Skip privileges whose bit positions cannot be
+                # translated to a privilege name
                 try:
                     name, desc = PRIVILEGE_INFO[int(value)]
                 except KeyError:
-                    continue 
+                    continue
                 # If we're operating in silent mode, only print privileges
-                # that have been explicitly enabled by the process or that 
-                # appear to have been DKOM'd via Ceasar's proposed attack. 
+                # that have been explicitly enabled by the process or that
+                # appear to have been DKOM'd via Ceasar's proposed attack.
                 if self._config.SILENT:
-                    if not ((enabled and not default) or (enabled and not present)):
-                        continue 
+                    if not (
+                        (enabled and not default) or (enabled and not present)
+                    ):
+                        continue
 
-                # Set the attributes 
+                # Set the attributes
                 attributes = []
                 if present:
                     attributes.append("Present")
@@ -177,7 +256,14 @@ class Privs(taskmods.DllList):
 
                 if self._config.REGEX:
                     if not priv_re.search(name):
-                        continue 
+                        continue
 
-                self.table_row(outfd, task.UniqueProcessId, task.ImageFileName,
-                               value, name, ",".join(attributes), desc)
+                self.table_row(
+                    outfd,
+                    task.UniqueProcessId,
+                    task.ImageFileName,
+                    value,
+                    name,
+                    ",".join(attributes),
+                    desc,
+                )

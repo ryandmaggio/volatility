@@ -30,9 +30,10 @@ from operator import attrgetter
 import volatility.obj as obj
 import volatility.debug as debug
 import volatility.addrspace as addrspace
-import volatility.plugins.mac.common  as mac_common
+import volatility.plugins.mac.common as mac_common
 import volatility.plugins.mac.pstasks as mac_tasks
 from volatility.renderers import TreeGrid
+
 
 class mac_bash_env(mac_tasks.mac_tasks):
     """Recover bash's environment variables"""
@@ -45,4 +46,3 @@ class mac_bash_env(mac_tasks.mac_tasks):
 
     def render_text(self, outfd, data):
         debug.error("This plugin is deprecated. Please use mac_psenv.")
-

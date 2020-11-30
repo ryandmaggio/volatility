@@ -24,13 +24,15 @@ import volatility.plugins.addrspaces.standard as standard
 import volatility.obj as obj
 import volatility.addrspace as addrspace
 
+
 class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
-    """ 
+    """
     Address space for mach-o files to support atc-ny memory reader
 
     The created mach-o file has a bunch of segments that contain the address of the section and the size
     From there we can translate between incoming address requests to memory contents
     """
+
     order = 1
     pae = True
     checkname = 'MachOValidAS'
@@ -38,9 +40,11 @@ class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
     def __init__(self, base, config, *args, **kwargs):
         self.as_assert(base, "mac: need base")
 
-        addrspace.AbstractRunBasedMemory.__init__(self, base, config, *args, **kwargs)
+        addrspace.AbstractRunBasedMemory.__init__(
+            self, base, config, *args, **kwargs
+        )
 
-        sig = base.read(0, 4) 
+        sig = base.read(0, 4)
 
         if sig == '\xce\xfa\xed\xfe':
             self.bits = 32
@@ -57,7 +61,11 @@ class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
         self.parse_macho()
 
     def get_object_name(self, object):
-        if self.bits == 64 and object in ["mach_header", "segment_command", "section"]:
+        if self.bits == 64 and object in [
+            "mach_header",
+            "segment_command",
+            "section",
+        ]:
             object = object + "_64"
 
         return object
@@ -71,7 +79,7 @@ class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
 
     def parse_macho(self):
         self.runs = []
- 
+
         header_name = self.get_object_name("mach_header")
         header_size = self.profile.get_obj_size(header_name)
 

@@ -31,15 +31,42 @@ import volatility.plugins.mac.common as common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 
+
 class mac_moddump(common.AbstractMacCommand):
     """ Writes the specified kernel extension to disk """
-    
-    def __init__(self, config, *args, **kwargs):         
+
+    def __init__(self, config, *args, **kwargs):
         common.AbstractMacCommand.__init__(self, config, *args, **kwargs)
-        self._config.add_option('BASE', short_option = 'b', default = None, help = 'Dump driver with BASE address (in hex)', action = 'store', type = 'int')
-        self._config.add_option('REGEX', short_option = 'r', help = 'Dump modules matching REGEX', action = 'store', type = 'string')
-        self._config.add_option('IGNORE-CASE', short_option = 'i', help = 'Ignore case in pattern match', action = 'store_true', default = False)
-        self._config.add_option('DUMP-DIR', short_option = 'D', default = None, help = 'Output directory', action = 'store', type = 'str')
+        self._config.add_option(
+            'BASE',
+            short_option='b',
+            default=None,
+            help='Dump driver with BASE address (in hex)',
+            action='store',
+            type='int',
+        )
+        self._config.add_option(
+            'REGEX',
+            short_option='r',
+            help='Dump modules matching REGEX',
+            action='store',
+            type='string',
+        )
+        self._config.add_option(
+            'IGNORE-CASE',
+            short_option='i',
+            help='Ignore case in pattern match',
+            action='store_true',
+            default=False,
+        )
+        self._config.add_option(
+            'DUMP-DIR',
+            short_option='D',
+            default=None,
+            help='Output directory',
+            action='store',
+            type='str',
+        )
 
     def calculate(self):
         common.set_plugin_members(self)
@@ -52,64 +79,83 @@ class mac_moddump(common.AbstractMacCommand):
                     mod_re = re.compile(self._config.REGEX)
             except re.error as e:
                 debug.error('Error parsing regular expression: {0}'.format(e))
-                
+
         if self._config.BASE:
             module_address = int(self._config.BASE)
-            yield obj.Object("kmod_info", offset = module_address, vm = self.addr_space)
+            yield obj.Object(
+                "kmod_info", offset=module_address, vm=self.addr_space
+            )
         else:
             modules_addr = self.addr_space.profile.get_symbol("_kmod")
-            modules_ptr = obj.Object("Pointer", vm = self.addr_space, offset = modules_addr)
+            modules_ptr = obj.Object(
+                "Pointer", vm=self.addr_space, offset=modules_addr
+            )
             mod = modules_ptr.dereference_as("kmod_info")
 
             while mod.is_valid():
                 if self._config.REGEX and not mod_re.search(str(mod.name)):
                     mod = mod.__next__
                     continue
-                
+
                 yield mod
-  
+
                 mod = mod.__next__
 
     def unified_output(self, data):
-        if (not self._config.DUMP_DIR or not os.path.isdir(self._config.DUMP_DIR)):
+        if not self._config.DUMP_DIR or not os.path.isdir(
+            self._config.DUMP_DIR
+        ):
             debug.error("Please specify an existing output dir (--dump-dir)")
- 
-        return TreeGrid([("Address", Address),
-                        ("Size", int),
-                        ("Output Path", str),
-                        ], self.generator(data))
+
+        return TreeGrid(
+            [
+                ("Address", Address),
+                ("Size", int),
+                ("Output Path", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for kmod in data:
             start = kmod.address
-            size  = kmod.m("size")
+            size = kmod.m("size")
 
             file_name = "{0}.{1:#x}.kext".format(kmod.name, kmod.obj_offset)
-            mod_file = open(os.path.join(self._config.DUMP_DIR, file_name), 'wb')
+            mod_file = open(
+                os.path.join(self._config.DUMP_DIR, file_name), 'wb'
+            )
             mod_data = self.addr_space.zread(kmod.address, size)
             mod_file.write(mod_data)
             mod_file.close()
-            yield(0, [
-                Address(start),
-                int(size),
-                str(file_name),
-                ])
+            yield (
+                0,
+                [
+                    Address(start),
+                    int(size),
+                    str(file_name),
+                ],
+            )
 
     def render_text(self, outfd, data):
-        if (not self._config.DUMP_DIR or not os.path.isdir(self._config.DUMP_DIR)):
+        if not self._config.DUMP_DIR or not os.path.isdir(
+            self._config.DUMP_DIR
+        ):
             debug.error("Please specify an existing output dir (--dump-dir)")
- 
-        self.table_header(outfd, [("Address", "[addrpad]"), 
-                                  ("Size", "8"), 
-                                  ("Output Path", "")])
+
+        self.table_header(
+            outfd,
+            [("Address", "[addrpad]"), ("Size", "8"), ("Output Path", "")],
+        )
         for kmod in data:
             start = kmod.address
-            size  = kmod.m("size")
+            size = kmod.m("size")
 
             file_name = "{0}.{1:#x}.kext".format(kmod.name, kmod.obj_offset)
-            mod_file = open(os.path.join(self._config.DUMP_DIR, file_name), 'wb')
+            mod_file = open(
+                os.path.join(self._config.DUMP_DIR, file_name), 'wb'
+            )
             mod_data = self.addr_space.zread(kmod.address, size)
             mod_file.write(mod_data)
             mod_file.close()
             self.table_row(outfd, start, size, file_name)
-

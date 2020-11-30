@@ -459,7 +459,7 @@ syscalls = [
         "NtCreateRegistryTransaction",
         "NtOpenRegistryTransaction",
         "NtCommitRegistryTransaction",
-        "NtRollbackRegistryTransaction"
+        "NtRollbackRegistryTransaction",
     ],
     [
         "NtUserGetOwnerTransformedMonitorRect",
@@ -1635,6 +1635,6 @@ syscalls = [
         "NtDWMCommitInputSystemOutputConfig",
         "NtDWMBindCursorToOutputConfig",
         "NtDWMSetCursorOrientation",
-        "NtUserMsgWaitForMultipleObjectsEx"
-    ]
+        "NtUserMsgWaitForMultipleObjectsEx",
+    ],
 ]

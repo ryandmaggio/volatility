@@ -499,33 +499,35 @@ servicesids = {
     'S-1-5-80-2933569122-2468899862-1495779727-289297006-142656920': 'xmlprov',
 }
 
+
 def createservicesid(svc):
     """ Calculate the Service SID """
     uni = ''.join([c + '\x00' for c in svc])
-    sha = hashlib.sha1(uni.upper()).digest() # pylint: disable-msg=E1101
+    sha = hashlib.sha1(uni.upper()).digest()  # pylint: disable-msg=E1101
     dec = list()
     for i in range(5):
         ## The use of struct here is OK. It doesn't make much sense
-        ## to leverage obj.Object inside this loop. 
+        ## to leverage obj.Object inside this loop.
         dec.append(struct.unpack('<I', sha[i * 4 : i * 4 + 4])[0])
     return 'S-1-5-80-' + '-'.join([str(n) for n in dec])
+
 
 class GetServiceSids(common.AbstractWindowsCommand):
     """Get the names of services in the Registry and return Calculated SID"""
 
     def calculate(self):
-        #scan for registries and populate them:
+        # scan for registries and populate them:
         debug.debug("Scanning for registries....")
 
-        #set our current registry of interest and get its path
-        #and get current control set
+        # set our current registry of interest and get its path
+        # and get current control set
         debug.debug("Getting Current Control Set....")
         regapi = registryapi.RegistryApi(self._config)
         currentcs = regapi.reg_get_currentcontrolset()
         if currentcs == None:
             currentcs = "ControlSet001"
 
-        #set the services root. 
+        # set the services root.
         regapi.set_current('system')
         debug.debug("Getting Services and calculating SIDs....")
         services = regapi.reg_get_key('system', currentcs + '\\' + 'Services')
@@ -538,9 +540,7 @@ class GetServiceSids(common.AbstractWindowsCommand):
             yield sid, servicesids[sid]
 
     def unified_output(self, data):
-        return TreeGrid([("SID", str),
-                       ("Service", str)],
-                        self.generator(data))
+        return TreeGrid([("SID", str), ("Service", str)], self.generator(data))
 
     def generator(self, data):
         for sid, service in data:

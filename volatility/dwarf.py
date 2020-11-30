@@ -20,16 +20,19 @@
 
 import re
 
+
 class DWARFParser(object):
     """A parser for DWARF files."""
 
     # Nasty, but appears to parse the lines we need
     dwarf_header_regex = re.compile(
-        r'<(?P<level>\d+)><(?P<statement_id>[0-9+]+)><(?P<kind>\w+)>')
-    dwarf_key_val_regex = re.compile(
-        '\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
+        r'<(?P<level>\d+)><(?P<statement_id>[0-9+]+)><(?P<kind>\w+)>'
+    )
+    dwarf_key_val_regex = re.compile('\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
 
-    dwarf_header_regex2 = re.compile(r'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>')
+    dwarf_header_regex2 = re.compile(
+        r'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>'
+    )
 
     sz2tp = {8: 'long long', 4: 'int', 2: 'short', 1: 'char'}
     tp2vol = {
@@ -48,12 +51,11 @@ class DWARFParser(object):
         'signed char': 'signed char',
         'unsigned char': 'unsigned char',
         'unsigned int': 'unsigned int',
-        'sizetype' : 'unsigned long',
-        'ssizetype' : 'long',
+        'sizetype': 'unsigned long',
+        'ssizetype': 'long',
     }
 
-
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         self.current_level = -1
         self.name_stack = []
         self.id_to_name = {}
@@ -157,10 +159,13 @@ class DWARFParser(object):
                     d = m.groupdict()
                     parsed['data'][d['keyname']] = d['val']
 
-            if parsed['kind'] in ('DW_TAG_formal_parameter', 'DW_TAG_variable'):
+            if parsed['kind'] in (
+                'DW_TAG_formal_parameter',
+                'DW_TAG_variable',
+            ):
                 self.process_variable(parsed['data'])
             else:
-                self.process_statement(**parsed) #pylint: disable-msg=W0142
+                self.process_statement(**parsed)  # pylint: disable-msg=W0142
 
     def process_statement(self, kind, level, data, statement_id):
         """Process a single parsed statement."""
@@ -169,7 +174,7 @@ class DWARFParser(object):
             self.current_level = new_level
             self.name_stack.append([])
         elif new_level < self.current_level:
-            self.name_stack = self.name_stack[:new_level + 1]
+            self.name_stack = self.name_stack[: new_level + 1]
             self.current_level = new_level
 
         self.name_stack[-1] = [kind, statement_id]
@@ -188,7 +193,9 @@ class DWARFParser(object):
             self.id_to_name = {}
 
         elif kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
+                '"'
+            )
 
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
@@ -197,26 +204,36 @@ class DWARFParser(object):
             # but there won't be a size
             if 'DW_AT_declaration' not in data:
                 if 'DW_AT_byte_size' in data:
-                    self.vtypes[name] = [ int(data['DW_AT_byte_size'], self.base), {} ]
+                    self.vtypes[name] = [
+                        int(data['DW_AT_byte_size'], self.base),
+                        {},
+                    ]
                 else:
-                    self.vtypes[name] = [ 0, {} ]
+                    self.vtypes[name] = [0, {}]
 
         elif kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
+                '"'
+            )
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
             if 'DW_AT_declaration' not in data:
                 if 'DW_AT_byte_size' in data:
-                    self.vtypes[name] = [ int(data['DW_AT_byte_size'], self.base), {} ]
+                    self.vtypes[name] = [
+                        int(data['DW_AT_byte_size'], self.base),
+                        {},
+                    ]
                 else:
-                    self.vtypes[name] = [ 0, {} ]
+                    self.vtypes[name] = [0, {}]
 
         elif kind == 'DW_TAG_array_type':
             self.name_stack[-1][1] = statement_id
             self.id_to_name[statement_id] = data['DW_AT_type']
 
         elif kind == 'DW_TAG_enumeration_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
+                '"'
+            )
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
 
@@ -227,11 +244,14 @@ class DWARFParser(object):
                     sz = int(data['DW_AT_byte_size'], self.base)
                 else:
                     sz = 0
-                
+
                 self.enums[name] = [sz, {}]
 
         elif kind == 'DW_TAG_pointer_type':
-            self.id_to_name[statement_id] = ['pointer', data.get('DW_AT_type', ['void'])]
+            self.id_to_name[statement_id] = [
+                'pointer',
+                data.get('DW_AT_type', ['void']),
+            ]
 
         elif kind == 'DW_TAG_base_type':
             self.id_to_name[statement_id] = [self.base_type_name(data)]
@@ -246,7 +266,7 @@ class DWARFParser(object):
             self.id_to_name[statement_id] = data['DW_AT_type']
 
         elif kind == 'DW_TAG_subroutine_type':
-            self.id_to_name[statement_id] = ['void']         # Don't need these
+            self.id_to_name[statement_id] = ['void']  # Don't need these
 
         elif kind == 'DW_TAG_variable' and level == '1':
             if 'DW_AT_location' in data:
@@ -259,8 +279,12 @@ class DWARFParser(object):
             # IDEK
             pass
 
-        elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+        elif (
+            kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_structure_type'
+        ):
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
+                '"'
+            )
             try:
                 off = int(data['DW_AT_data_member_location'].split()[1])
             except:
@@ -280,17 +304,22 @@ class DWARFParser(object):
                 edbit = full_size - edbit
                 stbit, edbit = edbit, stbit
                 assert stbit < edbit
-                memb_tp = ['BitField', dict(start_bit = stbit, end_bit = edbit)]
+                memb_tp = ['BitField', dict(start_bit=stbit, end_bit=edbit)]
             else:
                 memb_tp = data['DW_AT_type']
 
             self.vtypes[parent_name][1][name] = [off, memb_tp]
 
         elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
+                '"'
+            )
             self.vtypes[parent_name][1][name] = [0, data['DW_AT_type']]
 
-        elif kind == 'DW_TAG_enumerator' and parent_kind == 'DW_TAG_enumeration_type':
+        elif (
+            kind == 'DW_TAG_enumerator'
+            and parent_kind == 'DW_TAG_enumeration_type'
+        ):
             name = data['DW_AT_name'].strip('"')
 
             try:
@@ -300,7 +329,10 @@ class DWARFParser(object):
 
             self.enums[parent_name][1][name] = val
 
-        elif kind == 'DW_TAG_subrange_type' and parent_kind == 'DW_TAG_array_type':
+        elif (
+            kind == 'DW_TAG_subrange_type'
+            and parent_kind == 'DW_TAG_array_type'
+        ):
             if 'DW_AT_upper_bound' in data:
                 try:
                     sz = int(data['DW_AT_upper_bound'])
@@ -318,16 +350,23 @@ class DWARFParser(object):
             self.id_to_name[parent_name] = ['array', sz, tp]
         else:
             pass
-            #print "Skipping unsupported tag %s" % parsed['kind']
-
+            # print "Skipping unsupported tag %s" % parsed['kind']
 
     def process_variable(self, data):
         """Process a local variable."""
-        if ('DW_AT_name' in data and 'DW_AT_decl_line' in data and
-            'DW_AT_type' in data):
+        if (
+            'DW_AT_name' in data
+            and 'DW_AT_decl_line' in data
+            and 'DW_AT_type' in data
+        ):
             self.local_vars.append(
-                (data['DW_AT_name'], int(data['DW_AT_decl_line'], self.base),
-                 data['DW_AT_decl_file'].split()[1], data['DW_AT_type']))
+                (
+                    data['DW_AT_name'],
+                    int(data['DW_AT_decl_line'], self.base),
+                    data['DW_AT_decl_file'].split()[1],
+                    data['DW_AT_type'],
+                )
+            )
 
     def finalize(self):
         """Finalize the output."""
@@ -335,11 +374,15 @@ class DWARFParser(object):
             self.vtypes = self.resolve_refs()
             self.all_vtypes.update(self.vtypes)
         if self.vars:
-            self.vars = dict(((k, self.resolve(v)) for k, v in list(self.vars.items())))
+            self.vars = dict(
+                ((k, self.resolve(v)) for k, v in list(self.vars.items()))
+            )
             self.all_vars.update(self.vars)
         if self.local_vars:
-            self.local_vars = [ (name, lineno, decl_file, self.resolve(tp)) for
-                                (name, lineno, decl_file, tp) in self.local_vars ]
+            self.local_vars = [
+                (name, lineno, decl_file, self.resolve(tp))
+                for (name, lineno, decl_file, tp) in self.local_vars
+            ]
             self.all_local_vars += self.local_vars
 
         # Get rid of unneeded unknowns (shades of Rumsfeld here)
@@ -365,10 +408,16 @@ class DWARFParser(object):
                 d = self.get_deepest(memb)
                 if d in self.enums:
                     sz = self.enums[d][0]
-                    vals = dict((v, k) for k, v in list(self.enums[d][1].items()))
+                    vals = dict(
+                        (v, k) for k, v in list(self.enums[d][1].items())
+                    )
                     self.all_vtypes[t][1][m] = self.deep_replace(
-                        memb, [d],
-                        ['Enumeration', dict(target = self.sz2tp[sz], choices = vals)]
+                        memb,
+                        [d],
+                        [
+                            'Enumeration',
+                            dict(target=self.sz2tp[sz], choices=vals),
+                        ],
                     )
 
         return self.all_vtypes
@@ -379,17 +428,32 @@ class DWARFParser(object):
 
         for t in self.all_vtypes:
             print("  '%s': [ %#x, {" % (t, self.all_vtypes[t][0]))
-            for m in sorted(self.all_vtypes[t][1], key = lambda m: self.all_vtypes[t][1][m][0]):
-                print("    '%s': [%#x, %s]," % (m, self.all_vtypes[t][1][m][0], self.all_vtypes[t][1][m][1]))
+            for m in sorted(
+                self.all_vtypes[t][1],
+                key=lambda m: self.all_vtypes[t][1][m][0],
+            ):
+                print(
+                    "    '%s': [%#x, %s],"
+                    % (
+                        m,
+                        self.all_vtypes[t][1][m][0],
+                        self.all_vtypes[t][1][m][1],
+                    )
+                )
             print("}],")
         print("}")
         print()
         print("linux_gvars = {")
-        for v in sorted(self.all_vars, key = lambda v: self.all_vars[v][0]):
-            print("  '%s': [%#010x, %s]," % (v, self.all_vars[v][0], self.all_vars[v][1]))
+        for v in sorted(self.all_vars, key=lambda v: self.all_vars[v][0]):
+            print(
+                "  '%s': [%#010x, %s],"
+                % (v, self.all_vars[v][0], self.all_vars[v][1])
+            )
         print("}")
+
 
 if __name__ == '__main__':
     import sys
+
     dp = DWARFParser(open(sys.argv[1], "rb").read())
     dp.print_output()

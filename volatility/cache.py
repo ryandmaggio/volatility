@@ -217,29 +217,44 @@ import volatility.obj as obj
 import volatility.debug as debug
 import volatility.exceptions as exceptions
 import pickle as pickle
+
 config = conf.ConfObject()
 
 ## Where to stick the cache
-default_cache_location = os.path.join((os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")), "volatility")
+default_cache_location = os.path.join(
+    (os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")),
+    "volatility",
+)
 
-config.add_option("CACHE-DIRECTORY", default = default_cache_location,
-                  cache_invalidator = False,
-                  help = "Directory where cache files are stored")
+config.add_option(
+    "CACHE-DIRECTORY",
+    default=default_cache_location,
+    cache_invalidator=False,
+    help="Directory where cache files are stored",
+)
+
 
 class CacheContainsGenerator(exceptions.VolatilityException):
     """Exception raised when the cache contains a generator"""
+
     pass
+
 
 class InvalidCache(Exception):
     """Exception raised when the cache item is determined to be invalid."""
+
     pass
+
 
 class CacheNode(object):
     """ Base class for Cache nodes """
-    def __init__(self, name, stem, storage = None, payload = None, invalidator = None):
-        ''' Creates a new Cache node under the parent. The new node
+
+    def __init__(
+        self, name, stem, storage=None, payload=None, invalidator=None
+    ):
+        """Creates a new Cache node under the parent. The new node
         will carry the specified payload
-        '''
+        """
         self.name = name
         self.payload = payload
         self.storage = storage
@@ -252,7 +267,7 @@ class CacheNode(object):
         # do anything with it, just have it serialised as well.
         self.invalidator = invalidator
 
-    def __getitem__(self, item = ''):
+    def __getitem__(self, item=''):
         item_url = "{0}/{1}".format(self.stem, item)
 
         ## Try to load it from the storage manager
@@ -278,7 +293,9 @@ class CacheNode(object):
             if isinstance(item, dict):
                 result = {}
                 for i in item:
-                    result[self._find_generators(i)] = self._find_generators(item[i])
+                    result[self._find_generators(i)] = self._find_generators(
+                        item[i]
+                    )
                 return result
 
             # Since NoneObjects and strings are both iterable, treat them specially
@@ -304,8 +321,8 @@ class CacheNode(object):
             self.payload = None
 
     def dump(self):
-        ''' Dump the node to disk for later retrieval. This is
-        normally called when the process has exited. '''
+        """Dump the node to disk for later retrieval. This is
+        normally called when the process has exited."""
         if self.payload:
             self.storage.dump(self.stem, self)
 
@@ -313,12 +330,14 @@ class CacheNode(object):
         """Retrieve this node's payload"""
         return self.payload
 
+
 class BlockingNode(CacheNode):
     """Node that fails on all cache attempts and no-ops on cache storage attempts"""
+
     def __init__(self, name, stem, **kwargs):
         CacheNode.__init__(self, name, stem, **kwargs)
 
-    def __getitem__(self, item = ''):
+    def __getitem__(self, item=''):
         return BlockingNode(item, '/'.join((self.stem, item)))
 
     def dump(self):
@@ -329,8 +348,9 @@ class BlockingNode(CacheNode):
         """Do not set a payload for a blocked cache node"""
         pass
 
+
 class Invalidator(object):
-    """ The Invalidator encapsulates program state to control
+    """The Invalidator encapsulates program state to control
     invalidation of the cache.
 
     1) This object registers callbacks using the add_condition()
@@ -347,12 +367,12 @@ class Invalidator(object):
     current state of execution. If the signature changes, the cache is
     invalidated.
     """
+
     def __init__(self):
         self.callbacks = {}
 
     def add_condition(self, key, callback):
-        """Callback will be stored under key and should return a string.
-        """
+        """Callback will be stored under key and should return a string."""
         self.callbacks[key] = callback
 
     def __setstate__(self, state):
@@ -363,11 +383,17 @@ class Invalidator(object):
             # TODO: Determine what happens if the state or current callbacks
             # contain a key that's not in the other
             if k in state and v() != state[k]:
-                debug.debug("Invaliding cache... {0} (Running) != {1} (Stored) on key {2}".format(v(), state[k], k))
+                debug.debug(
+                    "Invaliding cache... {0} (Running) != {1} (Stored) on key {2}".format(
+                        v(), state[k], k
+                    )
+                )
 
-                raise InvalidCache("Running environment inconsistant "
-                                   "with pickled environment - "
-                                   "invalidating cache.")
+                raise InvalidCache(
+                    "Running environment inconsistant "
+                    "with pickled environment - "
+                    "invalidating cache."
+                )
 
     def __getstate__(self):
         """When pickling ourselves we call our callbacks to provide a
@@ -384,22 +410,24 @@ class Invalidator(object):
 
         return result
 
+
 class CacheTree(object):
     """ An abstract structure which represents the cache tree """
-    def __init__(self, storage = None, cls = CacheNode, invalidator = None):
+
+    def __init__(self, storage=None, cls=CacheNode, invalidator=None):
         self.storage = storage
         self.cls = cls
         self.invalidator = invalidator
-        self.root = self.cls('', '', storage = storage, invalidator = invalidator)
+        self.root = self.cls('', '', storage=storage, invalidator=invalidator)
 
     def __getitem__(self, path):
         """Pythonic interface to the cache"""
-        return self.check(path, cls = self.cls)
+        return self.check(path, cls=self.cls)
 
     def invalidate_on(self, key, callback):
         self.invalidator.add_condition(key, callback)
 
-    def check(self, path, callback = None, cls = CacheNode):
+    def check(self, path, callback=None, cls=CacheNode):
         """ Retrieves the node at the path specified """
         # Abort if we haven't been given a location
         if not config.LOCATION:
@@ -424,17 +452,26 @@ class CacheTree(object):
                 if callback is not None:
                     payload = callback()
 
-                node = cls(e, next_stem, storage = self.storage,
-                           payload = payload, invalidator = self.invalidator)
+                node = cls(
+                    e,
+                    next_stem,
+                    storage=self.storage,
+                    payload=payload,
+                    invalidator=self.invalidator,
+                )
 
                 current = node
 
         return current
 
+
 class CacheStorage(object):
     """ The base class for implementation storing the cache. """
+
     ## Characters allowed in filenames (/'s are allowed since we're dealing with URLs only)
-    printables = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_./"
+    printables = (
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_./"
+    )
 
     def encode(self, string):
         result = ''
@@ -449,14 +486,24 @@ class CacheStorage(object):
     def filename(self, url):
         if url.startswith(config.LOCATION):
             # Encode just the path part, since everything else is taken from relatively safe/already used data
-            path = self.encode(url[len(config.LOCATION):])
+            path = self.encode(url[len(config.LOCATION) :])
         else:
-            raise exceptions.CacheRelativeURLException("Storing non relative URLs is not supported now ({0})".format(url))
+            raise exceptions.CacheRelativeURLException(
+                "Storing non relative URLs is not supported now ({0})".format(
+                    url
+                )
+            )
 
         # Join together the bits we need, and abspath it to ensure it's right for the OS it's on
-        path = os.path.abspath(os.path.sep.join([config.CACHE_DIRECTORY,
-                                                 os.path.basename(config.LOCATION) + ".cache",
-                                                 path + '.pickle']))
+        path = os.path.abspath(
+            os.path.sep.join(
+                [
+                    config.CACHE_DIRECTORY,
+                    os.path.basename(config.LOCATION) + ".cache",
+                    path + '.pickle',
+                ]
+            )
+        )
 
         return path
 
@@ -466,7 +513,7 @@ class CacheStorage(object):
         debug.debug("Loading from {0}".format(filename))
         data = open(filename).read()
 
-        debug.trace(level = 3)
+        debug.trace(level=3)
         return pickle.loads(data)
 
     def dump(self, url, payload):
@@ -474,7 +521,11 @@ class CacheStorage(object):
         try:
             filename = self.filename(url)
         except exceptions.CacheRelativeURLException:
-            debug.debug("NOT Dumping url {0} - relative URLs are not yet supported".format(url))
+            debug.debug(
+                "NOT Dumping url {0} - relative URLs are not yet supported".format(
+                    url
+                )
+            )
             return
 
         ## Check that the directory exists
@@ -491,10 +542,16 @@ class CacheStorage(object):
             fd.close()
         except (pickle.PickleError, TypeError):
             # Do nothing if the pickle fails
-            debug.debug("NOT Dumping filename {0} - contained a non-picklable class".format(filename))
+            debug.debug(
+                "NOT Dumping filename {0} - contained a non-picklable class".format(
+                    filename
+                )
+            )
+
 
 ## This is the central cache object
-CACHE = CacheTree(CacheStorage(), BlockingNode, invalidator = Invalidator())
+CACHE = CacheTree(CacheStorage(), BlockingNode, invalidator=Invalidator())
+
 
 def enable_caching(_option, _opt_str, _value, _parser):
     """Turns off caching by replacing the tree with one that only takes BlockingNodes"""
@@ -503,16 +560,23 @@ def enable_caching(_option, _opt_str, _value, _parser):
     # but I can't figure another way to ensure that
     # the code gets called and overwrites the outer scope
     global CACHE
-    CACHE = CacheTree(CacheStorage(), invalidator = Invalidator())
+    CACHE = CacheTree(CacheStorage(), invalidator=Invalidator())
     config.CACHE = True
 
-config.add_option("CACHE", default = False, action = 'callback',
-                  cache_invalidator = False,
-                  callback = enable_caching,
-                  help = "Use caching")
+
+config.add_option(
+    "CACHE",
+    default=False,
+    action='callback',
+    cache_invalidator=False,
+    callback=enable_caching,
+    help="Use caching",
+)
+
 
 class CacheDecorator(object):
     """ This decorator will memoise a function in the cache """
+
     def __init__(self, path):
         """Wraps a function in a cache decorator.
 
@@ -541,7 +605,7 @@ class CacheDecorator(object):
         self.node = None
 
     def generate(self, path, g):
-        """ Special handling for generators. We pass each iteration
+        """Special handling for generators. We pass each iteration
         back immediately, and keep it in a list. Note that if the
         generator is aborted, the cache is not dumped.
         """
@@ -593,18 +657,21 @@ class CacheDecorator(object):
 
         return wrapper
 
+
 class TestDecorator(CacheDecorator):
     """This decorator is just like a CacheDecorator, but will *always* cache fully"""
 
     def __call__(self, f):
         def wrapper(s, *args, **kwargs):
             return self._cachewrapper(f, s, *args, **kwargs)
+
         return wrapper
 
+
 class Testable(object):
-    """ This is a mixin that makes a class response to the unit tests 
-    
-        It must be inheritted *after* the command class
+    """This is a mixin that makes a class response to the unit tests
+
+    It must be inheritted *after* the command class
     """
 
     def calculate(self):
@@ -628,7 +695,9 @@ class Testable(object):
             return item
 
     ## This forces the test to be memoised with a key name derived from the class name
-    @TestDecorator(lambda self: "tests/unittests/{0}".format(self.__class__.__name__))
+    @TestDecorator(
+        lambda self: "tests/unittests/{0}".format(self.__class__.__name__)
+    )
     def test(self):
         ## This forces iteration over all keys - this is required in order
         ## to flatten the full list for the cache

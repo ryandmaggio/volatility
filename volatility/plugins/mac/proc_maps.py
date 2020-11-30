@@ -25,10 +25,11 @@
 """
 
 import volatility.obj as obj
-import volatility.plugins.mac.pstasks as pstasks 
+import volatility.plugins.mac.pstasks as pstasks
 import volatility.plugins.mac.common as common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
+
 
 class mac_proc_maps(pstasks.mac_tasks):
     """ Gets memory maps of processes """
@@ -43,13 +44,17 @@ class mac_proc_maps(pstasks.mac_tasks):
                 yield proc, map
 
     def unified_output(self, data):
-        return TreeGrid([("Pid", int),
-                        ("Name", str),
-                        ("Start", Address),
-                        ("End", Address),
-                        ("Perms", str),
-                        ("Map Name", str),
-                        ], self.generator(data))
+        return TreeGrid(
+            [
+                ("Pid", int),
+                ("Name", str),
+                ("Start", Address),
+                ("End", Address),
+                ("Perms", str),
+                ("Map Name", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for (proc, map) in data:
@@ -57,32 +62,42 @@ class mac_proc_maps(pstasks.mac_tasks):
             if path == "":
                 path = map.get_special_path()
 
-            yield(0, [
+            yield (
+                0,
+                [
                     int(proc.p_pid),
                     str(proc.p_comm),
                     Address(map.links.start),
                     Address(map.links.end),
                     str(map.get_perms()),
                     str(path),
-                    ])
-
+                ],
+            )
 
     def render_text(self, outfd, data):
-        self.table_header(outfd, [("Pid", "8"), 
-                          ("Name", "20"),
-                          ("Start", "#018x"),
-                          ("End", "#018x"),
-                          ("Perms", "9"),
-                          ("Map Name", "")])
+        self.table_header(
+            outfd,
+            [
+                ("Pid", "8"),
+                ("Name", "20"),
+                ("Start", "#018x"),
+                ("End", "#018x"),
+                ("Perms", "9"),
+                ("Map Name", ""),
+            ],
+        )
 
         for (proc, map) in data:
             path = map.get_path()
             if path == "":
                 path = map.get_special_path()
 
-            self.table_row(outfd, 
-                           str(proc.p_pid), proc.p_comm, 
-                           map.links.start, 
-                           map.links.end, 
-                           map.get_perms(), 
-                           path)
+            self.table_row(
+                outfd,
+                str(proc.p_pid),
+                proc.p_comm,
+                map.links.start,
+                map.links.end,
+                map.get_perms(),
+                path,
+            )

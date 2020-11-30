@@ -36,9 +36,9 @@ class PoolScanAtom(poolscan.PoolScanner):
         self.struct_name = "_RTL_ATOM_TABLE"
 
         self.checks = [
-               ('CheckPoolSize', dict(condition = lambda x: x >= 200)),
-               ('CheckPoolType', dict(paged = True, non_paged = True, free = True)),
-               ]
+            ('CheckPoolSize', dict(condition=lambda x: x >= 200)),
+            ('CheckPoolType', dict(paged=True, non_paged=True, free=True)),
+        ]
 
         ## Note: all OS after XP, there are an extra 8 bytes (for 32-bit)
         ## or 16 bytes (for 64-bit) between the _POOL_HEADER and _RTL_ATOM_TABLE.
@@ -48,8 +48,10 @@ class PoolScanAtom(poolscan.PoolScanner):
 
         profile = self.address_space.profile
 
-        build = (profile.metadata.get('major', 0),
-                 profile.metadata.get('minor', 0))
+        build = (
+            profile.metadata.get('major', 0),
+            profile.metadata.get('minor', 0),
+        )
 
         if profile.metadata.get('memory_model', '32bit') == '32bit':
             fixup = 8 if build > (5, 1) else 0
@@ -58,6 +60,7 @@ class PoolScanAtom(poolscan.PoolScanner):
 
         self.padding = fixup
 
+
 class AtomScan(common.AbstractScanCommand):
     """Pool scanner for atom tables"""
 
@@ -65,28 +68,37 @@ class AtomScan(common.AbstractScanCommand):
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractScanCommand.__init__(self, config, *args, **kwargs)
-        config.add_option("SORT-BY", short_option = 's', type = "choice",
-                          choices = ["atom", "refcount", "offset"], default = "offset",
-                          help = "Sort by [offset | atom | refcount]", action = "store")
+        config.add_option(
+            "SORT-BY",
+            short_option='s',
+            type="choice",
+            choices=["atom", "refcount", "offset"],
+            default="offset",
+            help="Sort by [offset | atom | refcount]",
+            action="store",
+        )
 
     text_sort_column = "Atom"
 
     def render_text(self, outfd, data):
 
-        self.table_header(outfd,
-                         [(self.offset_column(), "[addr]"),
-                          ("AtomOfs(V)", "[addrpad]"),
-                          ("Atom", "[addr]"),
-                          ("Refs", "6"),
-                          ("Pinned", "6"),
-                          ("Name", ""),
-                         ])
+        self.table_header(
+            outfd,
+            [
+                (self.offset_column(), "[addr]"),
+                ("AtomOfs(V)", "[addrpad]"),
+                ("Atom", "[addr]"),
+                ("Refs", "6"),
+                ("Pinned", "6"),
+                ("Name", ""),
+            ],
+        )
 
         for atom_table in data:
 
             # This defeats the purpose of having a generator, but
             # its required if we want to be able to sort. We also
-            # filter string atoms here. 
+            # filter string atoms here.
             atoms = [a for a in atom_table.atoms() if a.is_string_atom()]
 
             if self._config.SORT_BY == "atom":
@@ -96,26 +108,31 @@ class AtomScan(common.AbstractScanCommand):
             else:
                 attr = "obj_offset"
 
-            for atom in sorted(atoms, key = lambda x: getattr(x, attr)):
+            for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
 
-                self.table_row(outfd,
+                self.table_row(
+                    outfd,
                     atom_table.obj_offset,
                     atom.obj_offset,
-                    atom.Atom, atom.ReferenceCount,
+                    atom.Atom,
+                    atom.ReferenceCount,
                     atom.Pinned,
-                    str(atom.Name or "")
-                    )
+                    str(atom.Name or ""),
+                )
 
     def unified_output(self, data):
 
         return renderers.TreeGrid(
-                         [(self.offset_column(), Address),
-                          ("AtomOfs(V)", Address),
-                          ("Atom", Hex),
-                          ("Refs", int),
-                          ("Pinned", int),
-                          ("Name", str),
-                         ], self.generator(data))
+            [
+                (self.offset_column(), Address),
+                ("AtomOfs(V)", Address),
+                ("Atom", Hex),
+                ("Refs", int),
+                ("Pinned", int),
+                ("Name", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for atom_table in data:
@@ -132,16 +149,20 @@ class AtomScan(common.AbstractScanCommand):
             else:
                 attr = "obj_offset"
 
-            for atom in sorted(atoms, key = lambda x: getattr(x, attr)):
+            for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
 
-                yield (0,
-                    [Address(atom_table.obj_offset),
-                    Address(atom.obj_offset),
-                    Hex(atom.Atom),
-                    int(atom.ReferenceCount),
-                    int(atom.Pinned),
-                    str(atom.Name or "")]
-                    )
+                yield (
+                    0,
+                    [
+                        Address(atom_table.obj_offset),
+                        Address(atom.obj_offset),
+                        Hex(atom.Atom),
+                        int(atom.ReferenceCount),
+                        int(atom.Pinned),
+                        str(atom.Name or ""),
+                    ],
+                )
+
 
 class Atoms(common.AbstractWindowsCommand):
     """Print session and window station atom tables"""
@@ -175,15 +196,18 @@ class Atoms(common.AbstractWindowsCommand):
     def unified_output(self, data):
 
         return renderers.TreeGrid(
-                         [("Offset(V)", Address),
-                          ("Session", int),
-                          ("WindowStation", str),
-                          ("Atom", Hex),
-                          ("RefCount", int),
-                          ("HIndex", int),
-                          ("Pinned", int),
-                          ("Name", str),
-                         ], self.generator(data))
+            [
+                ("Offset(V)", Address),
+                ("Session", int),
+                ("WindowStation", str),
+                ("Atom", Hex),
+                ("RefCount", int),
+                ("HIndex", int),
+                ("Pinned", int),
+                ("Name", str),
+            ],
+            self.generator(data),
+        )
 
     def generator(self, data):
         for atom_table, window_station in data:
@@ -193,38 +217,45 @@ class Atoms(common.AbstractWindowsCommand):
                 if not atom.is_string_atom():
                     continue
 
-                yield (0,
-                    [Address(atom_table.PhysicalAddress),
-                    int(window_station.dwSessionId),
-                    str(window_station.Name or ''),
-                    Hex(atom.Atom),
-                    int(atom.ReferenceCount),
-                    int(atom.HandleIndex),
-                    int(atom.Pinned),
-                    str(atom.Name or "")]
-                    )
+                yield (
+                    0,
+                    [
+                        Address(atom_table.PhysicalAddress),
+                        int(window_station.dwSessionId),
+                        str(window_station.Name or ''),
+                        Hex(atom.Atom),
+                        int(atom.ReferenceCount),
+                        int(atom.HandleIndex),
+                        int(atom.Pinned),
+                        str(atom.Name or ""),
+                    ],
+                )
 
     def render_text(self, outfd, data):
 
-        self.table_header(outfd,
-                         [("Offset(V)", "[addr]"),
-                          ("Session", "^10"),
-                          ("WindowStation", "^18"),
-                          ("Atom", "[addr]"),
-                          ("RefCount", "^10"),
-                          ("HIndex", "^10"),
-                          ("Pinned", "^10"),
-                          ("Name", ""),
-                         ])
+        self.table_header(
+            outfd,
+            [
+                ("Offset(V)", "[addr]"),
+                ("Session", "^10"),
+                ("WindowStation", "^18"),
+                ("Atom", "[addr]"),
+                ("RefCount", "^10"),
+                ("HIndex", "^10"),
+                ("Pinned", "^10"),
+                ("Name", ""),
+            ],
+        )
 
         for atom_table, window_station in data:
             for atom in atom_table.atoms():
-            
-                ## Filter string atoms 
+
+                ## Filter string atoms
                 if not atom.is_string_atom():
-                    continue 
-            
-                self.table_row(outfd,
+                    continue
+
+                self.table_row(
+                    outfd,
                     atom_table.PhysicalAddress,
                     window_station.dwSessionId,
                     window_station.Name,
@@ -232,6 +263,5 @@ class Atoms(common.AbstractWindowsCommand):
                     atom.ReferenceCount,
                     atom.HandleIndex,
                     atom.Pinned,
-                    str(atom.Name or "")
-                    )
-
+                    str(atom.Name or ""),
+                )
