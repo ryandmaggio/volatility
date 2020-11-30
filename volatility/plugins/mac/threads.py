@@ -202,7 +202,7 @@ class mac_threads(mac_tasks.mac_tasks):
         return threads
 
     def is_thread_active(self, thread, active_threads):
-        for active_thread in active_threads.values():
+        for active_thread in list(active_threads.values()):
             if active_thread.v() == thread.v():
                 return True
         return False

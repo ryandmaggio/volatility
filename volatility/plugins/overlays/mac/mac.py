@@ -1133,11 +1133,11 @@ class proc(obj.CType):
                 yield info_addr
 
     def get_proc_maps(self):
-        map = self.task.map.hdr.links.next
+        map = self.task.map.hdr.links.__next__
 
         seen = set()
 
-        for i in xrange(self.task.map.hdr.nentries):
+        for i in range(self.task.map.hdr.nentries):
             if map.v() in seen:
                 break
             seen.add(map.v())
@@ -1150,7 +1150,7 @@ class proc(obj.CType):
             if 4095 < map_size < 0x800000000000 and map_size % 4096 == 0:
                 yield map
 
-            map = map.links.next
+            map = map.links.__next__
 
     def find_heap_map(self):
         ret = None
@@ -1801,7 +1801,7 @@ class sockaddr_dl(obj.CType):
         """Get the value of the sockaddr_dl object."""
 
         ret = ""
-        for i in xrange(self.sdl_alen):
+        for i in range(self.sdl_alen):
             try:
                 e = self.sdl_data[self.sdl_nlen + i]
                 e = ord(e.v())
@@ -1978,7 +1978,7 @@ def MacProfileFactory(profpkg):
             
             sysmapvar.update(sysmap)
             typesmapvar.update(typemap)
-            debug.debug("{2}: Found system file {0} with {1} symbols".format(f.filename, len(sysmapvar.keys()), profilename))
+            debug.debug("{2}: Found system file {0} with {1} symbols".format(f.filename, len(list(sysmapvar.keys())), profilename))
 
         elif f.filename.endswith(".vtypes"):
             v = exec_vtypes(profpkg.read(f.filename))                       
@@ -2043,7 +2043,7 @@ def MacProfileFactory(profpkg):
             if module in symtable:
                 mod = symtable[module]
 
-                for (name, addrs) in mod.items():
+                for (name, addrs) in list(mod.items()):
                     addr = addrs[0][0]
                     if self.shift_address and addr:
                         addr = addr + self.shift_address
@@ -2079,7 +2079,7 @@ def MacProfileFactory(profpkg):
             if module in symtable:
                 mod = symtable[module]
 
-                for (addr, (name, _sym_types)) in mod.items():
+                for (addr, (name, _sym_types)) in list(mod.items()):
                     if self.shift_address and addr:
                         addr = addr + self.shift_address
 
@@ -2109,7 +2109,7 @@ def MacProfileFactory(profpkg):
 
             mod = symtable[module]
 
-            for (addr, (name, sym_types)) in mod.items():
+            for (addr, (name, sym_types)) in list(mod.items()):
                 for sym_type in sym_types:
                     key = "%s|%x|%s" % (module, addr, sym_type)
                     self.sbat_cache[key] = name
@@ -2135,7 +2135,7 @@ def MacProfileFactory(profpkg):
             symtable = self.sys_map
             mod = symtable["kernel"]
 
-            for (name, addrs) in mod.items():
+            for (name, addrs) in list(mod.items()):
                 for (addr, _) in addrs:
                     key = "%s|%x" % ("kernel", addr)
                     self.sba_cache[key] = name
@@ -2159,7 +2159,7 @@ def MacProfileFactory(profpkg):
             symtable = self.sys_map
 
             if module in symtable:
-                ret = symtable[module].keys()
+                ret = list(symtable[module].keys())
             else:
                 debug.error("get_all_symbol_names called on non-existent module")
 
@@ -2177,7 +2177,7 @@ def MacProfileFactory(profpkg):
 
             addrs = self.get_all_addresses(module = module)
 
-            for addr in addrs.keys():
+            for addr in list(addrs.keys()):
 
                 if table_addr < addr < high_addr:
                     high_addr = addr

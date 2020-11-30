@@ -178,7 +178,7 @@ class _UNICODE_STRING(obj.CType):
         """
         data = self.dereference()
         if data:
-            return unicode(data)
+            return str(data)
         return data
 
     def dereference(self):
@@ -192,7 +192,7 @@ class _UNICODE_STRING(obj.CType):
     def proxied(self, _name):
         return str(self)
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## Unicode strings are valid if they point at a valid memory
         return bool(self.Buffer and self.Length.v() > 0 and self.Length.v() <= 1024)
 
@@ -203,7 +203,7 @@ class _UNICODE_STRING(obj.CType):
         return str(self.v().encode("utf8", "ignore"))
 
     def __unicode__(self):
-        return unicode(self.dereference())
+        return str(self.dereference())
 
     def __len__(self):
         return len(self.dereference())
@@ -248,7 +248,7 @@ class _LIST_ENTRY(obj.CType):
             else:
                 nxt = item.m(member).get_next_entry("Blink")
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
         return bool(self.Flink) or bool(self.Blink)
 
@@ -290,7 +290,7 @@ class WinTimeStamp(obj.NativeType):
         value = self.as_windows_timestamp()
         return self.windows_to_unix_time(value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.v() != 0
 
     def __str__(self):
@@ -302,7 +302,7 @@ class WinTimeStamp(obj.NativeType):
             if self.is_utc:
                 # Only do dt.replace when dealing with UTC
                 dt = dt.replace(tzinfo = timefmt.UTC())
-        except ValueError, e:
+        except ValueError as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
         return dt
 
@@ -325,7 +325,7 @@ class DosDate(obj.NativeType):
         value = self.as_dos_timestamp()
         return self.dos_to_unix_time(value)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.v() != 0
 
     def __str__(self):
@@ -337,7 +337,7 @@ class DosDate(obj.NativeType):
             if self.is_utc:
                 # Only do dt.replace when dealing with UTC
                 dt = dt.replace(tzinfo = timefmt.UTC())
-        except ValueError, e:
+        except ValueError as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
         return dt
 
@@ -436,7 +436,7 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
         try:
             process_as = self.obj_vm.__class__(self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
-        except AssertionError, _e:
+        except AssertionError as _e:
             return obj.NoneObject("Unable to get process AS")
 
         process_as.name = "Process {0}".format(self.UniqueProcessId)
@@ -691,8 +691,8 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
         # The terminator is a quad null 
         while len(s):
-            if s.count(u"=") == 1:
-                yield s.split(u"=")
+            if s.count("=") == 1:
+                yield s.split("=")
             # Scan forward the length of this string plus the null
             next_offset = s.obj_offset + ((len(s) + 1) * 2)
             s = obj.Object("String", offset = next_offset,
@@ -1093,7 +1093,7 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
                 yield True
                 raise StopIteration
 
-        except addrspace.ASAssertionError, _e:
+        except addrspace.ASAssertionError as _e:
             pass
         debug.debug("Failed to pass the Moyix Valid IA32 AS test", 3)
 
@@ -1259,11 +1259,11 @@ class _POOL_HEADER(obj.CType):
         else:
             return self.get_object_bottom_up(struct_name, object_type, skip_type_check)
 
-import crash_vtypes
-import hibernate_vtypes
-import kdbg_vtypes
-import tcpip_vtypes
-import ssdt_vtypes
+from . import crash_vtypes
+from . import hibernate_vtypes
+from . import kdbg_vtypes
+from . import tcpip_vtypes
+from . import ssdt_vtypes
 
 class WindowsOverlay(obj.ProfileModification):
     conditions = {'os': lambda x: x == 'windows'}

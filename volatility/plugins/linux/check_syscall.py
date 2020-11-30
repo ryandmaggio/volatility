@@ -150,7 +150,7 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
     def _index_name(self, table_name, index_info, i):   
         index_names = index_info[table_name]
 
-        if len(index_names.keys()) == 0:
+        if len(list(index_names.keys())) == 0:
             ret = ""
         elif i in index_names:
             ret = index_names[i]
@@ -267,8 +267,8 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
         find_file = linux_find_file.linux_find_file(self._config)
         for (_, _, file_path, file_dentry) in find_file.walk_sbs():
             # stop enumerating files (slow) once we find our wanted information 
-            if (is_32 and len(index_tables["32bit"].keys()) > 0) or \
-                (len(index_tables["32bit"].keys()) > 0 and len(index_tables["64bit"].keys()) > 0):
+            if (is_32 and len(list(index_tables["32bit"].keys())) > 0) or \
+                (len(list(index_tables["32bit"].keys())) > 0 and len(list(index_tables["64bit"].keys())) > 0):
                 break
 
             elif file_path in paths32:

@@ -385,7 +385,7 @@ class Auditpol(common.AbstractWindowsCommand):
         return profile.metadata.get('os', 'unknown').lower() == 'windows'
 
     def get_yield(self, ap):
-        for k in ap.members.keys():
+        for k in list(ap.members.keys()):
             yield (0, ["{0}".format(k), "{0}".format(ap.m(k))])
 
 
@@ -429,14 +429,14 @@ class Auditpol(common.AbstractWindowsCommand):
                 if int(ap.Enabled) != 0:
                     audit = "Enabled"
                 yield (0, ["GeneralAuditing", audit])
-            for k in ap.members.keys():
+            for k in list(ap.members.keys()):
                 if k != "Enabled":
                     yield (0, ["{0}".format(k), "{0}".format(ap.m(k))])
 
             if self._config.HEX:
                 # for now, not sure how to handle hexdump data
                 raw = "\n".join(["{0:010x}: {1:<48}  {2}".format(o, h, ''.join(c)) for o, h, c in utils.Hexdump(data_raw)])
-                print raw
+                print(raw)
 
     def render_text(self, outfd, data):
         for data_raw, ap in data:

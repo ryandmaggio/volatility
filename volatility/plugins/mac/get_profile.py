@@ -222,7 +222,7 @@ class mac_get_profile(common.AbstractMacCommand):
                 # check if profile is within a collision set
                 if profile in collision_set:
                     # if it is, then walk all profiles in that set to find the proper one
-                    for test_profile, test_string in collision_set.items():
+                    for test_profile, test_string in list(collision_set.items()):
                         if ver_buf.find(test_string) != -1:
                             ret = test_profile
                             break

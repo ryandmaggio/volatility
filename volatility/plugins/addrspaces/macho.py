@@ -80,7 +80,7 @@ class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
 
         self.segs = []
 
-        for i in xrange(0, self.header.ncmds):
+        for i in range(0, self.header.ncmds):
             structname = self.get_object_name("segment_command")
             seg = obj.Object(structname, offset, self.base)
             self.segs.append(seg)

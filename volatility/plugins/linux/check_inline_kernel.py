@@ -170,9 +170,9 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
     def walk_proc(self, cur, f_op_members, modules, parent = ""):
         while cur:
             if cur.obj_offset in self.seen_proc:
-                if cur == cur.next:
+                if cur == cur.__next__:
                     break
-                cur = cur.next
+                cur = cur.__next__
                 continue
 
             self.seen_proc[cur.obj_offset] = 1
@@ -192,11 +192,11 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
             while subdir:
                 for (sub_name, hooked_member, hook_type, hook_address) in self.walk_proc(subdir, f_op_members, modules, name):
                     yield (sub_name, hooked_member, hook_type, hook_address)
-                subdir = subdir.next
+                subdir = subdir.__next__
 
-            if cur == cur.next:
+            if cur == cur.__next__:
                 break
-            cur = cur.next
+            cur = cur.__next__
 
     def check_proc_root_fops(self, f_op_members, modules):   
         self.seen_proc = {}
@@ -215,7 +215,7 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
     def _check_file_op_pointers(self, modules):
         funcs = [self.check_open_files_fop, self.check_proc_fop, self.check_proc_root_fops, self.check_file_cache]
 
-        f_op_members = self.profile.types['file_operations'].keywords["members"].keys()
+        f_op_members = list(self.profile.types['file_operations'].keywords["members"].keys())
         f_op_members.remove('owner')
 
         for func in funcs:
@@ -232,8 +232,8 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
                 yield (var_name, hooked_member, hook_type, hook_address) 
  
     def _check_afinfo(self, modules):
-        op_members  = self.profile.types['file_operations'].keywords["members"].keys()
-        seq_members = self.profile.types['seq_operations'].keywords["members"].keys()       
+        op_members  = list(self.profile.types['file_operations'].keywords["members"].keys())
+        seq_members = list(self.profile.types['seq_operations'].keywords["members"].keys())       
 
         tcp = ("tcp_seq_afinfo", ["tcp6_seq_afinfo", "tcp4_seq_afinfo"])
         udp = ("udp_seq_afinfo", ["udplite6_seq_afinfo", "udp6_seq_afinfo", "udplite4_seq_afinfo", "udp4_seq_afinfo"])
@@ -260,7 +260,7 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
             debug.warning("You are using an old Linux profile. Please recreate the profile using the latest Volatility version.")
             return
 
-        proto_members = self.profile.types['proto_ops'].keywords["members"].keys()       
+        proto_members = list(self.profile.types['proto_ops'].keywords["members"].keys())       
         proto_members.remove('owner')
         proto_members.remove('family')
         

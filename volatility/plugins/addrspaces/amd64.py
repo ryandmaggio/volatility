@@ -187,7 +187,7 @@ class AMD64PagedMemory(paged.AbstractWritablePagedMemory):
         Invalid entries should be handled with operating
         system abstractions.
         '''
-        vaddr = long(vaddr)
+        vaddr = int(vaddr)
         retVal = None
         pml4e = self.get_pml4e(vaddr)
         if not self.entry_present(pml4e):

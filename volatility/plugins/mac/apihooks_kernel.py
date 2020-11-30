@@ -22,7 +22,7 @@
 """
 
 import volatility.obj as obj
-import common
+from . import common
 import volatility.commands as commands
 import distorm3
 import volatility.plugins.mac.check_sysctl as check_sysctl
@@ -72,7 +72,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
                     if str(kmod.name) == kext_name:
                         kext_addr = kmod.address
                         break
-                    kmod = kmod.next
+                    kmod = kmod.__next__
                 if kext_addr == None:
                     yield
         elif kext_obj != None:
@@ -91,7 +91,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
         text_sect_num = 0
         sect_cnt = 0
 
-        for i in xrange(0, mh.ncmds):
+        for i in range(0, mh.ncmds):
             seg = obj.Object(segment_command_struct, offset = seg_offset, vm = self.addr_space)
             if seg.cmd == 0x19 and seg.segname and str(seg.segname) == "__LINKEDIT":
                 linkedit_vmaddr = seg.vmaddr
@@ -106,7 +106,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
             # only looking at LC_SEGMENT for sections
             if seg.cmd == LC_SEGMENT:
                 # loop thru segment's sections to locate __TEXT segment's __text section number, used to determine executable code
-                for j in xrange(0, seg.nsects):
+                for j in range(0, seg.nsects):
                     sect_cnt += 1
                     sect = obj.Object(section_struct, offset = seg_offset + self.addr_space.profile.get_obj_size(segment_command_struct) + (self.addr_space.profile.get_obj_size(section_struct) * j), vm = self.addr_space)
                     sect_name = "".join(map(str, str(sect.sectname))).strip(' \t\r\n\0')
@@ -145,7 +145,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
         kmod = kmodaddr.dereference_as("kmod_info")
         while kmod.is_valid():
             kexts.append(kmod)
-            kmod = kmod.next
+            kmod = kmod.__next__
        
         for kext in kexts:
             if addr >= kext.address and addr <= (kext.address + kext.m('size')):
@@ -430,7 +430,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
         kmod = kmodaddr.dereference_as("kmod_info")
         while kmod.is_valid():
             kext_addr_list.append((kmod.address.v(), kmod.address + kmod.m('size'), kmod.name))
-            kmod = kmod.next
+            kmod = kmod.__next__
 
         # loop thru kexts
         for kext_address, kext_end, kext_name in kext_addr_list:

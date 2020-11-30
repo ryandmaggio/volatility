@@ -52,7 +52,7 @@ class drivermodule(common.AbstractWindowsCommand):
         if self._config.ADDR:
             find_address = self._config.ADDR
             
-            module_name = tasks.find_module(mods, mod_addrs, mods.values()[0].obj_vm.address_mask(find_address))
+            module_name = tasks.find_module(mods, mod_addrs, list(mods.values())[0].obj_vm.address_mask(find_address))
             if module_name:
                 module_name = module_name.BaseDllName or module_name.FullDllName
 
@@ -73,7 +73,7 @@ class drivermodule(common.AbstractWindowsCommand):
                 service_key = str(driver.DriverExtension.ServiceKeyName or '')
                 driver_name3 = str(driver.DriverName or '')
                 
-                owning_module = tasks.find_module(mods, mod_addrs, mods.values()[0].obj_vm.address_mask(driver.DriverStart))
+                owning_module = tasks.find_module(mods, mod_addrs, list(mods.values())[0].obj_vm.address_mask(driver.DriverStart))
                 module_name = "UNKNOWN"
                 if owning_module:
                     module_name = owning_module.BaseDllName or owning_module.FullDllName

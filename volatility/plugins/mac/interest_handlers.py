@@ -41,7 +41,7 @@ class mac_interest_handlers(common.AbstractMacCommand):
         classes instead of structures, so the naming is
         a little different.   
         """
-        if self.addr_space.profile.vtypes.has_key(type_name):
+        if type_name in self.addr_space.profile.vtypes:
             return type_name
         else:
             return type_name + "_class"
@@ -117,16 +117,16 @@ class mac_interest_handlers(common.AbstractMacCommand):
 
                 current_name = buf
 
-        prop_string = "".join(["%s=%x, " % (k,v) for (k,v) in props.items()])
+        prop_string = "".join(["%s=%x, " % (k,v) for (k,v) in list(props.items())])
 
         #print "%-20s | %s | %s" % (current_name, keys, prop_string)
 
         offset = self.addr_space.profile.get_obj_offset(self._struct_or_class("_IOServiceInterestNotifier"), "chain")
 
-        for (k, v) in props.items():
+        for (k, v) in list(props.items()):
             if k.find("nterest") != -1:
                 cmd = obj.Object(self._struct_or_class("IOCommand"), offset = v, vm = self.addr_space)
-                notifier_ptr = cmd.fCommandChain.next
+                notifier_ptr = cmd.fCommandChain.__next__
                 first_ptr = notifier_ptr
 
                 last = 0
@@ -138,7 +138,7 @@ class mac_interest_handlers(common.AbstractMacCommand):
                         break
    
                     last = notifier_ptr
-                    notifier_ptr = notifier.chain.next
+                    notifier_ptr = notifier.chain.__next__
 
                     if notifier_ptr == first_ptr:
                         break

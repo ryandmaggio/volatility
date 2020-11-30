@@ -62,7 +62,7 @@ class linux_list_raw(linux_common.AbstractLinuxCommand):
 
                 yield ino
 
-                sk = obj.Object("sock", offset = sk.sk_node.next - offset, vm = self.addr_space)
+                sk = obj.Object("sock", offset = sk.sk_node.__next__ - offset, vm = self.addr_space)
 
     def _fill_cache(self):
         for task in linux_pslist.linux_pslist(self._config).calculate():

@@ -121,9 +121,9 @@ class linux_check_fop(linux_common.AbstractLinuxCommand):
                 if cur.obj_offset == last_cur:
                     break
 
-                if cur == cur.next:
+                if cur == cur.__next__:
                     break
-                cur = cur.next
+                cur = cur.__next__
                 if cur.obj_offset in self.seen_proc:
                     break
                 else:
@@ -141,12 +141,12 @@ class linux_check_fop(linux_common.AbstractLinuxCommand):
             while subdir:
                 for (subname, hooked_member, hook_address) in self._walk_proc_old(subdir, f_op_members, modules, name):
                     yield (subname, hooked_member, hook_address)
-                subdir = subdir.next
+                subdir = subdir.__next__
 
             last_cur = cur.obj_offset
-            if cur == cur.next:
+            if cur == cur.__next__:
                 break
-            cur = cur.next
+            cur = cur.__next__
 
     def _walk_rb(self, rb):
         nodes = []
@@ -224,7 +224,7 @@ class linux_check_fop(linux_common.AbstractLinuxCommand):
 
         modules = linux_lsmod.linux_lsmod(self._config).get_modules()
             
-        f_op_members = self.profile.types['file_operations'].keywords["members"].keys()
+        f_op_members = list(self.profile.types['file_operations'].keywords["members"].keys())
         f_op_members.remove('owner')
         if 'mmap_supported_flags' in f_op_members:
             f_op_members.remove('mmap_supported_flags')

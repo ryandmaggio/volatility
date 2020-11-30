@@ -39,7 +39,7 @@ class mac_kernel_classes(common.AbstractMacCommand):
         classes instead of structures, so the naming is
         a little different.   
         """
-        if self.addr_space.profile.vtypes.has_key(type_name):
+        if type_name in self.addr_space.profile.vtypes:
             return type_name
         else:
             return type_name + "_class"

@@ -67,7 +67,7 @@ class mac_network_conns(common.AbstractMacCommand):
         for pcbinfo in self._walk_pcb_hash(inpcbinfo):
             pcbs[pcbinfo.obj_offset] = pcbinfo
 
-        for pcbinfo in pcbs.values():
+        for pcbinfo in list(pcbs.values()):
             (lip, lport, rip, rport) = pcbinfo.ipv4_info() 
             yield (pcbinfo, lip, lport, rip, rport)
 

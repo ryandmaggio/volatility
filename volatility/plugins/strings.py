@@ -159,7 +159,7 @@ class Strings(common.AbstractWindowsCommand):
                 debug.error("String file format invalid.")
 
             pids = ["FREE MEMORY:-1"]
-            if reverse_map.has_key(offset & 0xFFFFFFFFFFFFF000):
+            if offset & 0xFFFFFFFFFFFFF000 in reverse_map:
                 if self._config.LOOKUP_PID:
                     pids = ["{0}{2}:{1:08x}".format(
                         pid[0],

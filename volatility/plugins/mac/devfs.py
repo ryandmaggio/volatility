@@ -42,7 +42,7 @@ class mac_devfs(common.AbstractMacCommand):
 
         kaddr_info = common.get_handler_name_addrs(self)
 
-        op_members = self.profile.types['cdevsw'].keywords["members"].keys()
+        op_members = list(self.profile.types['cdevsw'].keywords["members"].keys())
         
         op_members.remove('d_ttys')
         op_members.remove('d_type')

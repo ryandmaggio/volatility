@@ -294,7 +294,7 @@ def split_null_strings(data):
     
     strings = []
     start = 0
-    for i in xrange(0, len(data), 2):
+    for i in range(0, len(data), 2):
         if data[i] == '\x00' and data[i+1] == '\x00':
             strings.append(data[start:i])
             start = i+2

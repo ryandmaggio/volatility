@@ -91,7 +91,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
     	the profile modifications to see which ones would trigger and
     	then grabbing the KDBG size."""
     
-        items = registry.get_plugin_classes(windows_main.AbstractKDBGMod).items()
+        items = list(registry.get_plugin_classes(windows_main.AbstractKDBGMod).items())
         sizes = set()
         
         for name, cls in items:

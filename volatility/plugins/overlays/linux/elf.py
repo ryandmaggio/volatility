@@ -448,7 +448,7 @@ class elf_hdr(elf):
                     dt_pltrel = dsec.d_ptr                  
 
             if dt_jmprel == None or dt_pltrelsz == None or dt_pltrel == None:
-                print "needed info missing"
+                print("needed info missing")
                 return
 
             if dt_pltrel == 7:
@@ -465,7 +465,7 @@ class elf_hdr(elf):
                 else:
                     struct_size = 16
             else:   
-                print "unknown relocation type: %d" % dt_pltrel
+                print("unknown relocation type: %d" % dt_pltrel)
 
             # arr = obj.Object(theType="Array", targetType=struct_name, parent = self, count = dt_pltrelsz / struct_size, offset = dt_jmprel, vm = self.obj_vm)
 

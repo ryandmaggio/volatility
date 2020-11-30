@@ -42,7 +42,7 @@ class mac_check_fop(common.AbstractMacCommand):
 
         table_ptr = self.addr_space.profile.get_symbol("_vfstbllist")
         table = obj.Object(theType = "Array", targetType = "vfstable", offset = table_ptr, count = table_size, vm = self.addr_space) 
-        vfs_op_members = self.profile.types['vfsops'].keywords["members"].keys()
+        vfs_op_members = list(self.profile.types['vfsops'].keywords["members"].keys())
         
         if "vfs_reserved" in vfs_op_members:
             vfs_op_members.remove("vfs_reserved")

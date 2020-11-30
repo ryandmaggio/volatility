@@ -24,7 +24,7 @@
 """
 
 import volatility.addrspace as addrspace
-import sys, urllib, copy, os        
+import sys, urllib.request, urllib.parse, urllib.error, copy, os        
 import volatility.plugins.addrspaces.vmware as vmware
 import volatility.plugins.addrspaces.standard as standard
 import volatility.obj as obj
@@ -59,7 +59,7 @@ class VMWareMetaAddressSpace(addrspace.AbstractRunBasedMemory):
 
         ## Build a path to the vmss - it should be relative 
         ## to the vmem and have the same base name 
-        location = urllib.url2pathname(config.LOCATION[7:])
+        location = urllib.request.url2pathname(config.LOCATION[7:])
         path = os.path.splitext(location)[0]
 
         vmss = path + ".vmss"

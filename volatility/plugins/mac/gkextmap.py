@@ -42,7 +42,7 @@ class mac_lsmod_kext_map(lsmod.mac_lsmod):
         kext     = kextmap.hdr
 
         for i in range(nentries):
-            kext = kext.links.next
+            kext = kext.links.__next__
            
             if not kext:
                 break

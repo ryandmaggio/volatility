@@ -102,7 +102,7 @@ def _neg_fix(addr):
 # print as hex (0x12345678)
 def print_hex(value):
     """Print a value as in 4 byte hexadecimal."""
-    print("0x{:08x}".format(value))
+    print(("0x{:08x}".format(value)))
 
 
 def read_addr_range(start, end, addr_space):
@@ -653,7 +653,7 @@ class process_info(object):
         @return: True or False
         """
         if not space:
-            for func in self.is_pointer_dict.itervalues():
+            for func in self.is_pointer_dict.values():
                 if func(addr):
                     return True
             return False
@@ -765,7 +765,7 @@ class process_info(object):
         @param addr: An address.
         @return: String pointer type
         """
-        for k, v in self.is_pointer_dict.iteritems():
+        for k, v in self.is_pointer_dict.items():
             if v(addr):
                 return k
         return None

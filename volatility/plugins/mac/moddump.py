@@ -50,7 +50,7 @@ class mac_moddump(common.AbstractMacCommand):
                     mod_re = re.compile(self._config.REGEX, re.I)
                 else:
                     mod_re = re.compile(self._config.REGEX)
-            except re.error, e:
+            except re.error as e:
                 debug.error('Error parsing regular expression: {0}'.format(e))
                 
         if self._config.BASE:
@@ -63,12 +63,12 @@ class mac_moddump(common.AbstractMacCommand):
 
             while mod.is_valid():
                 if self._config.REGEX and not mod_re.search(str(mod.name)):
-                    mod = mod.next
+                    mod = mod.__next__
                     continue
                 
                 yield mod
   
-                mod = mod.next
+                mod = mod.__next__
 
     def unified_output(self, data):
         if (not self._config.DUMP_DIR or not os.path.isdir(self._config.DUMP_DIR)):

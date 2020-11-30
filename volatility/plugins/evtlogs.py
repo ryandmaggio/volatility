@@ -152,7 +152,7 @@ class EvtLogs(common.AbstractWindowsCommand):
             for sid, service in ssids:
                 self.extrasids[sid] = " (Service: " + service + ")" 
         else:
-            for sid, service in getservicesids.servicesids.items():
+            for sid, service in list(getservicesids.servicesids.items()):
                 self.extrasids[sid] = " (Service: " + service + ")"
 
         ## Get the user's SIDs from the registry
@@ -270,7 +270,7 @@ class EvtLogs(common.AbstractWindowsCommand):
                 fh = open(os.path.join(self._config.DUMP_DIR, ofname), 'wb')
                 fh.write(buf)
                 fh.close()
-                print 'Saved raw .evt file to {0}'.format(ofname)
+                print('Saved raw .evt file to {0}'.format(ofname))
             for fields in self.parse_evt_info(name, buf):
                 yield (0, [str(fields[0]), str(fields[1]), str(fields[2]), str(fields[3]), str(fields[4]), str(fields[5]), str(fields[6])])
 

@@ -125,7 +125,7 @@ processor registers involved during the context switch.'''
             for thread_name, regs in thread_regs:
                 outfd.write("  Thread Name: {}\n".format(thread_name))
                 if regs != None:
-                    for reg, value in regs.items():
+                    for reg, value in list(regs.items()):
 
                         outfd.write(("    {:8s}: {:0" + fmt + "x}\n").format(reg, value))
 

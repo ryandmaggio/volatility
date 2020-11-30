@@ -105,7 +105,7 @@ class KDBGScan(common.AbstractWindowsCommand):
     @cache.CacheDecorator(lambda self: "tests/kdbgscan/kdbg={0}".format(self._config.KDBG))
     def calculate(self):
         """Determines the address space"""
-        profilelist = [ p.__name__ for p in registry.get_plugin_classes(obj.Profile).values() ]
+        profilelist = [ p.__name__ for p in list(registry.get_plugin_classes(obj.Profile).values()) ]
 
         encrypted_kdbg_profiles = []
         proflens = {}
@@ -127,7 +127,7 @@ class KDBGScan(common.AbstractWindowsCommand):
         count = 0
 
         if origprofile not in encrypted_kdbg_profiles:
-            scanner = KDBGScanner(needles = proflens.values())
+            scanner = KDBGScanner(needles = list(proflens.values()))
 
             aspace = utils.load_as(self._config, astype = 'any')
 

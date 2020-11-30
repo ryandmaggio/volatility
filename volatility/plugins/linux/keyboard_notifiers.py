@@ -46,7 +46,7 @@ class linux_keyboard_notifiers(linux_common.AbstractLinuxCommand):
         for call_back in linux_common.walk_internal_list("notifier_block", "next", knl.head):
             call_addr = call_back.notifier_call
             
-            if symbol_cache.has_key(call_addr):
+            if call_addr in symbol_cache:
                 sym_name = symbol_cache[call_addr]
                 hooked = 0
 

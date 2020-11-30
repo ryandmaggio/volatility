@@ -83,7 +83,7 @@ class linux_pidhashtable(linux_pslist.linux_pslist):
             if not pid_chain:
                 break
 
-            upid = self.get_obj(pid_chain.next, "upid", "pid_chain")
+            upid = self.get_obj(pid_chain.__next__, "upid", "pid_chain")
 
     def _get_pidhash_array(self):
         pidhash_shift = obj.Object("unsigned int", offset = self.addr_space.profile.get_symbol("pidhash_shift"), vm = self.addr_space)

@@ -63,7 +63,7 @@ class mac_lsmod(common.AbstractMacCommand):
             if not self._config.ADDR or (kmod.address <= self._config.ADDR <= (kmod.address + kmod.m("size"))):
                 yield kmod
 
-            kmod = kmod.next
+            kmod = kmod.__next__
 
     def unified_output(self, data):
         return TreeGrid([("Offset (V)", Address),

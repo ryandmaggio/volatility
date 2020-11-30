@@ -65,7 +65,7 @@ class LinuxPermissionFlags(basic.Flags):
     def __str__(self):
         result = []
         value = self.v()
-        keys = self.bitmap.keys()
+        keys = list(self.bitmap.keys())
         keys.sort()
         for k in keys:
             if value & (1 << self.bitmap[k]):
@@ -148,7 +148,7 @@ def parse_system_map(data, module):
         (str_addr, symbol_type, symbol) = line.strip().split()
 
         try:
-            sym_addr = long(str_addr, 16)
+            sym_addr = int(str_addr, 16)
 
         except ValueError:
             continue
@@ -244,19 +244,19 @@ def LinuxProfileFactory(profpkg):
                     done = False
                     while not done:
                         if any(member.startswith('__unnamed_') for member in vtypesvar[candidate][members_index]):
-                            for member in vtypesvar[candidate][members_index].keys():
+                            for member in list(vtypesvar[candidate][members_index].keys()):
                                 if member.startswith('__unnamed_'):
                                     member_type = vtypesvar[candidate][members_index][member][types_index][0]
                                     location = vtypesvar[candidate][members_index][member][offset_index]
                                     vtypesvar[candidate][members_index].update(vtypesvar[member_type][members_index])
-                                    for name in vtypesvar[member_type][members_index].keys():
+                                    for name in list(vtypesvar[member_type][members_index].keys()):
                                         vtypesvar[candidate][members_index][name][offset_index] += location
                                     del vtypesvar[candidate][members_index][member]
                             # Don't update done because we'll need to check if any
                             # of the newly imported types need merging
                         else:
                             done = True
-            except KeyError, e:
+            except KeyError as e:
                 import pdb
                 pdb.set_trace()
                 raise exceptions.VolatilityException("Inconsistent linux profile - unable to look up " + str(e))
@@ -269,12 +269,12 @@ def LinuxProfileFactory(profpkg):
             vtypesvar = dwarf.DWARFParser(dwarfdata).finalize()
             self._merge_anonymous_members(vtypesvar)
             self.vtypes.update(vtypesvar)
-            debug.debug("{2}: Found dwarf file {0} with {1} symbols".format(f.filename, len(vtypesvar.keys()), profilename))
+            debug.debug("{2}: Found dwarf file {0} with {1} symbols".format(f.filename, len(list(vtypesvar.keys())), profilename))
 
         def load_sysmap(self):
             """Loads up the system map data"""
             arch, _memmodel, sysmapvar = parse_system_map(sysmapdata, "kernel") 
-            debug.debug("{2}: Found system file {0} with {1} symbols".format(f.filename, len(sysmapvar.keys()), profilename))
+            debug.debug("{2}: Found system file {0} with {1} symbols".format(f.filename, len(list(sysmapvar.keys())), profilename))
 
             self.sys_map.update(sysmapvar)
 
@@ -288,7 +288,7 @@ def LinuxProfileFactory(profpkg):
             if module in symtable:
                 mod = symtable[module]
 
-                for (name, addrs) in mod.items():
+                for (name, addrs) in list(mod.items()):
                     addr = addrs[0][0]
                     if self.virtual_shift and addr:
                         addr = addr + self.virtual_shift
@@ -319,7 +319,7 @@ def LinuxProfileFactory(profpkg):
 
             mod = symtable[module]
 
-            for (name, addrs) in mod.items():
+            for (name, addrs) in list(mod.items()):
 
                 for (addr, addr_type) in addrs:
                     if sym_address == addr + self.virtual_shift:
@@ -343,7 +343,7 @@ def LinuxProfileFactory(profpkg):
             symtable = self.sys_map
 
             if module in symtable:
-                ret = symtable[module].keys()
+                ret = list(symtable[module].keys())
             else:
                 debug.error("get_all_symbol_names called on non-existent module")
 
@@ -361,7 +361,7 @@ def LinuxProfileFactory(profpkg):
 
             addrs = self.get_all_addresses(module = module)
 
-            for addr in addrs.keys():
+            for addr in list(addrs.keys()):
 
                 if table_addr < addr < high_addr:
                     high_addr = addr
@@ -543,9 +543,9 @@ class hlist_node(obj.CType):
                 nxt = item.m(member).pprev.dereference().dereference()
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.next) or bool(self.pprev)
+        return bool(self.__next__) or bool(self.pprev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
@@ -586,9 +586,9 @@ class list_head(obj.CType):
                 nxt = item.m(member).prev.dereference()
 
     
-    def __nonzero__(self):
+    def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.next) or bool(self.prev)
+        return bool(self.__next__) or bool(self.prev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
@@ -628,9 +628,9 @@ class hlist_bl_node(obj.CType):
             else:
                 nxt = item.m(member).prev.dereference()
 
-    def __nonzero__(self):
+    def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.next) or bool(self.prev)
+        return bool(self.__next__) or bool(self.prev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
@@ -813,7 +813,7 @@ class net_device(obj.CType):
     def mac_addr(self):        
         macaddr = "00:00:00:00:00:00"
 
-        if self.members.has_key("perm_addr"):
+        if "perm_addr" in self.members:
             hwaddr = self.perm_addr
             macaddr = ":".join(["{0:02x}".format(x) for x in hwaddr][:6])
         
@@ -1422,7 +1422,7 @@ class task_struct(obj.CType):
         for elf, elf_start, elf_end, soname, needed in self.elfs():
             elfs[(self, soname)] = (elf, elf_start, elf_end, needed)
 
-        for k, v in elfs.iteritems():
+        for k, v in elfs.items():
             task, soname = k
             elf, elf_start, elf_end, needed = v
           
@@ -1861,7 +1861,7 @@ class task_struct(obj.CType):
             process_as = self.obj_vm.__class__(
                 self.obj_vm.base, self.obj_vm.get_config(), dtb = directory_table_base)
 
-        except AssertionError, _e:
+        except AssertionError as _e:
             return obj.NoneObject("Unable to get process AS")
 
         process_as.name = "Process {0}".format(self.pid)
@@ -1953,7 +1953,7 @@ class task_struct(obj.CType):
         for vma in self._walk_rb(rb):
             vmas[vma.vm_start] = vma
  
-        for key in sorted(vmas.iterkeys()):
+        for key in sorted(vmas.keys()):
             yield vmas[key]
 
     def search_process_memory(self, s, heap_only = False):
@@ -2109,7 +2109,7 @@ class task_struct(obj.CType):
         else:
             start_time = self.start_time
 
-        if type(start_time) == volatility.obj.NativeType and type(start_time.v()) == long:
+        if type(start_time) == volatility.obj.NativeType and type(start_time.v()) == int:
             start_time = linux_common.vol_timespec(start_time.v() / 0x989680 / 100, 0)
 
         start_secs = start_time.tv_sec + (start_time.tv_nsec / linux_common.nsecs_per / 100)
@@ -2122,7 +2122,7 @@ class task_struct(obj.CType):
             # convert the integer as little endian 
             try:
                 data = struct.pack("<I", sec)
-            except struct.error, e:
+            except struct.error as e:
                 # in case we exceed 0 <= number <= 4294967295
                 return 0
 

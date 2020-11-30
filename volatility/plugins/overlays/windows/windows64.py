@@ -104,7 +104,7 @@ class WinPeb32(obj.ProfileModification):
             "_LIST_ENTRY": "LIST_ENTRY32",
         }
 
-        for name, member in members.items():
+        for name, member in list(members.items()):
             datatype = member[1][0]
 
             if datatype in mapping:
@@ -122,7 +122,7 @@ class WinPeb32(obj.ProfileModification):
         # server-based profiles as a method to distinguish between 
         # client vs server in a plugin. 
         profile_32bit = None
-        for prof in profiles.values():
+        for prof in list(profiles.values()):
             if (prof._md_os == "windows" and
                             prof._md_major == meta.get("major") and
                             prof._md_minor == meta.get("minor") and

@@ -72,7 +72,7 @@ class DWARFParser(object):
     def fix_typedefs(self):
         tmp_types = self.vtypes.copy()
         
-        for vname,vdata in tmp_types.items():
+        for vname,vdata in list(tmp_types.items()):
             if vname.startswith("__unnamed_"):
                 statement_id = vname.split("_")[3]
                 
@@ -389,7 +389,7 @@ class DWARFParser(object):
             self.vtypes = self.resolve_refs()
             self.all_vtypes.update(self.vtypes)
         if self.vars:
-            self.vars = dict(((k, self.resolve(v)) for k, v in self.vars.items()))
+            self.vars = dict(((k, self.resolve(v)) for k, v in list(self.vars.items())))
             self.all_vars.update(self.vars)
         if self.local_vars:
             self.local_vars = [ (name, lineno, decl_file, self.resolve(tp)) for
@@ -403,7 +403,7 @@ class DWARFParser(object):
             changed = False
             s = set()
             for m in self.all_vtypes:
-                for t in self.all_vtypes[m][1].values():
+                for t in list(self.all_vtypes[m][1].values()):
                     s.add(self.get_deepest(t))
             for m in self.all_vars:
                 s.add(self.get_deepest(self.all_vars[m][1]))
@@ -419,7 +419,7 @@ class DWARFParser(object):
                 d = self.get_deepest(memb)
                 if d in self.enums:
                     sz = self.enums[d][0]
-                    vals = dict((v, k) for k, v in self.enums[d][1].items())
+                    vals = dict((v, k) for k, v in list(self.enums[d][1].items()))
                     self.all_vtypes[t][1][m] = self.deep_replace(
                         memb, [d],
                         ['Enumeration', dict(target = 'int', choices = vals)]
@@ -429,19 +429,19 @@ class DWARFParser(object):
 
     def print_output(self):
         self.finalize()
-        print "mac_types = {"
+        print("mac_types = {")
 
         for t in self.all_vtypes:
-            print "  '%s': [ %#x, {" % (t, self.all_vtypes[t][0])
+            print("  '%s': [ %#x, {" % (t, self.all_vtypes[t][0]))
             for m in sorted(self.all_vtypes[t][1], key=lambda m: self.all_vtypes[t][1][m][0]):
-                print "    '%s': [%#x, %s]," % (m, self.all_vtypes[t][1][m][0], self.all_vtypes[t][1][m][1])
-            print "}],"
-        print "}"
-        print
-        print "mac_gvars = {"
+                print("    '%s': [%#x, %s]," % (m, self.all_vtypes[t][1][m][0], self.all_vtypes[t][1][m][1]))
+            print("}],")
+        print("}")
+        print()
+        print("mac_gvars = {")
         for v in sorted(self.all_vars, key=lambda v: self.all_vars[v][0]):
-            print "  '%s': [%#010x, %s]," % (v, self.all_vars[v][0], self.all_vars[v][1])
-        print "}"
+            print("  '%s': [%#010x, %s]," % (v, self.all_vars[v][0], self.all_vars[v][1]))
+        print("}")
 
 def parse_dwarf():
 
@@ -532,7 +532,7 @@ def convert_file(mac_file, outfile):
                     break
 
             if not line_wrote:
-                print "State machine broken! level 0! %s" % line
+                print("State machine broken! level 0! %s" % line)
                 sys.exit(1)
 
         # can either be: new declaration
@@ -604,7 +604,7 @@ def main():
 
     if len(sys.argv) == 3:
 
-        print "converting file"
+        print("converting file")
         mac_file = open(sys.argv[1], "r")
         outfile = open(sys.argv[2], "w")
         convert_file(mac_file, outfile)

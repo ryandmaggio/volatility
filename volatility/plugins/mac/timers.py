@@ -45,7 +45,7 @@ class mac_timers(common.AbstractMacCommand):
             c = cpu_data.rtclock_timer
             q = c.queue
             
-            ent = q.head.next
+            ent = q.head.__next__
             first = ent
             seen = {}
 
@@ -68,7 +68,7 @@ class mac_timers(common.AbstractMacCommand):
                 
                 yield func, timer.param0, timer.param1, timer.deadline, entry_time, module, handler_sym       
          
-                ent = timer.q_link.next
+                ent = timer.q_link.__next__
 
                 if ent == first or ent.v() in seen:
                     break

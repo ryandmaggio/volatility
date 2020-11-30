@@ -25,7 +25,7 @@
 """
 
 import volatility.obj as obj
-import common
+from . import common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
 

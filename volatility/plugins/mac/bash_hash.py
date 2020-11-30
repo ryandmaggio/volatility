@@ -190,7 +190,7 @@ class mac64_bash_hash_table(bash_funcs):
                     yield bucket
 
                     seen[bucket.v()] = 1
-                    bucket = bucket.next
+                    bucket = bucket.__next__
  
 class mac32_bash_hash_table(bash_funcs):
     def __init__(self, theType, offset, vm, name = None, **kwargs):
@@ -214,7 +214,7 @@ class mac32_bash_hash_table(bash_funcs):
                 while bucket.is_valid() and bucket.times_found > 0 and bucket.data.is_valid() and bucket.key != "":  
                     yield bucket
 
-                    bucket = bucket.next
+                    bucket = bucket.__next__
  
 
    

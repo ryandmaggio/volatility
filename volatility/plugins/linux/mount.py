@@ -106,7 +106,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
         hash_mnts = {}
         seen_outer = {}
         for (idx, outerlist) in enumerate(mnt_list):
-            if outerlist == None or outerlist.next == None:
+            if outerlist == None or outerlist.__next__ == None:
                 continue
 
             if outerlist.next.v() in seen_outer:
@@ -114,7 +114,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
 
             seen_outer[outerlist.next.v()] = 1
 
-            if outerlist == outerlist.next or not outerlist.m("next").is_valid():
+            if outerlist == outerlist.__next__ or not outerlist.m("next").is_valid():
                 continue
 
             seen = {}
@@ -125,7 +125,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
 
                 seen[mnt.v()] = 1
 
-                if len(seen.keys()) > 1024:
+                if len(list(seen.keys())) > 1024:
                     break
 
                 if mnt.is_valid():
@@ -161,7 +161,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
                 if child_mnt.v() in cseen:
                     break
 
-                if len(child_mnts.keys()) > 1024:
+                if len(list(child_mnts.keys())) > 1024:
                     break
 
                 cseen[child_mnt.v()] = 1
@@ -172,7 +172,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
                 if child_mnt.mnt_parent.mnt_parent.is_valid():
                     child_mnts[child_mnt.mnt_parent.mnt_parent] = 1
 
-        tmp_mnts = list(set(hash_mnts.keys() + child_mnts.keys()))
+        tmp_mnts = list(set(list(hash_mnts.keys()) + list(child_mnts.keys())))
         all_mnts = []
 
         for t in tmp_mnts:
@@ -202,7 +202,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
                 if child_mnt.mnt_parent.mnt_parent.is_valid():
                     list_mnts[child_mnt.mnt_parent.mnt_parent] = 1
 
-        all_mnts = list(set(all_mnts + list_mnts.keys()))
+        all_mnts = list(set(all_mnts + list(list_mnts.keys())))
 
         seen = {}
         for (idx, mnt) in enumerate(all_mnts):
@@ -241,7 +241,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
         while fs.is_valid():
             fsname = obj.Object("String", offset = fs.name, vm = self.addr_space, length=256)
             all_fs[str(fsname)] = fs
-            fs = fs.next
+            fs = fs.__next__
 
         return all_fs
 

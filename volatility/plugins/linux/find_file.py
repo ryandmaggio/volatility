@@ -139,7 +139,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
            
             try: 
                 f = open(outfile, "wb")
-            except IOError, e:
+            except IOError as e:
                 debug.error("Unable to open output file (%s): %s" % (outfile, str(e)))
 
             for page in self.get_file_contents(inode):        
@@ -204,9 +204,9 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
 
         if 1: # TODO - multi order 
             if self.radix_tree_is_internal_node(entry):
-                print "multi internal"
+                print("multi internal")
                 if self.is_sibling_entry(parent, entry):
-                    print "sibling ptr"
+                    print("sibling ptr")
                     sibentry = self.radix_tree_indirect_to_ptr(entry)
                     offset = self.get_slot_offset(parent, sibentry)
                     entry   = sibentry.v()

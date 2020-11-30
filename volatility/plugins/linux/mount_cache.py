@@ -50,7 +50,7 @@ class linux_mount_cache(linux_mount.linux_mount):
         while fs.is_valid():
             fsname = obj.Object("String", offset = fs.name, vm = self.addr_space, length=256)
             all_fs[str(fsname)] = fs
-            fs = fs.next
+            fs = fs.__next__
 
         return all_fs
 

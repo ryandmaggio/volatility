@@ -117,7 +117,7 @@ class mac_list_files(common.AbstractMacCommand):
 
         ## account for vnodes that aren't in the list but are 
         ## referenced from other vnode's v_parent pointers 
-        for key, val in vnodes.items():
+        for key, val in list(vnodes.items()):
             name, parent, vnode = val    
             
             if not name or not parent:
@@ -145,7 +145,7 @@ class mac_list_files(common.AbstractMacCommand):
                 parent = next_parent  
         
         ## build the full paths for all directories
-        for key, val in vnodes.items():
+        for key, val in list(vnodes.items()):
             name, parent, vnode = val
 
             ## we can't have unnamed files or directories
@@ -185,7 +185,7 @@ class mac_list_files(common.AbstractMacCommand):
             parent_vnodes[key] = full_path
 
         ## link everything up with their parents 
-        for val in vnodes.values():
+        for val in list(vnodes.values()):
             name, parent, vnode = val
             
             if not name:

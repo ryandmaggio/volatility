@@ -49,7 +49,7 @@ class linux_check_afinfo(linux_common.AbstractLinuxCommand):
             yield (var_name, "show", var.seq_show)
 
     def _pre_4_18(self, modules, seq_members):
-        op_members  = self.profile.types['file_operations'].keywords["members"].keys()
+        op_members  = list(self.profile.types['file_operations'].keywords["members"].keys())
 
         tcp = ("tcp_seq_afinfo", ["tcp6_seq_afinfo", "tcp4_seq_afinfo"])
         udp = ("udp_seq_afinfo", ["udplite6_seq_afinfo", "udp6_seq_afinfo", "udplite4_seq_afinfo", "udp4_seq_afinfo"])
@@ -87,7 +87,7 @@ class linux_check_afinfo(linux_common.AbstractLinuxCommand):
         linux_common.set_plugin_members(self)
         
         modules  = linux_lsmod.linux_lsmod(self._config).get_modules()
-        seq_members = self.profile.types['seq_operations'].keywords["members"].keys()       
+        seq_members = list(self.profile.types['seq_operations'].keywords["members"].keys())       
         
         if self.addr_space.profile.obj_has_member("tcp_seq_afinfo", "seq_fops"):
             func = self._pre_4_18

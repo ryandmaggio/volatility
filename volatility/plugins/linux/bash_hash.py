@@ -114,7 +114,7 @@ class _bash_hash_table(obj.CType):
                     if pdata.path.is_valid() and (0 <= pdata.flags <= 2):
                         yield bucket
 
-                    bucket = bucket.next
+                    bucket = bucket.__next__
                      
 class BashHashTypes(obj.ProfileModification):
     conditions = {"os" : lambda x : x in ["linux"]}

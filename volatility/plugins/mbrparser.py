@@ -237,7 +237,7 @@ class MBRParser(commands.Command):
         if len(s2) == 0:
             return len(s1)
  
-        previous_row = xrange(len(s2) + 1)
+        previous_row = range(len(s2) + 1)
         for i, c1 in enumerate(s1):
             current_row = [i + 1]
             for j, c2 in enumerate(s2):
@@ -277,7 +277,7 @@ class MBRParser(commands.Command):
             if not all_zeros:
                 yield self._config.OFFSET, PARTITION_TABLE, boot_code
             else:
-                print "Not a valid MBR: Data all zeroed out"
+                print("Not a valid MBR: Data all zeroed out")
         else:
             scanner = MBRScanner(needles = ['\x55\xaa'])
             for offset in scanner.scan(address_space):
@@ -291,7 +291,7 @@ class MBRParser(commands.Command):
 
 
     def Hexdump(self, data, given_offset = 0, width = 16):
-        for offset in xrange(0, len(data), width):
+        for offset in range(0, len(data), width):
             row_data = data[offset:offset + width]
             translated_data = [x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data]
             hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
