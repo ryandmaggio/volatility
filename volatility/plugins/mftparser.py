@@ -41,8 +41,8 @@ import binascii
 import os
 import volatility.poolscan as poolscan
 import sys
-reload(sys)
-sys.setdefaultencoding('utf8')
+import imp
+imp.reload(sys)
 
 class UnicodeString(basic.String):
     def __str__(self):
@@ -347,15 +347,15 @@ class STANDARD_INFORMATION(obj.CType):
         try:
             modified = self.ModifiedTime.v()
         except struct.error:
-            modified = 0 
+            modified = 0
         try:
             mftaltered = self.MFTAlteredTime.v()
         except struct.error:
-            mftaltered = 0 
+            mftaltered = 0
         try:
             creation = self.CreationTime.v()
         except struct.error:
-            creation = 0 
+            creation = 0
         try:
             accessed = self.FileAccessedTime.v()
         except struct.error:
@@ -860,7 +860,7 @@ class MFTParser(common.AbstractWindowsCommand):
                     if self._config.DEBUGOUT:
                         print("Problem entry at offset:", hex(offset))
                     continue
-    
+
                 if (int(mft_entry.RecordNumber), name) in seen:
                     continue
                 else:

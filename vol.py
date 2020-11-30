@@ -45,6 +45,7 @@ if False:
     import yara
 
 import textwrap
+import operator
 import volatility.conf as conf
 config = conf.ConfObject()
 import volatility.constants as constants
@@ -97,7 +98,7 @@ def command_help(command):
         if item.startswith("render_"):
             outputs.append(item.split("render_", 1)[-1])
     outputopts = "\nModule Output Options: " + \
-        "{0}\n".format("{0}".format("\n".join([", ".join(o for o in sorted(outputs))]))) 
+        "{0}\n".format("{0}".format("\n".join([", ".join(o for o in sorted(outputs))])))
 
     result = textwrap.dedent("""
     ---------------------------------
@@ -112,7 +113,7 @@ def print_info():
                   commands.Command : 'Plugins',
                   obj.Profile: 'Profiles',
                   scan.ScannerCheck: 'Scanner Checks'}
-    for c, n in sorted(categories.items()):
+    for c, n in sorted(categories.items(), key=operator.itemgetter(1)):
         lower = (c == commands.Command)
         plugins = registry.get_plugin_classes(c, lower = lower)
         print("\n")

@@ -3,7 +3,7 @@
 #
 # Derived from source in PyFlag developed by:
 # Copyright 2004: Commonwealth of Australia.
-# Michael Cohen <scudette@users.sourceforge.net> 
+# Michael Cohen <scudette@users.sourceforge.net>
 # David Collett <daveco@users.sourceforge.net>
 #
 # Subclassing plugin code developed by:
@@ -114,9 +114,13 @@ class PluginImporter(object):
         """Imports all the already found modules"""
         for i in list(self.modnames.keys()):
             if self.modnames[i] is not None:
+                if '__pycache__' in i:
+                    continue
                 try:
                     __import__(i)
                 except Exception as e:
+                    #print(i)
+                    #raise e
                     print("*** Failed to import " + i + " (" + str(e.__class__.__name__) + ": " + str(e) + ")")
                     # This is too early to have had the debug filter lowered to include debugging messages
                     debug.post_mortem(2)
@@ -126,7 +130,7 @@ def _get_subclasses(cls):
 
         This returns all classes descended from the main class,
         _including_ the main class itself.  If showall is set to
-        False (the default) then classes starting with Abstract 
+        False (the default) then classes starting with Abstract
         will not be returned.
     """
     for i in cls.__subclasses__():
