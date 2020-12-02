@@ -24,7 +24,7 @@
 
 """
 @author:       Brendan Dolan-Gavitt
-@license:      GNU General Public License 2.0 
+@license:      GNU General Public License 2.0
 @contact:      brendandg@gatech.edu
 @organization: Georgia Institute of Technology
 """

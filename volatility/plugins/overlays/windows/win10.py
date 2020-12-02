@@ -99,9 +99,9 @@ class Win10x64DTB(obj.ProfileModification):
         build = profile.metadata.get("build", 0)
 
         if build >= 18362:
-            signature = "\x03\x00\xb8\x00"
+            signature = b"\x03\x00\xb8\x00"
         else:
-            signature = "\x03\x00\xb6\x00"
+            signature = b"\x03\x00\xb6\x00"
 
         profile.merge_overlay(
             {
@@ -133,9 +133,9 @@ class Win10x86DTB(obj.ProfileModification):
         build = profile.metadata.get("build", 0)
 
         if build >= 15063:
-            signature = "\x03\x00\x2C\x00"
+            signature = b"\x03\x00\x2C\x00"
         else:
-            signature = "\x03\x00\x2A\x00"
+            signature = b"\x03\x00\x2A\x00"
 
         profile.merge_overlay(
             {

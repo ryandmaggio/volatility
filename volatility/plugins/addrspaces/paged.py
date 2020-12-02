@@ -19,8 +19,8 @@
 
 # import fractions
 import volatility.addrspace as addrspace
+import volatility.debug as debug
 import volatility.obj as obj
-
 
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     """Class to handle all the details of a paged virtual address space
@@ -50,10 +50,12 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         )
 
         self.dtb = dtb or self.load_dtb()
+        print(f"AbstractPagedMemory:self.dtb:{self.dtb}")
         # No need to set the base or dtb, it's already been by the inherited class
 
         self.as_assert(self.dtb != None, "No valid DTB found")
 
+        print(f"dtb seems valid!")
         if not skip_as_check:
             volmag = obj.VolMagic(self)
             if hasattr(volmag, self.checkname):
@@ -114,7 +116,9 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
             return self.base.dtb
         except AttributeError:
             ## Ok so we need to find our dtb ourselves:
+            print("Looking for DTB using brute force!")
             dtb = obj.VolMagic(self.base).DTB.v()
+            print(f"Done looking DTB: {dtb}")
             if dtb:
                 ## Make sure to save dtb for other AS's
                 ## Will this have an effect on following ASes attempts if this fails?
@@ -211,11 +215,6 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
             position += datalen
             remaining -= datalen
             assert vaddr + length == position + remaining, (
-                "Address + length != position + remaining ("
-                + hex(vaddr + length)
-                + " != "
-                + hex(position + remaining)
-                + ") in "
-                + self.base.__class__.__name__
+                f"Address + length != position + remaining ({hex(vaddr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
             )
         return True

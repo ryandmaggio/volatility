@@ -72,7 +72,7 @@ class WindowsCrashDumpSpace64BitMap(crash.WindowsCrashDumpSpace32):
     """ This AS supports Windows BitMap Crash Dump format """
 
     order = 29
-    dumpsig = 'PAGEDU64'
+    dumpsig = b'PAGEDU64'
     headertype = "_DMP_HEADER64"
     headerpages = 0x13
     bitmaphdroffset = 0x2000

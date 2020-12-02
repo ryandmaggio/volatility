@@ -63,12 +63,12 @@ class FormatSpec(object):
 
     def from_string(self, formatspec):
         # Format specifier regular expression
-        regexp = "\A(.[<>=^]|[<>=^])?([-+ ]|\(\))?(#?)(0?)(\d*)(\.\d+)?(.)?\Z"
+        regexp = r"\A(.[<>=^]|[<>=^])?([-+ ]|\(\))?(#?)(0?)(\d*)(\.\d+)?(.)?\Z"
 
         match = re.search(regexp, formatspec)
 
         if match is None:
-            raise ValueError("Invalid format specification: " + formatspec)
+            raise ValueError(f"Invalid format specification: {formatspec}")
 
         if match.group(1):
             fillalign = match.group(1)
@@ -115,4 +115,4 @@ class FormatSpec(object):
         return self.to_string()
 
     def __repr__(self):
-        return "<FormatSpec (" + self.to_string() + ")>"
+        return f"<FormatSpec ({self.to_string()})>"

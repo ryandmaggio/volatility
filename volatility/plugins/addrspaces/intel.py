@@ -198,7 +198,7 @@ class IA32PagedMemory(paged.AbstractWritablePagedMemory):
         except IOError:
             string = None
         if not string:
-            return obj.NoneObject("Unable to read_long_phys at " + hex(addr))
+            return obj.NoneObject(f"Unable to read_long_phys at {hex(addr)}")
         (longval,) = self._long_struct.unpack(string)
         return longval
 
@@ -320,7 +320,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         except IOError:
             string = None
         if not string:
-            return obj.NoneObject("Unable to read base AS at " + hex(addr))
+            return obj.NoneObject(f"Unable to read base AS at {hex(addr)}")
         (longlongval,) = self._longlong_struct.unpack(string)
         return longlongval
 

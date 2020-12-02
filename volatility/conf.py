@@ -33,7 +33,7 @@ system:
 
    - Autoconf must be able to set things like the python path (in case
      pyflag is installed to a different prefix)
-     
+
    - Users must be able to configure the installed system for their
    specific requirements.
 
@@ -65,7 +65,7 @@ configuration information:
 
    - Finally a conf table in each case is used to provide a per case
    configuration
-   
+
 """
 import configparser
 import optparse
@@ -168,9 +168,7 @@ class ConfObject(object):
                 "--help",
                 action="store_true",
                 default=False,
-                help="list all available options and their default values. Default values may be set in the configuration file ("
-                + default_config
-                + ")",
+                help=f"list all available options and their default values. Default values may be set in the configuration file ({default_config})",
             )
 
             ConfObject.initialised = True
@@ -208,7 +206,7 @@ class ConfObject(object):
                     self.cnf_opts[k] = v
 
             except IOError:
-                print("Unable to open {0}".format(f))
+                print(f"Unable to open {f}")
 
         ConfObject._filename = filename
 
@@ -314,7 +312,7 @@ class ConfObject(object):
 
         del self.docstrings[normalized_option]
 
-        self.optparser.remove_option("--{0}".format(option))
+        self.optparser.remove_option(f"--{option}")
 
         try:
             self.parse_options(False)
@@ -375,11 +373,9 @@ class ConfObject(object):
         self.docstrings[normalized_option] = args.get('help', None)
 
         if short_option:
-            self.optparser.add_option(
-                "-{0}".format(short_option), "--{0}".format(option), **args
-            )
+            self.optparser.add_option(f"-{short_option}", f"--{option}", **args)
         else:
-            self.optparser.add_option("--{0}".format(option), **args)
+            self.optparser.add_option(f"--{option}", **args)
 
         ## update the command line parser
 
@@ -432,7 +428,7 @@ class ConfObject(object):
 
         ## Was it given in the environment?
         try:
-            return os.environ["VOLATILITY_" + attr.upper()]
+            return os.environ[f"VOLATILITY_{attr.upper()}"]
         except KeyError:
             pass
 
@@ -456,9 +452,7 @@ class ConfObject(object):
             pass
 
         raise AttributeError(
-            "Parameter {0} is not configured - try setting it on the command line (-h for help)".format(
-                attr
-            )
+            f"Parameter {attr} is not configured - try setting it on the command line (-h for help)"
         )
 
 
@@ -474,7 +468,7 @@ else:
 
 default_conf_path = ".volatilityrc"
 try:
-    default_conf_path = os.environ['HOME'] + '/.volatilityrc'
+    default_conf_path = f"{os.environ['HOME']}/.volatilityrc"
 except KeyError:
     pass
 

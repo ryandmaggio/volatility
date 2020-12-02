@@ -62,13 +62,13 @@ class LimeAddressSpace(addrspace.AbstractRunBasedMemory):
 
         ## ARM processors are bi-endian, but little is the default and currently
         ## the only mode we support; unless it comes a common request.
-        if sig == '\x4c\x69\x4d\x45':
+        if sig == b'\x4c\x69\x4d\x45':
             debug.debug(
                 "Big-endian ARM not supported, please submit a feature request"
             )
 
         self.as_assert(
-            sig == '\x45\x4D\x69\x4c', "Invalid Lime header signature"
+            sig == b'\x45\x4D\x69\x4c', "Invalid Lime header signature"
         )
 
         self.addr_cache = {}

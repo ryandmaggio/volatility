@@ -50,21 +50,19 @@ def load_as(config, astype='virtual', **kwargs):
             ),
             key=lambda x: x.order if hasattr(x, 'order') else 10,
         ):
-            debug.debug("Trying {0} ".format(cls))
+            debug.debug(f"Trying {cls} ")
             try:
                 base_as = cls(base_as, config, astype=astype, **kwargs)
-                debug.debug("Succeeded instantiating {0}".format(base_as))
+                debug.debug(f"Succeeded instantiating {base_as}")
                 found = True
                 break
             except addrspace.ASAssertionError as e:
-                debug.debug(
-                    "Failed instantiating {0}: {1}".format(cls.__name__, e), 2
-                )
+                debug.debug(f"Failed instantiating {cls.__name__}: {e}", 2)
                 error.append_reason(cls.__name__, e)
                 continue
             except Exception as e:
-                debug.debug("Failed instantiating (exception): {0}".format(e))
-                error.append_reason(cls.__name__ + " - EXCEPTION", e)
+                debug.debug(f"Failed instantiating (exception): {e}")
+                error.append_reason(f"{cls.__name__} - EXCEPTION", e)
                 continue
 
     if not isinstance(base_as, addrspace.AbstractVirtualAddressSpace) and (
@@ -85,7 +83,7 @@ def Hexdump(data, width=16):
         translated_data = [
             x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data
         ]
-        hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
+        hexdata = " ".join([f"{ord(x):02x}" for x in row_data])
 
         yield offset, hexdata, translated_data
 
@@ -101,22 +99,21 @@ def remove_unprintable(str):
 
 
 def inet_ntop(address_family, packed_ip):
+    if not isinstance(packed_ip, bytes):
+        raise TypeError(f"must be bytes, not {type(packed_ip)}")
+
     def inet_ntop4(packed_ip):
-        if not isinstance(packed_ip, str):
-            raise TypeError("must be string, not {0}".format(type(packed_ip)))
         if len(packed_ip) != 4:
             raise ValueError("invalid length of packed IP address string")
-        return "{0}.{1}.{2}.{3}".format(*[ord(x) for x in packed_ip])
+        return ".".join([str(x) for x in packed_ip])
 
     def inet_ntop6(packed_ip):
-        if not isinstance(packed_ip, str):
-            raise TypeError("must be string, not {0}".format(type(packed_ip)))
         if len(packed_ip) != 16:
             raise ValueError("invalid length of packed IP address string")
 
         words = []
         for i in range(0, 16, 2):
-            words.append((ord(packed_ip[i]) << 8) | ord(packed_ip[i + 1]))
+            words.append((packed_ip[i] << 8) | packed_ip[i + 1])
 
         # Replace a run of 0x00s with None
         numlen = [(k, len(list(g))) for k, g in itertools.groupby(words)]
@@ -147,7 +144,7 @@ def inet_ntop(address_family, packed_ip):
         # Join up everything we've got using :s
         return (
             ":".join(
-                ["{0:x}".format(w) if w is not None else "" for w in words]
+                [f"{w:x}" if w is not None else "" for w in words]
             )
             + encapsulated
         )

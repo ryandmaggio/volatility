@@ -48,7 +48,7 @@ class ArmAddressSpace(paged.AbstractWritablePagedMemory):
             string = None
         if not string:
             return obj.NoneObject(
-                "Could not read_long_phys at offset " + hex(addr)
+                f"Could not read_long_phys at offset {hex(addr)}"
             )
         (longval,) = self._long_struct.unpack(string)
         return longval

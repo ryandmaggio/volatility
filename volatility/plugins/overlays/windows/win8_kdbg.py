@@ -256,7 +256,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
             )
             signature = addr_space.read(kdbg_block + tag_offset, 4)
 
-            if block_encoded == 1 and signature != "KDBG":
+            if block_encoded == 1 and signature != b"KDBG":
                 vals = block_encoded, kdbg_block, wait_never, wait_always
                 data = self.decode_kdbg(vals)
                 buff = addrspace.BufferAddressSpace(
@@ -277,7 +277,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
 
             kdbg.newattr('KdCopyDataBlock', full_addr)
             kdbg.newattr(
-                'block_encoded', block_encoded == 1 and signature != "KDBG"
+                'block_encoded', block_encoded == 1 and signature != b"KDBG"
             )
             kdbg.newattr('wait_never', wait_never)
             kdbg.newattr('wait_always', wait_always)

@@ -27,7 +27,7 @@
 @contact:      awalters@4tphi.com
 @organization: Volatility Foundation
 
-   Alias for all address spaces 
+   Alias for all address spaces
 
 """
 
@@ -59,7 +59,7 @@ def check_valid_profile(option, _opt_str, value, parser):
         try:
             profs[value]
         except KeyError:
-            debug.error("Invalid profile " + value + " selected")
+            debug.error(f"Invalid profile {value} selected")
         setattr(parser.values, option.dest, value)
 
 
@@ -112,11 +112,11 @@ class BaseAddressSpace(object):
                 PROFILES[profile_name] = ret
             else:
                 raise ASAssertionError(
-                    "Invalid profile " + profile_name + " selected"
+                    f"Invalid profile {profile_name} selected"
                 )
         if not self.is_valid_profile(ret):
             raise ASAssertionError(
-                "Incompatible profile " + profile_name + " selected"
+                f"Incompatible profile {profile_name} selected"
             )
         return ret
 
@@ -130,6 +130,7 @@ class BaseAddressSpace(object):
         It had to be called as_assert, since assert is a keyword
         """
         if not assertion:
+            print(f"BaseAddressSpace:assertion_error:{error}")
             if error == None:
                 error = "Instantiation failed for unspecified reason"
             raise ASAssertionError(error)
@@ -248,9 +249,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
         # Pick an arbitrary cut-off that'll lead to too many reads
         if self.alignment_gcd < 0x4:
             debug.warning(
-                "Alignment of "
-                + self.__class__.__name__
-                + " is too small, plugins will be extremely slow"
+                f"Alignment of {self.__class__.__name__}  is too small, plugins will be extremely slow"
             )
 
     def _read(self, addr, length, pad=False):
@@ -279,7 +278,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
             if paddr is None:
                 if not pad:
                     return None
-                buff.append("\x00" * datalen)
+                buff.append(b'\x00' * datalen)
                 lenbuff += datalen
             else:
                 # This accounts for a special edge case
@@ -292,33 +291,20 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
                 else:
                     if not pad:
                         return obj.NoneObject(
-                            "Could not read_chunks from addr "
-                            + hex(position)
-                            + " of size "
-                            + hex(datalen)
+                            f"Could not read_chunks from addr {hex(position)}  of size {hex(datalen)}"
                         )
-                    data = "\x00" * datalen
+                    data = b'\x00' * datalen
                 buff.append(data)
                 lenbuff += len(data)
             position += datalen
             remaining -= datalen
             assert addr + length == position + remaining, (
-                "Address + length != position + remaining ("
-                + hex(addr + length)
-                + " != "
-                + hex(position + remaining)
-                + ") in "
-                + self.base.__class__.__name__
+                f"Address + length != position + remaining ({hex(addr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
             )
             assert position - addr == lenbuff, (
-                "Position - address != len(buff) ("
-                + str(position - addr)
-                + " != "
-                + str(lenbuff)
-                + ") in "
-                + self.base.__class__.__name__
+                f"Position - address != len(buff) ({str(position - addr)} != {str(lenbuff)}) in {self.base.__class__.__name__}"
             )
-        return "".join(buff)
+        return b''.join(buff)
 
     def read(self, addr, length):
         """

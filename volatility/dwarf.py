@@ -28,12 +28,10 @@ class DWARFParser(object):
     dwarf_header_regex = re.compile(
         r'<(?P<level>\d+)><(?P<statement_id>[0-9+]+)><(?P<kind>\w+)>'
     )
-    dwarf_key_val_regex = re.compile('\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
-
+    dwarf_key_val_regex = re.compile(r'\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
     dwarf_header_regex2 = re.compile(
         r'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>'
     )
-
     sz2tp = {8: 'long long', 4: 'int', 2: 'short', 1: 'char'}
     tp2vol = {
         '_Bool': 'unsigned char',
@@ -78,7 +76,7 @@ class DWARFParser(object):
         # Reference to another type
         if isinstance(memb, str) and memb.startswith('<'):
             if memb[1:3] == "0x":
-                memb = "<0x" + memb[3:].lstrip('0')
+                memb = f"<0x{memb[3:].lstrip('0')}"
 
             resolved = self.id_to_name[memb[1:]]
 
@@ -129,7 +127,7 @@ class DWARFParser(object):
         else:
             sz = int(data['DW_AT_byte_size'], self.base)
             if data['DW_AT_encoding'] == 'DW_ATE_unsigned':
-                return 'unsigned ' + self.sz2tp[sz]
+                return f'unsigned {self.sz2tp[sz]}'
             else:
                 return self.sz2tp[sz]
 
@@ -193,9 +191,7 @@ class DWARFParser(object):
             self.id_to_name = {}
 
         elif kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
-                '"'
-            )
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
 
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
@@ -212,9 +208,7 @@ class DWARFParser(object):
                     self.vtypes[name] = [0, {}]
 
         elif kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
-                '"'
-            )
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
             if 'DW_AT_declaration' not in data:
@@ -231,9 +225,7 @@ class DWARFParser(object):
             self.id_to_name[statement_id] = data['DW_AT_type']
 
         elif kind == 'DW_TAG_enumeration_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
-                '"'
-            )
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
 
@@ -282,9 +274,7 @@ class DWARFParser(object):
         elif (
             kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_structure_type'
         ):
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
-                '"'
-            )
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
             try:
                 off = int(data['DW_AT_data_member_location'].split()[1])
             except:
@@ -311,9 +301,7 @@ class DWARFParser(object):
             self.vtypes[parent_name][1][name] = [off, memb_tp]
 
         elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip(
-                '"'
-            )
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
             self.vtypes[parent_name][1][name] = [0, data['DW_AT_type']]
 
         elif (
@@ -427,18 +415,13 @@ class DWARFParser(object):
         print("linux_types = {")
 
         for t in self.all_vtypes:
-            print("  '%s': [ %#x, {" % (t, self.all_vtypes[t][0]))
+            print(f"  '{t}': [ {self.all_vtypes[t][0]:#x}, {{")
             for m in sorted(
                 self.all_vtypes[t][1],
                 key=lambda m: self.all_vtypes[t][1][m][0],
             ):
                 print(
-                    "    '%s': [%#x, %s],"
-                    % (
-                        m,
-                        self.all_vtypes[t][1][m][0],
-                        self.all_vtypes[t][1][m][1],
-                    )
+                    f"    '{m}': [{self.all_vtypes[t][1][m][0]:#x}, {self.all_vtypes[t][1][m][1]}],"
                 )
             print("}],")
         print("}")
@@ -446,8 +429,7 @@ class DWARFParser(object):
         print("linux_gvars = {")
         for v in sorted(self.all_vars, key=lambda v: self.all_vars[v][0]):
             print(
-                "  '%s': [%#010x, %s],"
-                % (v, self.all_vars[v][0], self.all_vars[v][1])
+                f"  '{v}': [{self.all_vars[v][0]:#010x}, {self.all_vars[v][1]}],"
             )
         print("}")
 

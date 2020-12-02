@@ -47,24 +47,24 @@ class XPOverlay(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x1b\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x1b\x00")],
                     ],
                     'KDBGHeader': [
                         None,
                         [
                             'VolatilityMagic',
                             dict(
-                                value='\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02'
+                                value=b'\x00\x00\x00\x00\x00\x00\x00\x00KDBG\x90\x02'
                             ),
                         ],
                     ],
                     'HibrProcPage': [
                         None,
-                        ['VolatilityMagic', dict(value=0x2)],
+                        ['VolatilityMagic', dict(value=b'\x02')],
                     ],
                     'HibrEntryCount': [
                         None,
-                        ['VolatilityMagic', dict(value=0xFF)],
+                        ['VolatilityMagic', dict(value=b'\xff')],
                     ],
                 },
             ],

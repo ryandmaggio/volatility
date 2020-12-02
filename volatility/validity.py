@@ -17,11 +17,7 @@ class ValidityRoutines(object):
         :type valid_type: type
         """
         assert isinstance(value, valid_type), (
-            self.__class__.__name__
-            + " expected "
-            + valid_type.__name__
-            + ", not "
-            + type(value).__name__
+            f"{self.__class__.__name__} expected {valid_type.__name__}, not {type(value).__name__}"
         )
         return value
 
@@ -34,11 +30,7 @@ class ValidityRoutines(object):
         :type valid_class: class
         """
         assert issubclass(klass, valid_class), (
-            self.__class__.__name__
-            + " expected "
-            + valid_class.__name__
-            + ", not "
-            + klass.__name__
+            f"{self.__class__.__name__} expected {valid_class.__name__}, not {klass.__name__}"
         )
 
     def confirm(self, assertion, error):
@@ -46,7 +38,6 @@ class ValidityRoutines(object):
         if not assertion:
             if error is None:
                 error = (
-                    "An unspecified Assertion was not met in "
-                    + self.__class__.__name__
+                    f"An unspecified Assertion was not met in {self.__class__.__name__}"
                 )
             raise AssertionError(error)

@@ -43,12 +43,12 @@ MAX_DEBUG = 3
 
 def setup(level=0):
     """Sets up the global logging environment"""
-    formatstr = "%(levelname)-8s: %(name)-20s: %(message)s"
+    formatstr = "(%(name)-20s)[%(levelname)8s]: %(message)s"
     logging.basicConfig(format=formatstr)
     rootlogger = logging.getLogger('')
     rootlogger.setLevel(logging.DEBUG + 1 - level)
     for i in range(1, 9):
-        logging.addLevelName(logging.DEBUG - i, "DEBUG" + str(i))
+        logging.addLevelName(logging.DEBUG - i, f"DEBUG{i}")
 
 
 def debug(msg, level=1):

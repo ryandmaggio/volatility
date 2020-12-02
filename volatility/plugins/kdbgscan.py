@@ -49,7 +49,7 @@ class MultiStringFinderCheck(scan.ScannerCheck):
     def check(self, offset):
         verify = self.address_space.read(offset, self.maxlen)
         for match in self.needles:
-            if verify[: len(match)] == match:
+            if verify[:len(match)] == match:
                 return True
         return False
 
@@ -80,11 +80,11 @@ class KDBGScanner(scan.BaseScanner):
         oses = set()
         arches = set()
         for needle in needles:
-            header = str(needle).split('KDBG')
+            header = needle.split(b'KDBG')
             arches.add(header[0])
-            oses.add('KDBG' + header[1])
+            oses.add(b'KDBG' + header[1])
         self.checks = [
-            ("PoolTagCheck", {'tag': "KDBG"}),
+            ("PoolTagCheck", {'tag': b"KDBG"}),
             ("MultiPrefixFinderCheck", {'needles': arches}),
             ("MultiStringFinderCheck", {'needles': oses}),
         ]
@@ -141,7 +141,7 @@ class KDBGScan(common.AbstractWindowsCommand):
             self._config.update('PROFILE', p)
             buf = addrspace.BufferAddressSpace(self._config)
             if buf.profile.metadata.get('os', 'unknown') == 'windows':
-                proflens[p] = str(obj.VolMagic(buf).KDBGHeader)
+                proflens[p] = obj.VolMagic(buf).KDBGHeader.v()
                 maxlen = max(maxlen, len(proflens[p]))
                 if buf.profile.metadata.get(
                     'memory_model', '64bit'

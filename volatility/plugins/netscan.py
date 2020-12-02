@@ -37,8 +37,8 @@ AF_INET = 2
 AF_INET6 = 0x17
 
 # String representations of INADDR_ANY and INADDR6_ANY
-inaddr_any = utils.inet_ntop(socket.AF_INET, '\0' * 4)
-inaddr6_any = utils.inet_ntop(socket.AF_INET6, '\0' * 16)
+inaddr_any = utils.inet_ntop(socket.AF_INET, b'\x00' * 4)
+inaddr6_any = utils.inet_ntop(socket.AF_INET6, b'\x00' * 16)
 
 # --------------------------------------------------------------------------------
 # pool scanners
@@ -324,8 +324,8 @@ class Netscan(common.AbstractScanCommand):
         )
 
         for net_object, proto, laddr, lport, raddr, rport, state in data:
-            lendpoint = "{0}:{1}".format(laddr, lport)
-            rendpoint = "{0}:{1}".format(raddr, rport)
+            lendpoint = f"{laddr}:{lport}"
+            rendpoint = f"{raddr}:{rport}"
             pid = -1
             owner = ""
             if net_object.Owner != None:

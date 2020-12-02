@@ -35,7 +35,7 @@ class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
     """ This AS supports windows Crash Dump format """
 
     order = 30
-    dumpsig = 'PAGEDUMP'
+    dumpsig = b'PAGEDUMP'
     headertype = "_DMP_HEADER"
     headerpages = 1
     _long_struct = struct.Struct("=I")
@@ -101,6 +101,6 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
     """ This AS supports windows Crash Dump format """
 
     order = 30
-    dumpsig = 'PAGEDU64'
+    dumpsig = b'PAGEDU64'
     headertype = "_DMP_HEADER64"
     headerpages = 2

@@ -126,17 +126,11 @@ class PluginImporter(object):
                 try:
                     __import__(i)
                 except Exception as e:
-                    # print(i)
-                    # raise e
-                    print(
-                        "*** Failed to import "
-                        + i
-                        + " ("
-                        + str(e.__class__.__name__)
-                        + ": "
-                        + str(e)
-                        + ")"
-                    )
+                    print(i)
+                    raise e
+                    #print(
+                    #    f"*** Failed to import {i} ({e.__class__.__name__}: {e})"
+                    #)
                     # This is too early to have had the debug filter lowered to include debugging messages
                     debug.post_mortem(2)
 
@@ -177,9 +171,7 @@ def get_plugin_classes(cls, showall=False, lower=False):
                 result[name] = plugin
             else:
                 raise Exception(
-                    "Object {0} has already been defined by {1}".format(
-                        name, plugin
-                    )
+                    f"Object {name} has already been defined by {plugin}"
                 )
     return result
 

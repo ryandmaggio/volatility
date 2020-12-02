@@ -384,15 +384,10 @@ class Invalidator(object):
             # contain a key that's not in the other
             if k in state and v() != state[k]:
                 debug.debug(
-                    "Invaliding cache... {0} (Running) != {1} (Stored) on key {2}".format(
-                        v(), state[k], k
-                    )
+                    f"Invaliding cache... {v()} (Running) != {state[k]} (Stored) on key {k}"
                 )
-
                 raise InvalidCache(
-                    "Running environment inconsistant "
-                    "with pickled environment - "
-                    "invalidating cache."
+                    "Running environment inconsistant with pickled environment - invalidating cache."
                 )
 
     def __getstate__(self):
@@ -406,7 +401,7 @@ class Invalidator(object):
         for k, v in list(CACHE.invalidator.callbacks.items()):
             result[k] = v()
 
-        debug.debug("Pickling State signature: {0}".format(result))
+        debug.debug(f"Pickling State signature: {result}")
 
         return result
 
@@ -489,9 +484,7 @@ class CacheStorage(object):
             path = self.encode(url[len(config.LOCATION) :])
         else:
             raise exceptions.CacheRelativeURLException(
-                "Storing non relative URLs is not supported now ({0})".format(
-                    url
-                )
+                f"Storing non relative URLs is not supported now ({url})"
             )
 
         # Join together the bits we need, and abspath it to ensure it's right for the OS it's on
@@ -499,8 +492,8 @@ class CacheStorage(object):
             os.path.sep.join(
                 [
                     config.CACHE_DIRECTORY,
-                    os.path.basename(config.LOCATION) + ".cache",
-                    path + '.pickle',
+                    f"{os.path.basename(config.LOCATION)}.cache",
+                    f'{path}.pickle',
                 ]
             )
         )
@@ -510,7 +503,7 @@ class CacheStorage(object):
     def load(self, url):
         filename = self.filename(url)
 
-        debug.debug("Loading from {0}".format(filename))
+        debug.debug(f"Loading from {filename}")
         data = open(filename).read()
 
         debug.trace(level=3)
@@ -522,9 +515,7 @@ class CacheStorage(object):
             filename = self.filename(url)
         except exceptions.CacheRelativeURLException:
             debug.debug(
-                "NOT Dumping url {0} - relative URLs are not yet supported".format(
-                    url
-                )
+                f"NOT Dumping url {url} - relative URLs are not yet supported"
             )
             return
 
@@ -536,16 +527,14 @@ class CacheStorage(object):
         ## Ensure that the payload is flattened - i.e. all generators are converted to lists for pickling
         try:
             data = pickle.dumps(payload)
-            debug.debug("Dumping filename {0}".format(filename))
+            debug.debug(f"Dumping filename {filename}")
             fd = open(filename, 'w')
             fd.write(data)
             fd.close()
         except (pickle.PickleError, TypeError):
             # Do nothing if the pickle fails
             debug.debug(
-                "NOT Dumping filename {0} - contained a non-picklable class".format(
-                    filename
-                )
+                f"NOT Dumping filename {filename} - contained a non-picklable class"
             )
 
 
@@ -696,7 +685,7 @@ class Testable(object):
 
     ## This forces the test to be memoised with a key name derived from the class name
     @TestDecorator(
-        lambda self: "tests/unittests/{0}".format(self.__class__.__name__)
+        lambda self: f"tests/unittests/{self.__class__.__name__}"
     )
     def test(self):
         ## This forces iteration over all keys - this is required in order

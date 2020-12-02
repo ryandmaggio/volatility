@@ -46,9 +46,9 @@ class MachOAddressSpace(addrspace.AbstractRunBasedMemory):
 
         sig = base.read(0, 4)
 
-        if sig == '\xce\xfa\xed\xfe':
+        if sig == b'\xce\xfa\xed\xfe':
             self.bits = 32
-        elif sig == '\xcf\xfa\xed\xfe':
+        elif sig == b'\xcf\xfa\xed\xfe':
             self.bits = 64
         else:
             self.as_assert(0, "MachO Header signature invalid")

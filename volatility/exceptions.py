@@ -37,12 +37,9 @@ class AddrSpaceError(VolatilityException):
         self.reasons.append((driver, reason))
 
     def __str__(self):
-        result = (
-            VolatilityException.__str__(self) + "\nTried to open image as:\n"
-        )  # pylint: disable-msg=E1101
+        result = f"{VolatilityException.__str__(self)}\nTried to open image as:\n"
         for k, v in self.reasons:
-            result += " {0}: {1}\n".format(k, v)
-
+            result += f" {k}: {v}\n"
         return result
 
 

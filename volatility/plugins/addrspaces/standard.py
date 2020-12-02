@@ -48,9 +48,7 @@ def write_callback(option, _opt_str, _value, parser, *_args, **_kwargs):
         for _ in range(3):
             testphrase = "Yes, I want to enable write support"
             response = input(
-                "Write support requested.  Please type \""
-                + testphrase
-                + "\" below precisely (case-sensitive):\n"
+                f"Write support requested.  Please type \"{testphrase}\" below precisely (case-sensitive):\n"
             )
             if response == testphrase:
                 option.action = "store_true"
@@ -127,9 +125,9 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     def zread(self, addr, length):
         data = self.read(addr, length)
         if data is None:
-            data = "\x00" * length
+            data = b'\x00' * length
         elif len(data) != length:
-            data += "\x00" * (length - len(data))
+            data += b'\x00' * (length - len(data))
         return data
 
     def read_long(self, addr):

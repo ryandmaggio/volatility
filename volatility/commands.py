@@ -127,13 +127,11 @@ class Command(object):
                     debug.error("You must set a profile!")
 
             if self._config.PROFILE not in profs:
-                debug.error(
-                    "Invalid profile " + self._config.PROFILE + " selected"
-                )
+                debug.error(f"Invalid profile {self._config.PROFILE} selected")
+
             if not self.is_valid_profile(profs[self._config.PROFILE]()):
                 debug.error(
-                    "This command does not support the profile "
-                    + self._config.PROFILE
+                    f"This command does not support the profile {self._config.PROFILE}"
                 )
 
         # # Executing plugins is done in two stages - first we calculate
@@ -144,19 +142,15 @@ class Command(object):
         function_name = "render_{0}".format(self._config.OUTPUT)
         if not self._config.OUTPUT == "sqlite" and self._config.OUTPUT_FILE:
             out_file = (
-                '{0}_{1}.txt'.format(
-                    time.strftime('%Y%m%d%H%M%S'), plugin_name
-                )
+                f"{time.strftime('%Y%m%d%H%M%S')}_{plugin_name}.txt"
                 if self._config.OUTPUT_FILE == '.'
                 else self._config.OUTPUT_FILE
             )
             if os.path.exists(out_file):
                 debug.error(
-                    "File "
-                    + out_file
-                    + " already exists.  Cowardly refusing to overwrite it..."
+                    f"File {out_file} already exists.  Cowardly refusing to overwrite it..."
                 )
-            print('Outputting to: {0}'.format(out_file))
+            print(f"Outputting to: {out_file}")
             outfd = open(out_file, 'wb')
         else:
             outfd = sys.stdout
@@ -172,9 +166,7 @@ class Command(object):
                     result.append(b)
 
             print(
-                "Plugin {0} is unable to produce output in format {1}. Supported formats are {2}. Please send a feature request".format(
-                    self.__class__.__name__, self._config.OUTPUT, result
-                )
+                f"Plugin {self.__class__.__name__} is unable to produce output in format {self._config.OUTPUT}. Supported formats are {result}. Please send a feature request"
             )
             return
 
@@ -202,7 +194,7 @@ class Command(object):
             return spec.to_string()
 
         # Something went wrong
-        debug.warning("Unknown table format specification: " + code)
+        debug.warning(f"Unknown table format specification: {code}")
         return ""
 
     def _elide(self, string, length):
@@ -222,12 +214,12 @@ class Command(object):
                 debug.error("Cannot elide a string to length less than 5")
             even = (length + 1) % 2
             length = (length - 3) / 2
-            return string[: length + even] + "..." + string[-length:]
+            return f"{string[:length+even]}...{string[-length:]}"
 
     def format_value(self, value, fmt):
         """ Formats an individual field using the table formatting codes"""
         profile = addrspace.BufferAddressSpace(self._config).profile
-        return ("{0:" + self._formatlookup(profile, fmt) + "}").format(value)
+        return f"{value:{self._formatlookup(profile, fmt)}}"
 
     def table_header(self, outfd, title_format_list=None):
         """Table header renders the title row of a table
@@ -254,14 +246,14 @@ class Command(object):
             titlespec.align = spec.align if spec.align in "<>^" else "<"
 
             # Add this to the titles, rules, and formatspecs lists
-            titles.append(("{0:" + titlespec.to_string() + "}").format(k))
+            titles.append(f"{k:{titlespec.to_string()}}")
             rules.append("-" * titlespec.minwidth)
             self._formatlist.append(spec)
 
         # Write out the titles and line rules
         if outfd:
-            outfd.write(self.tablesep.join(titles) + "\n")
-            outfd.write(self.tablesep.join(rules) + "\n")
+            outfd.write(f"{self.tablesep.join(titles)}\n")
+            outfd.write(f"{self.tablesep.join(rules)}\n")
 
     def table_row(self, outfd, *args):
         """Outputs a single row of a table"""
@@ -271,11 +263,11 @@ class Command(object):
         for index in range(len(args)):
             spec = self._formatlist[index]
             result = self._elide(
-                ("{0:" + spec.to_string() + "}").format(args[index]),
+                f"{args[index]:{spec.to_string()}}",
                 spec.minwidth,
             )
             reslist.append(result)
-        outfd.write(self.tablesep.join(reslist) + "\n")
+        outfd.write(f"{self.tablesep.join(reslist)}\n")
 
     text_stock_renderers = {
         Hex: "#x",

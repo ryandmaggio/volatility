@@ -83,9 +83,7 @@ class String(obj.BaseObject):
         result = self.obj_vm.zread(self.obj_offset, self.length)
         if not result:
             return obj.NoneObject(
-                "Cannot read string length {0} at {1:#x}".format(
-                    self.length, self.obj_offset
-                )
+                f"Cannot read string length {self.length} at {self.obj_offset:#x}"
             )
         return result
 
@@ -100,7 +98,10 @@ class String(obj.BaseObject):
 
         Note: this effectively masks the NoneObject alert from .v()
         """
-        return str(self).encode('ascii', 'replace') or ""
+        value = self.v()
+        if isinstance(value, obj.NoneObject):
+            return ""
+        return value.decode('ascii', 'replace')
 
     def __unicode__(self):
         """This function returns the unicode encoding of the data retrieved by .v()
@@ -113,10 +114,13 @@ class String(obj.BaseObject):
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if str(self) == other:
             return 0
         return -1 if str(self) < other else 1
+
+    def __eq__(self, other):
+        return str(self) == other
 
     def __add__(self, other):
         """Set up mappings for concat"""
@@ -177,7 +181,7 @@ class Flags(obj.NativeType):
     def __getattr__(self, attr):
         maprange = self.maskmap.get(attr)
         if not maprange:
-            return obj.NoneObject("Mask {0} not known".format(attr))
+            return obj.NoneObject(f"Mask {attr} not known")
 
         bits = 2 ** maprange[1] - 1
         mask = bits << maprange[0]
@@ -236,7 +240,7 @@ class Enumeration(obj.NativeType):
         value = self.v()
         if value in list(self.choices.keys()):
             return self.choices[value]
-        return 'Unknown choice ' + str(value)
+        return f'Unknown choice {value}'
 
     def __format__(self, formatspec):
         return format(self.__str__(), formatspec)
@@ -266,21 +270,20 @@ class VolatilityDTB(obj.VolatilityMagic):
         )[-1]
         max_offset = last_range_start + last_range_size
         while data:
-            found = data.find(str(self.obj_parent.DTBSignature), 0)
+            found = data.find(self.obj_parent.DTBSignature.v(), 0)
             while found >= 0:
                 proc = obj.Object(
                     "_EPROCESS", offset=offset + found, vm=self.obj_vm
                 )
                 if (
-                    'Idle\x00\x00\x00\x00\x00\x00\x00\x00'
+                    b'Idle\x00\x00\x00\x00\x00\x00\x00\x00'
                     in proc.ImageFileName.v()
                     and int(proc.UniqueProcessId) == 0
                     and proc.Peb.v() in [None, 0]
                 ):
-
                     yield proc.Pcb.DirectoryTableBase.v()
 
-                found = data.find(str(self.obj_parent.DTBSignature), found + 1)
+                found = data.find(self.obj_parent.DTBSignature.v(), found + 1)
 
             offset += len(data)
             if offset >= max_offset:
@@ -313,7 +316,7 @@ class UnixTimeStamp(obj.NativeType):
                 # Only do dt.replace when dealing with UTC
                 dt = dt.replace(tzinfo=timefmt.UTC())
         except ValueError as e:
-            return obj.NoneObject("Datetime conversion failure: " + str(e))
+            return obj.NoneObject(f"Datetime conversion failure: {e}")
         return dt
 
     def __format__(self, formatspec):

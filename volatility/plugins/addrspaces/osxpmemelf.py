@@ -48,7 +48,7 @@ class OSXPmemELF(addrspace.AbstractRunBasedMemory):
         ## for ELF64, little-endian - ELFCLASS64 and ELFDATA2LSB
         ## for ELF32, little-endian - ELFCLASS32 and ELFDATA2LSB
         self.as_assert(
-            base.read(0, 6) in ['\x7fELF\x02\x01', '\x7fELF\x01\x01'],
+            base.read(0, 6) in [b'\x7fELF\x02\x01', b'\x7fELF\x01\x01'],
             "ELF Header signature invalid",
         )
 

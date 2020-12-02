@@ -69,7 +69,7 @@ class NoneObject(object):
 
     def __init__(self, reason='', strict=False):
         if not hasattr(sys, "frozen"):
-            debug.debug("None object instantiated: " + reason, 2)
+            debug.debug(f"None object instantiated: {reason}", 2)
         self.reason = reason
         self.strict = strict
         if strict:
@@ -79,13 +79,11 @@ class NoneObject(object):
         ## If we are strict we blow up here
         if self.strict:
             debug.error(
-                "Strict NoneObject string failure: {0} n{1}".format(
-                    self.reason, self.bt
-                )
+                f"Strict NoneObject string failure: {self.reason} n{self.bt}"
             )
             sys.exit(0)
         else:
-            debug.warning("NoneObject as string: {0}".format(self.reason))
+            debug.warning(f"NoneObject as string: {self.reason}")
 
         return ""
 
@@ -94,7 +92,7 @@ class NoneObject(object):
         return False
 
     def __repr__(self):
-        return "<NoneObject: " + self.reason + ">"
+        return f"<NoneObject: {self.reason}>"
 
     ## Behave like an empty set
     def __iter__(self):
@@ -193,16 +191,14 @@ def Object(theType, offset, vm, name=None, **kwargs):
     except InvalidOffsetError:
         ## If we cant instantiate the object here, we just error out:
         return NoneObject(
-            "Invalid Address 0x{0:08X}, instantiating {1}".format(
-                offset, name
-            ),
+            f"Invalid Address 0x{offset:08X}, instantiating {name}",
             strict=vm.profile.strict,
         )
 
     ## If we get here we have no idea what the type is supposed to be?
     ## This is a serious error.
     debug.warning(
-        "Cant find object {0} in profile {1}?".format(theType, vm.profile)
+        f"Cant find object {theType} in profile {vm.profile}?"
     )
 
 
@@ -230,9 +226,7 @@ class BaseObject(object):
 
         if not self.obj_vm.is_valid_address(self.obj_offset):
             raise InvalidOffsetError(
-                "Invalid Address 0x{0:08X}, instantiating {1}".format(
-                    offset, self.obj_name
-                )
+                f"Invalid Address 0x{offset:08X}, instantiating {self.obj_name}"
             )
 
     @property
@@ -289,9 +283,7 @@ class BaseObject(object):
         # Don't do a __nonzero__ check on proxied or things like '' will fail
         if proxied is None:
             raise AttributeError(
-                "Unable to resolve attribute {0} on {1}".format(
-                    attr, self.obj_name
-                )
+                f"Unable to resolve attribute {attr} on {self.obj_name}"
             )
 
         return getattr(proxied, attr)
@@ -339,14 +331,14 @@ class BaseObject(object):
         return hash(self.obj_name) ^ hash(self.obj_offset)
 
     def m(self, memname):
-        raise AttributeError("No member {0}".format(memname))
+        raise AttributeError(f"No member {memname}")
 
     def is_valid(self):
         return self.obj_vm.is_valid_address(self.obj_offset)
 
     def dereference(self):
         return NoneObject(
-            "Can't dereference {0}".format(self.obj_name),
+            f"Can't dereference {self.obj_name}",
             self.obj_vm.profile.strict,
         )
 
@@ -359,9 +351,7 @@ class BaseObject(object):
             )
         else:
             return NoneObject(
-                "Invalid offset {0} for dereferencing {1} as {2}".format(
-                    self.v(), self.obj_name, derefType
-                )
+                f"Invalid offset {self.v()} for dereferencing {self.obj_name} as {derefType}"
             )
 
     def cast(self, castString):
@@ -370,7 +360,7 @@ class BaseObject(object):
     def v(self):
         """Do the actual reading and decoding of this member"""
         return NoneObject(
-            "No value for {0}".format(self.obj_name),
+            f"No value for {self.obj_name}",
             self.obj_vm.profile.strict,
         )
 
@@ -381,9 +371,7 @@ class BaseObject(object):
         return str(self.v())
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(
-            self.__class__.__name__, self.obj_name or '', self.obj_offset
-        )
+        return f"[{self.__class__.__name__} {self.obj_name or ''}] @ 0x{self.obj_offset:08X}"
 
     def d(self):
         """Display diagnostic information"""
@@ -416,9 +404,7 @@ class BaseObject(object):
         except KeyError:
             debug.post_mortem()
             raise pickle.PicklingError(
-                "Object {0} at 0x{1:08x} cannot be cached because of missing attribute {2}".format(
-                    self.obj_name, self.obj_offset, arg
-                )
+                f"Object {self.obj_name} at 0x{self.obj_offset:08x} cannot be cached because of missing attribute {arg}"
             )
 
         return result
@@ -429,9 +415,7 @@ class BaseObject(object):
         new_object = Object(**state)
         if not new_object:
             raise pickle.UnpicklingError(
-                "Object {0} at 0x{1:08x} invalid".format(
-                    state['name'], state['offset']
-                )
+                f"Object {state['name']} at 0x{state['offset']:08x} invalid"
             )
 
         ## (Scudette) Im not sure how much of a hack this is - we
@@ -547,18 +531,14 @@ class NativeType(BaseObject, NumericProxyMixIn):
         data = self.obj_vm.read(self.obj_offset, self.size())
         if not data:
             return NoneObject(
-                "Unable to read {0} bytes from {1}".format(
-                    self.size(), self.obj_offset
-                )
+                f"Unable to read {self.size()} bytes from {self.obj_offset}"
             )
 
         try:
             (val,) = struct.unpack(self.format_string, data)
         except struct.error:
             return NoneObject(
-                "struct.error {0} bytes from {1}".format(
-                    self.size(), self.obj_offset
-                )
+                f"struct.error {self.size()} bytes from {self.obj_offset}"
             )
 
         # Ensure that integer NativeTypes are converted to longs
@@ -573,15 +553,10 @@ class NativeType(BaseObject, NumericProxyMixIn):
         return self.obj_name
 
     def __repr__(self):
-        return " [{0}]: {1}".format(self._vol_theType, self.v())
+        return f" [{self._vol_theType}]: {self.v()}"
 
     def d(self):
-        return " [{0} {1} | {2}]: {3}".format(
-            self.__class__.__name__,
-            self.obj_name or '',
-            self._vol_theType,
-            self.v(),
-        )
+        return f" [{self.__class__.__name__} {self.obj_name or ''} | {self._vol_theType}]: {self.v()}"
 
 
 class BitField(NativeType):
@@ -660,27 +635,23 @@ class Pointer(NativeType):
             return result
         else:
             return NoneObject(
-                "Pointer {0} invalid".format(self.obj_name),
+                f"Pointer {self.obj_name} invalid",
                 self.obj_vm.profile.strict,
             )
 
     def cdecl(self):
-        return "Pointer {0}".format(self.v())
+        return f"Pointer {self.v()}"
 
     def __bool__(self):
         return bool(self.is_valid())
 
     def __repr__(self):
         target = self.dereference()
-        return "<{0} pointer to [0x{1:08X}]>".format(
-            target.__class__.__name__, self.v()
-        )
+        return f"<{target.__class__.__name__} pointer to [0x{self.v():08X}]>"
 
     def d(self):
         target = self.dereference()
-        return "<{0} {1} pointer to [0x{2:08X}]>".format(
-            target.__class__.__name__, self.obj_name or '', self.v()
-        )
+        return f"<{target.__class__.__name__} {self.obj_name or ''} pointer to [0x{self.v():08X}]>"
 
     def __getattr__(self, attr):
         ## We just dereference ourself
@@ -720,15 +691,13 @@ class Void(NativeType):
         )
 
     def cdecl(self):
-        return "0x{0:08X}".format(self.v())
+        return f"0x{self.v():08X}"
 
     def __repr__(self):
-        return "Void (0x{0:08X})".format(self.v())
+        return f"Void (0x{self.v():08X})"
 
     def d(self):
-        return "Void[{0} {1}] (0x{2:08X})".format(
-            self.__class__.__name__, self.obj_name or '', self.v()
-        )
+        return f"Void[{self.__class__.__name__} {self.obj_name or ''}] (0x{self.v():08X})"
 
     def __bool__(self):
         return bool(self.dereference())
@@ -798,13 +767,11 @@ class Array(BaseObject):
 
     def __repr__(self):
         result = [x.__str__() for x in self]
-        return "<Array {0}>".format(",".join(result))
+        return f"<Array {','.join(result)}>"
 
     def d(self):
         result = [x.__str__() for x in self]
-        return "<Array[{0} {1}] {2}>".format(
-            self.__class__.__name__, self.obj_name or '', ",".join(result)
-        )
+        return f"<Array[{self.__class__.__name__} {self.obj_name or ''}] {','.join(result)}>"
 
     def __eq__(self, other):
         # Check we can carry out further tests for equality/inequality
@@ -843,11 +810,11 @@ class Array(BaseObject):
                 vm=self.obj_vm,
                 native_vm=self.obj_native_vm,
                 parent=self,
-                name="{0} {1}".format(self.obj_name, pos),
+                name=f"{self.obj_name} {pos}",
             )
         else:
             return NoneObject(
-                "Array {0} invalid member {1}".format(self.obj_name, pos),
+                f"Array {self.obj_name} invalid member {pos}",
                 self.obj_vm.profile.strict,
             )
 
@@ -878,9 +845,7 @@ class CType(BaseObject):
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE, for example) are generated without members
             debug.debug(
-                "No members specified for CType {0} named {1}".format(
-                    theType, name
-                ),
+                f"No members specified for CType {theType} named {name}",
                 level=2,
             )
             members = {}
@@ -894,14 +859,12 @@ class CType(BaseObject):
         return self.struct_size
 
     def __repr__(self):
-        return "[{0} {1}] @ 0x{2:08X}".format(
-            self.__class__.__name__, self.obj_name or '', self.obj_offset
-        )
+        return f"[{self.__class__.__name__} {self.obj_name or ''}] @ 0x{self.obj_offset:08X}"
 
     def d(self):
         result = self.__repr__() + "\n"
         for k in list(self.members.keys()):
-            result += " {0} -\n {1}\n".format(k, self.m(k))
+            result += f" {k} -\n {self.m(k)}\n"
 
         return result
 
@@ -913,22 +876,23 @@ class CType(BaseObject):
         return int(self.obj_offset)
 
     def m(self, attr):
+        #print(f"obj:m:{attr}")
         if attr in self.members:
             # Allow the element to be a callable rather than a list - this is
             # useful for aliasing member names
             element = self.members[attr]
             if callable(element):
+                #print(f"obj:m:{attr}:calling:{element}")
                 return element(self)
 
+            #print(f"obj:m:{attr}:assigning:{element}")
             offset, cls = element
         elif attr.find('__') > 0 and attr[attr.find('__') :] in self.members:
             offset, cls = self.members[attr[attr.find('__') :]]
         else:
             ## hmm - tough choice - should we raise or should we not
-            # return NoneObject("Struct {0} has no member {1}".format(self.obj_name, attr))
-            raise AttributeError(
-                "Struct {0} has no member {1}".format(self.obj_name, attr)
-            )
+            # return NoneObject(f"Struct {self.obj_name} has no member {attr}")
+            raise AttributeError(f"Struct {self.obj_name} has no member {attr}")
 
         if callable(offset):
             ## If offset is specified as a callable its an absolute
@@ -969,11 +933,11 @@ class CType(BaseObject):
             obj = self.m(attr)
             if hasattr(obj, 'write'):
                 if not obj.write(value):
-                    raise ValueError("Error writing value to member " + attr)
+                    raise ValueError(f"Error writing value to member {attr}")
                 return
         # If you hit this, consider using obj.newattr('attr', value)
         raise ValueError(
-            "Attribute " + attr + " was set after object initialization"
+            f"Attribute {attr} was set after object initialization"
         )
 
 
@@ -1010,7 +974,8 @@ class VolatilityMagic(BaseObject):
             return self.value
 
     def __str__(self):
-        return self.v()
+        raise RuntimeError("fix needed use obj.v() instead of str(obj)")
+        #return self.v()
 
     def get_suggestions(self):
         """Returns a list of possible suggestions for the value
@@ -1147,9 +1112,7 @@ class Profile(object):
             if not modname.startswith("Abstract") and i != ProfileModification:
                 if modname in mods:
                     raise RuntimeError(
-                        "Duplicate profile modification name {0} found".format(
-                            modname
-                        )
+                        f"Duplicate profile modification name {modname} found"
                     )
                 mods[instance.__class__.__name__] = instance
 
@@ -1161,11 +1124,11 @@ class Profile(object):
             if not mod:
                 # Note, this does not allow for optional dependencies
                 raise RuntimeError(
-                    "No concrete ProfileModification found for " + modname
+                    f"No concrete ProfileModification found for {modname}"
                 )
             if mod.check(self):
                 debug.debug(
-                    "Applying modification from " + mod.__class__.__name__
+                    f"Applying modification from {mod.__class__.__name__}"
                 )
                 self._mods.append(mod.__class__.__name__)
                 mod.modification(self)
@@ -1259,7 +1222,7 @@ class Profile(object):
         for k, v in list(overlay.items()):
             if k not in self.vtypes:
                 debug.warning(
-                    "Overlay structure {0} not present in vtypes".format(k)
+                    f"Overlay structure {k} not present in vtypes"
                 )
             else:
                 self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
@@ -1369,7 +1332,7 @@ class Profile(object):
         # Check there's no dependencies left, if there are we've got a cycle
         if data:
             debug.warning(
-                "A cyclic dependency exists amongst {0}".format(data)
+                f"A cyclic dependency exists amongst {data}"
             )
             raise StopIteration
 
@@ -1404,9 +1367,7 @@ class Profile(object):
                 target = typeList[1]
             except IndexError:
                 raise RuntimeError(
-                    "Syntax Error in pointer type defintion for name {0}".format(
-                        name
-                    )
+                    f"Syntax Error in pointer type defintion for name {name}"
                 )
 
             return Curry(
@@ -1422,9 +1383,7 @@ class Profile(object):
                 target = typeList[1]
             except IndexError:
                 raise RuntimeError(
-                    "Syntax Error in pointer type defintion for name {0}".format(
-                        name
-                    )
+                    f"Syntax Error in pointer type defintion for name {name}"
                 )
 
             return Curry(
@@ -1497,9 +1456,7 @@ class Profile(object):
                 members[k] = v
             elif v[0] == None:
                 debug.warning(
-                    "{0} has no offset in object {1}. Check that vtypes has a concrete definition for it.".format(
-                        k, cname
-                    )
+                    f"{k} has no offset in object {cname}. Check that vtypes has a concrete definition for it."
                 )
             else:
                 members[k] = (v[0], self._list_to_type(k, v[1], self.vtypes))
