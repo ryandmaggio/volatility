@@ -191,7 +191,9 @@ class DWARFParser(object):
             self.id_to_name = {}
 
         elif kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip(
+                '"'
+            )
 
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
@@ -208,7 +210,9 @@ class DWARFParser(object):
                     self.vtypes[name] = [0, {}]
 
         elif kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip(
+                '"'
+            )
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
             if 'DW_AT_declaration' not in data:
@@ -225,7 +229,9 @@ class DWARFParser(object):
             self.id_to_name[statement_id] = data['DW_AT_type']
 
         elif kind == 'DW_TAG_enumeration_type':
-            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip(
+                '"'
+            )
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
 
@@ -274,7 +280,9 @@ class DWARFParser(object):
         elif (
             kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_structure_type'
         ):
-            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip(
+                '"'
+            )
             try:
                 off = int(data['DW_AT_data_member_location'].split()[1])
             except:
@@ -301,7 +309,9 @@ class DWARFParser(object):
             self.vtypes[parent_name][1][name] = [off, memb_tp]
 
         elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip('"')
+            name = data.get('DW_AT_name', f"__unnamed_{statement_id}").strip(
+                '"'
+            )
             self.vtypes[parent_name][1][name] = [0, data['DW_AT_type']]
 
         elif (

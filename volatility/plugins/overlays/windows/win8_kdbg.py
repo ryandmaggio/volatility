@@ -291,7 +291,8 @@ class VolatilityKDBG(obj.VolatilityMagic):
         """Generates a list of possible KDBG structure locations"""
 
         if not has_distorm:
-            raise StopIteration("The distorm3 Python library is required")
+            print("The distorm3 Python library is required")
+            return  # previously raise StopIteration
 
         overlap = 20
         offset = 0

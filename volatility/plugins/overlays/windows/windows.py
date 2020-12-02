@@ -45,7 +45,7 @@ windows_overlay = {
                 0x0,
                 [
                     'VolatilityMagic',
-                    dict(value="Volatility DTBSignature unspecified"),
+                    dict(value=b"Volatility DTBSignature unspecified"),
                 ],
             ],
             'KUSER_SHARED_DATA': [
@@ -941,10 +941,10 @@ class _TOKEN(obj.CType):
                 sid = sa.Sid.dereference_as('_SID')
                 # catch invalid pointers (UserAndGroupCount is too high)
                 if sid == None:
-                    raise StopIteration
+                    return  # previously raise StopIteration
                 # this mimics the windows API IsValidSid
                 if sid.Revision & 0xF != 1 or sid.SubAuthorityCount > 15:
-                    raise StopIteration
+                    return  # previously raise StopIteration
                 id_auth = ""
                 for i in sid.IdentifierAuthority.Value:
                     id_auth = i
@@ -1054,7 +1054,7 @@ class _HANDLE_TABLE(obj.CType):
         # be valid, leading to successful instantiation of a handle array at
         # address zero, and lots of wasted resources from then on. stop it here.
         if offset == 0:
-            raise StopIteration
+            return  # previously raise StopIteration
 
         table = obj.Object(
             "Array",
@@ -1124,7 +1124,8 @@ class _HANDLE_TABLE(obj.CType):
         if hasattr(magic, 'ObHeaderCookie'):
             cookie = magic.ObHeaderCookie.v()
             if not cookie:
-                raise StopIteration("Cannot find nt!ObHeaderCookie")
+                print("Cannot find nt!ObHeaderCookie")
+                return  # previously raise StopIteration
 
         # This should work equally for 32 and 64 bit systems
         LEVEL_MASK = 7
@@ -1347,7 +1348,7 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
                 pd = self.obj_vm.dtb
             if self.obj_vm.vtop(pde_base) == pd:
                 yield True
-                raise StopIteration
+                return  # previously raise StopIteration
 
         except addrspace.ASAssertionError as _e:
             pass
@@ -1358,7 +1359,7 @@ class VolatilityIA32ValidAS(obj.VolatilityMagic):
         if (self.obj_vm.vtop(0xFFDF0000)) == (self.obj_vm.vtop(0x7FFE0000)):
             if self.obj_vm.vtop(0xFFDF0000) != None:
                 yield True
-                raise StopIteration
+                return  # previously raise StopIteration
         debug.debug("Failed to pass the labarum_x Valid IA32 AS test", 3)
 
         yield False
@@ -1371,7 +1372,7 @@ class VolatilityAMD64ValidAS(obj.VolatilityMagic):
                 self.obj_vm.vtop(0x7FFE0000)
             ):
                 yield True
-                raise StopIteration
+                return  # previously raise StopIteration
             if (
                 obj.Object(
                     "_KUSER_SHARED_DATA",
@@ -1381,7 +1382,7 @@ class VolatilityAMD64ValidAS(obj.VolatilityMagic):
                 == 0x7FFEFFFF
             ):
                 yield True
-                raise StopIteration
+                return  # previously raise StopIteration
         yield False
 
 

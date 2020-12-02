@@ -111,7 +111,6 @@ class AMD64PagedMemory(paged.AbstractWritablePagedMemory):
         This method checks to make sure the address space is being
         used with a supported profile.
         """
-        debug.debug(f"AMD64PagedMemory:profile.metadata:{profile.metadata}")
         return (
             profile.metadata.get('memory_model', '32bit') == '64bit'
             or profile.metadata.get('os', 'Unknown').lower() == 'mac'
@@ -251,7 +250,6 @@ class AMD64PagedMemory(paged.AbstractWritablePagedMemory):
         Page Directory, and Page Table to determine which pages
         are accessible.
         """
-
         # read the full pml4
         pml4 = self.base.read(self.dtb & 0xFFFFFFFFFF000, 0x200 * 8)
         if pml4 is None:
@@ -355,7 +353,9 @@ class WindowsAMD64PagedMemory(AMD64PagedMemory):
         This method checks to make sure the address space is being
         used with a Windows profile.
         """
-        debug.debug(f"WindowsAMD64PagedMemory:profile.metadata:{profile.metadata}")
+        debug.debug(
+            f"WindowsAMD64PagedMemory:profile.metadata:{profile.metadata}"
+        )
         valid = AMD64PagedMemory.is_valid_profile(self, profile)
         return (
             valid
@@ -384,7 +384,9 @@ class SkipDuplicatesAMD64PagedMemory(WindowsAMD64PagedMemory):
         """
         This address space should only be used with recent Windows 8/10 profiles
         """
-        debug.debug(f"SkipDuplicatesAMD64PagedMemory:profile.metadata:{profile.metadata}")
+        debug.debug(
+            f"SkipDuplicatesAMD64PagedMemory:profile.metadata:{profile.metadata}"
+        )
         valid = WindowsAMD64PagedMemory.is_valid_profile(self, profile)
         major = profile.metadata.get('major', 0)
         minor = profile.metadata.get('minor', 0)
@@ -405,7 +407,9 @@ class LinuxAMD64PagedMemory(AMD64PagedMemory):
         This method checks to make sure the address space is being
         used with a Linux profile.
         """
-        debug.debug(f"LinuxAMD64PagedMemory:profile.metadata:{profile.metadata}")
+        debug.debug(
+            f"LinuxAMD64PagedMemory:profile.metadata:{profile.metadata}"
+        )
         valid = AMD64PagedMemory.is_valid_profile(self, profile)
         return (
             valid and profile.metadata.get('os', 'Unknown').lower() == 'linux'

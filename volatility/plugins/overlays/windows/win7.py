@@ -70,7 +70,7 @@ class Win7x86DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x26\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x26\x00")],
                     ],
                 },
             ]
@@ -94,7 +94,7 @@ class Win7x64DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x58\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x58\x00")],
                     ],
                 },
             ]

@@ -657,7 +657,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         try:
             data_dir = self.import_dir()
         except ValueError as why:
-            raise StopIteration(why)
+            print(why)
+            return  # previously raise StopIteration
 
         i = 0
 
@@ -696,7 +697,8 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         try:
             data_dir = self.export_dir()
         except ValueError as why:
-            raise StopIteration(why)
+            print(why)
+            return  # previously raise StopIteration
 
         expdir = obj.Object(
             '_IMAGE_EXPORT_DIRECTORY',
@@ -1071,14 +1073,15 @@ class VerStruct(obj.CType):
                 "VerStruct", offset=offset, vm=self.obj_vm, parent=self
             )
             if item.Length < 1 or item.get_key() == None:
-                raise StopIteration(
-                    "Could not recover a key for a child at offset {0}".format(
-                        item.obj_offset
-                    )
+                print(
+                    f"Could not recover a key for a child at offset {item.obj_offset}"
                 )
+                return  # previously raise StopIteration
+
             yield item.get_key(), item.get_children()
             offset = self.offset_pad(offset + item.Length)
-        raise StopIteration("No children")
+        print("No children")
+        return  # previously raise StopIteration
 
     def display_unicode(self, string):
         """Renders a UTF16 string"""
@@ -1111,7 +1114,8 @@ class _VS_VERSION_INFO(VerStruct):
     def get_children(self):
         """Recurses through the children of a Version Info records"""
         if not self.FileInfo:
-            raise StopIteration("No children")
+            print("No children")
+            return  # previously raise StopIteration
         offset = self.offset_pad(self.FileInfo.obj_offset + self.ValueLength)
         return self._recurse_children(offset)
 
@@ -1248,7 +1252,7 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.CType):
             vm=vm,
             parent=parent,
             *args,
-            **kwargs
+            **kwargs,
         )
 
     def get_entries(self):

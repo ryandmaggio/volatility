@@ -37,7 +37,9 @@ class AddrSpaceError(VolatilityException):
         self.reasons.append((driver, reason))
 
     def __str__(self):
-        result = f"{VolatilityException.__str__(self)}\nTried to open image as:\n"
+        result = (
+            f"{VolatilityException.__str__(self)}\nTried to open image as:\n"
+        )
         for k, v in self.reasons:
             result += f" {k}: {v}\n"
         return result

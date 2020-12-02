@@ -91,7 +91,7 @@ class IA32PagedMemory(paged.AbstractWritablePagedMemory):
             dtb=dtb,
             skip_as_check=skip_as_check,
             *args,
-            **kwargs
+            **kwargs,
         )
 
     def is_valid_profile(self, profile):

@@ -22,6 +22,7 @@ import volatility.addrspace as addrspace
 import volatility.debug as debug
 import volatility.obj as obj
 
+
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     """Class to handle all the details of a paged virtual address space
 
@@ -50,12 +51,10 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         )
 
         self.dtb = dtb or self.load_dtb()
-        print(f"AbstractPagedMemory:self.dtb:{self.dtb}")
         # No need to set the base or dtb, it's already been by the inherited class
 
         self.as_assert(self.dtb != None, "No valid DTB found")
 
-        print(f"dtb seems valid!")
         if not skip_as_check:
             volmag = obj.VolMagic(self)
             if hasattr(volmag, self.checkname):
@@ -113,12 +112,11 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
 
             ## Try to be lazy and see if someone else found dtb for
             ## us:
-            return self.base.dtb
+            dtb = self.base.dtb
+            return dtb
         except AttributeError:
             ## Ok so we need to find our dtb ourselves:
-            print("Looking for DTB using brute force!")
             dtb = obj.VolMagic(self.base).DTB.v()
-            print(f"Done looking DTB: {dtb}")
             if dtb:
                 ## Make sure to save dtb for other AS's
                 ## Will this have an effect on following ASes attempts if this fails?
@@ -148,6 +146,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
 
     def get_available_addresses(self):
         """A generator that returns (addr, size) for each valid address block"""
+        debug.debug("AbstractPagedMemory:get_available_addresses:entering")
         runLength = None
         currentOffset = None
         for (offset, size) in self.get_available_pages():
@@ -163,7 +162,7 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
                     currentOffset = offset
         if runLength != None and currentOffset != None:
             yield (currentOffset, runLength)
-        raise StopIteration
+        return  # previously raise StopIteration
 
     def is_valid_address(self, vaddr):
         """Returns whether a virtual address is valid"""
@@ -214,7 +213,7 @@ class AbstractWritablePagedMemory(AbstractPagedMemory):
             buf = buf[datalen:]
             position += datalen
             remaining -= datalen
-            assert vaddr + length == position + remaining, (
-                f"Address + length != position + remaining ({hex(vaddr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
-            )
+            assert (
+                vaddr + length == position + remaining
+            ), f"Address + length != position + remaining ({hex(vaddr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
         return True

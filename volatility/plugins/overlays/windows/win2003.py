@@ -116,7 +116,7 @@ class Win2003SP0x86DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x1b\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x1b\x00")],
                     ]
                 },
             ]
@@ -140,7 +140,7 @@ class Win2003x86DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x1e\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x1e\x00")],
                     ]
                 },
             ]
@@ -168,7 +168,7 @@ class Win2003x64DTB(obj.ProfileModification):
                     ],
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x2e\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x2e\x00")],
                     ],
                 },
             ]

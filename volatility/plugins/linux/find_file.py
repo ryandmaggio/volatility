@@ -466,7 +466,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
         file_size = inode.i_size
 
         if not inode.is_valid() or file_size == None:
-            raise StopIteration
+            return  # previously raise StopIteration
 
         extra = file_size % 4096
         idxs = file_size / 4096
@@ -476,7 +476,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
             idxs = idxs + 1
 
         if idxs > 1000000000:
-            raise StopIteration
+            return  # previously raise StopIteration
 
         for idx in range(0, idxs):
             data = self.get_page_contents(inode, idx)

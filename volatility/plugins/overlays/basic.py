@@ -46,7 +46,7 @@ class String(obj.BaseObject):
         length=1,
         parent=None,
         profile=None,
-        **kwargs
+        **kwargs,
     ):
 
         ## Allow length to be a callable:
@@ -150,7 +150,7 @@ class Flags(obj.NativeType):
         bitmap=None,
         maskmap=None,
         target="unsigned long",
-        **kwargs
+        **kwargs,
     ):
         self.bitmap = bitmap or {}
         self.maskmap = maskmap or {}
@@ -224,7 +224,7 @@ class Enumeration(obj.NativeType):
         parent=None,
         choices=None,
         target="unsigned long",
-        **kwargs
+        **kwargs,
     ):
         self.choices = choices or {}
         self.target = target

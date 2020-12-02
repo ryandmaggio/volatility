@@ -351,7 +351,7 @@ class Win8x86DTB(obj.ProfileModification):
                             None,
                             [
                                 'VolatilityMagic',
-                                dict(value="\x03\x00\x28\x00"),
+                                dict(value=b"\x03\x00\x28\x00"),
                             ],
                         ],
                     },
@@ -408,7 +408,7 @@ class Win8x64DTB(obj.ProfileModification):
                             None,
                             [
                                 'VolatilityMagic',
-                                dict(value="\x03\x00\xb2\x00"),
+                                dict(value=b"\x03\x00\xb2\x00"),
                             ],
                         ],
                     },

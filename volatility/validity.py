@@ -16,9 +16,9 @@ class ValidityRoutines(object):
         :param valid_type: The type against which to validate
         :type valid_type: type
         """
-        assert isinstance(value, valid_type), (
-            f"{self.__class__.__name__} expected {valid_type.__name__}, not {type(value).__name__}"
-        )
+        assert isinstance(
+            value, valid_type
+        ), f"{self.__class__.__name__} expected {valid_type.__name__}, not {type(value).__name__}"
         return value
 
     def class_check(self, klass, valid_class):
@@ -29,15 +29,13 @@ class ValidityRoutines(object):
         :param valid_class: Valid class against which to check class validity
         :type valid_class: class
         """
-        assert issubclass(klass, valid_class), (
-            f"{self.__class__.__name__} expected {valid_class.__name__}, not {klass.__name__}"
-        )
+        assert issubclass(
+            klass, valid_class
+        ), f"{self.__class__.__name__} expected {valid_class.__name__}, not {klass.__name__}"
 
     def confirm(self, assertion, error):
         """Acts like an assertion, but will not be disabled when __debug__ is disabled"""
         if not assertion:
             if error is None:
-                error = (
-                    f"An unspecified Assertion was not met in {self.__class__.__name__}"
-                )
+                error = f"An unspecified Assertion was not met in {self.__class__.__name__}"
             raise AssertionError(error)

@@ -84,7 +84,8 @@ class VerInfo(procdump.ProcDump):
             )
             if pefile.is_valid():
                 yield None, pefile
-            raise StopIteration
+
+            return  # previously raise StopIteration
 
         tasks = win32.tasks.pslist(addr_space)
 

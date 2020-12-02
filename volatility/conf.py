@@ -373,7 +373,9 @@ class ConfObject(object):
         self.docstrings[normalized_option] = args.get('help', None)
 
         if short_option:
-            self.optparser.add_option(f"-{short_option}", f"--{option}", **args)
+            self.optparser.add_option(
+                f"-{short_option}", f"--{option}", **args
+            )
         else:
             self.optparser.add_option(f"--{option}", **args)
 

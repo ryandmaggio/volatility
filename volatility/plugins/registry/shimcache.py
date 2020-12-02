@@ -322,7 +322,7 @@ class ShimCache(common.AbstractWindowsCommand):
         data_raw = regapi.reg_get_value('system', key, "AppCompatCache")
         if data_raw == None or len(data_raw) < 0x1C:
             debug.warning("No ShimCache data found")
-            raise StopIteration
+            return  # previously raise StopIteration
 
         bufferas = addrspace.BufferAddressSpace(
             addr_space.get_config(), data=data_raw
@@ -330,7 +330,7 @@ class ShimCache(common.AbstractWindowsCommand):
         shimdata = obj.Object("ShimRecords", offset=0, vm=bufferas)
         if shimdata == None:
             debug.warning("No ShimCache data found")
-            raise StopIteration
+            return  # previously raise StopIteration
 
         if shimdata.Magic not in [0xDEADBEEF, 0xBADC0FFE, 0xBADC0FEE]:
             debug.warning(
@@ -338,7 +338,7 @@ class ShimCache(common.AbstractWindowsCommand):
                     shimdata.Magic
                 )
             )
-            raise StopIteration
+            return  # previously raise StopIteration
 
         for e in shimdata.Entries:
             if xp:

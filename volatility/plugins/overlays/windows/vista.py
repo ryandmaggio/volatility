@@ -19,11 +19,11 @@
 #
 
 """
-@author:       The Volatility Foundation 
+@author:       The Volatility Foundation
 @license:      GNU General Public License 2.0
 @contact:      awalters@4tphi.net
 
-This file provides support for Windows Vista. 
+This file provides support for Windows Vista.
 """
 
 # pylint: disable-msg=C0111
@@ -102,7 +102,7 @@ class Vistax86DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x20\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x20\x00")],
                     ],
                 },
             ]
@@ -126,7 +126,7 @@ class Vistax64DTB(obj.ProfileModification):
                 {
                     'DTBSignature': [
                         None,
-                        ['VolatilityMagic', dict(value="\x03\x00\x30\x00")],
+                        ['VolatilityMagic', dict(value=b"\x03\x00\x30\x00")],
                     ],
                 },
             ]

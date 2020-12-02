@@ -470,7 +470,7 @@ class TrueCryptPassphrase(common.AbstractWindowsCommand):
                 break
 
         if not data_section:
-            raise StopIteration
+            return  # previously raise StopIteration
 
         base = sec.VirtualAddress + module_base
         size = sec.Misc.VirtualSize

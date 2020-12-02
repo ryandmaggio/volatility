@@ -96,7 +96,7 @@ def display_datetime(dt, custom_tz=None):
                 return time.strftime(timeformat, time.localtime(secs))
             else:
                 dt = dt.astimezone(config.tz)
-    return (f"{dt:{timeformat}}")
+    return f"{dt:{timeformat}}"
 
 
 def tz_from_string(_option, _opt_str, value, parser):

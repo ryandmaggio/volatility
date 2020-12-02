@@ -183,7 +183,8 @@ class SSDT(common.AbstractWindowsCommand):
             ntos = list(modules.lsmod(addr_space))[0]
             func_rva = ntos.getprocaddress("KeAddSystemServiceTable")
             if func_rva == None:
-                raise StopIteration("Cannot locate KeAddSystemServiceTable")
+                print("Cannot locate KeAddSystemServiceTable")
+                return  # previously raise StopIteration()
             KeAddSystemServiceTable = ntos.DllBase + func_rva
             for table_addr in find_tables(
                 ntos.DllBase, KeAddSystemServiceTable, addr_space

@@ -128,9 +128,9 @@ class PluginImporter(object):
                 except Exception as e:
                     print(i)
                     raise e
-                    #print(
+                    # print(
                     #    f"*** Failed to import {i} ({e.__class__.__name__}: {e})"
-                    #)
+                    # )
                     # This is too early to have had the debug filter lowered to include debugging messages
                     debug.post_mortem(2)
 

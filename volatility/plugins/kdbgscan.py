@@ -49,7 +49,7 @@ class MultiStringFinderCheck(scan.ScannerCheck):
     def check(self, offset):
         verify = self.address_space.read(offset, self.maxlen)
         for match in self.needles:
-            if verify[:len(match)] == match:
+            if verify[: len(match)] == match:
                 return True
         return False
 

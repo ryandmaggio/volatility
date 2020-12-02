@@ -71,7 +71,7 @@ class _MM_SESSION_SPACE(obj.CType):
         version = (metadata.get("major", 0), metadata.get("minor", 0))
 
         if version >= (6, 2):
-            raise StopIteration
+            return  # previously raise StopIteration
         else:
             for i in self.ImageList.list_of_type(
                 "_IMAGE_ENTRY_IN_SESSION", "Link"
@@ -487,8 +487,8 @@ class tagDESKTOP(tagWINDOWSTATION):
     ):  # pylint: disable-msg=W0622
         """Traverses windows in their Z order, bottom to top.
 
-        @param win: an HWND to start. Usually this is the desktop 
-        window currently in focus. 
+        @param win: an HWND to start. Usually this is the desktop
+        window currently in focus.
 
         @param filter: a callable (usually lambda) to use for filtering
         the results. See below for examples:
@@ -504,7 +504,7 @@ class tagDESKTOP(tagWINDOWSTATION):
         filter = lambda x : x.head.pti.pEThread.Cid.UniqueThread == 0x1020
 
         # only print visible windows
-        filter = lambda x : 'WS_VISIBLE' not in x.get_flags() 
+        filter = lambda x : 'WS_VISIBLE' not in x.get_flags()
         """
         seen = set()
         wins = []

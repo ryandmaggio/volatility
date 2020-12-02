@@ -143,9 +143,7 @@ def inet_ntop(address_family, packed_ip):
             words += [None]
         # Join up everything we've got using :s
         return (
-            ":".join(
-                [f"{w:x}" if w is not None else "" for w in words]
-            )
+            ":".join([f"{w:x}" if w is not None else "" for w in words])
             + encapsulated
         )
 

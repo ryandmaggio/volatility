@@ -157,7 +157,7 @@ class BaseAddressSpace(object):
         The address ranges produced must be disjoint (no overlaps) and not be continuous
         (there must be a gap between two ranges).
         """
-        raise StopIteration
+        return  # previously raise StopIteration
 
     def is_valid_address(self, _addr):
         """ Tell us if the address is valid """
@@ -298,12 +298,12 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
                 lenbuff += len(data)
             position += datalen
             remaining -= datalen
-            assert addr + length == position + remaining, (
-                f"Address + length != position + remaining ({hex(addr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
-            )
-            assert position - addr == lenbuff, (
-                f"Position - address != len(buff) ({str(position - addr)} != {str(lenbuff)}) in {self.base.__class__.__name__}"
-            )
+            assert (
+                addr + length == position + remaining
+            ), f"Address + length != position + remaining ({hex(addr + length)} != {hex(position + remaining)}) in {self.base.__class__.__name__}"
+            assert (
+                position - addr == lenbuff
+            ), f"Position - address != len(buff) ({str(position - addr)} != {str(lenbuff)}) in {self.base.__class__.__name__}"
         return b''.join(buff)
 
     def read(self, addr, length):

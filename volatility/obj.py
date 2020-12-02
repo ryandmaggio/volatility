@@ -108,7 +108,7 @@ class NoneObject(object):
         return format('-', str(spec))
 
     def __next__(self):
-        raise StopIteration()
+        return  # previously raise StopIteration()
 
     def __getattr__(self, attr):
         # By returning self for any unknown attribute
@@ -197,9 +197,7 @@ def Object(theType, offset, vm, name=None, **kwargs):
 
     ## If we get here we have no idea what the type is supposed to be?
     ## This is a serious error.
-    debug.warning(
-        f"Cant find object {theType} in profile {vm.profile}?"
-    )
+    debug.warning(f"Cant find object {theType} in profile {vm.profile}?")
 
 
 class BaseObject(object):
@@ -215,7 +213,7 @@ class BaseObject(object):
         native_vm=None,
         parent=None,
         name=None,
-        **kwargs
+        **kwargs,
     ):
         self._vol_theType = theType
         self._vol_offset = offset
@@ -570,7 +568,7 @@ class BitField(NativeType):
         start_bit=0,
         end_bit=32,
         native_type=None,
-        **kwargs
+        **kwargs,
     ):
         # Defaults to profile-endian address, but can be overridden by native_type
         format_string = vm.profile.native_types.get(
@@ -605,7 +603,7 @@ class Pointer(NativeType):
             offset,
             vm,
             format_string=vm.profile.native_types['address'][1],
-            **kwargs
+            **kwargs,
         )
 
         if theType:
@@ -716,7 +714,7 @@ class Array(BaseObject):
         targetType=None,
         target=None,
         name=None,
-        **kwargs
+        **kwargs,
     ):
         ## Instantiate the first object on the offset:
         BaseObject.__init__(
@@ -836,7 +834,7 @@ class CType(BaseObject):
         name=None,
         members=None,
         struct_size=0,
-        **kwargs
+        **kwargs,
     ):
         """This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
@@ -876,23 +874,22 @@ class CType(BaseObject):
         return int(self.obj_offset)
 
     def m(self, attr):
-        #print(f"obj:m:{attr}")
         if attr in self.members:
             # Allow the element to be a callable rather than a list - this is
             # useful for aliasing member names
             element = self.members[attr]
             if callable(element):
-                #print(f"obj:m:{attr}:calling:{element}")
                 return element(self)
 
-            #print(f"obj:m:{attr}:assigning:{element}")
             offset, cls = element
         elif attr.find('__') > 0 and attr[attr.find('__') :] in self.members:
             offset, cls = self.members[attr[attr.find('__') :]]
         else:
             ## hmm - tough choice - should we raise or should we not
             # return NoneObject(f"Struct {self.obj_name} has no member {attr}")
-            raise AttributeError(f"Struct {self.obj_name} has no member {attr}")
+            raise AttributeError(
+                f"Struct {self.obj_name} has no member {attr}"
+            )
 
         if callable(offset):
             ## If offset is specified as a callable its an absolute
@@ -975,7 +972,7 @@ class VolatilityMagic(BaseObject):
 
     def __str__(self):
         raise RuntimeError("fix needed use obj.v() instead of str(obj)")
-        #return self.v()
+        # return self.v()
 
     def get_suggestions(self):
         """Returns a list of possible suggestions for the value
@@ -992,7 +989,8 @@ class VolatilityMagic(BaseObject):
             yield x
 
     def generate_suggestions(self):
-        raise StopIteration("No suggestions available")
+        print("No suggestions available")
+        return  # previously raise StopIteration()
 
     def get_best_suggestion(self):
         """Returns the best suggestion for a list of possible suggestsions"""
@@ -1221,9 +1219,7 @@ class Profile(object):
         """Applies an overlay to the profile's vtypes"""
         for k, v in list(overlay.items()):
             if k not in self.vtypes:
-                debug.warning(
-                    f"Overlay structure {k} not present in vtypes"
-                )
+                debug.warning(f"Overlay structure {k} not present in vtypes")
             else:
                 self.vtypes[k] = self._apply_overlay(self.vtypes[k], v)
 
@@ -1331,10 +1327,8 @@ class Profile(object):
 
         # Check there's no dependencies left, if there are we've got a cycle
         if data:
-            debug.warning(
-                f"A cyclic dependency exists amongst {data}"
-            )
-            raise StopIteration
+            debug.warning(f"A cyclic dependency exists amongst {data}")
+            return  # previously raise StopIteration
 
         # Finally, after having checked for no cycles, flatten and return the results
         for s in result:

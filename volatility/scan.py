@@ -28,7 +28,7 @@
 
 """
 @author:       AAron Walters
-@license:      GNU General Public License 2.0 
+@license:      GNU General Public License 2.0
 @contact:      awalters@4tphi.net
 @organization: Volatility Foundation
 """
@@ -50,7 +50,7 @@ class BaseScanner(object):
 
     def __init__(self, window_size=8):
         self.buffer = addrspace.BufferAddressSpace(
-            conf.DummyConfig(), data='\x00' * 1024
+            conf.DummyConfig(), data=b'\x00' * 1024
         )
         self.window_size = window_size
         self.constraints = []

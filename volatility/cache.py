@@ -684,9 +684,7 @@ class Testable(object):
             return item
 
     ## This forces the test to be memoised with a key name derived from the class name
-    @TestDecorator(
-        lambda self: f"tests/unittests/{self.__class__.__name__}"
-    )
+    @TestDecorator(lambda self: f"tests/unittests/{self.__class__.__name__}")
     def test(self):
         ## This forces iteration over all keys - this is required in order
         ## to flatten the full list for the cache
