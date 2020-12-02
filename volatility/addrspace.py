@@ -130,7 +130,7 @@ class BaseAddressSpace(object):
         It had to be called as_assert, since assert is a keyword
         """
         if not assertion:
-            print(f"BaseAddressSpace:assertion_error:{error}")
+            debug.debug(f"BaseAddressSpace:assertion_error:{error}")
             if error == None:
                 error = "Instantiation failed for unspecified reason"
             raise ASAssertionError(error)
