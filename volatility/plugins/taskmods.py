@@ -115,16 +115,14 @@ class DllList(common.AbstractWindowsCommand, cache.Testable):
             pid = task.UniqueProcessId
 
             outfd.write("*" * 72 + "\n")
-            outfd.write("{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+            outfd.write(f"{task.ImageFileName} pid: {pid:6}\n")
 
             if task.Peb:
                 ## REMOVE this after 2.4, since we have the cmdline plugin now
                 outfd.write(
-                    "Command line : {0}\n".format(
-                        str(task.Peb.ProcessParameters.CommandLine or '')
-                    )
+                    f"Command line : {task.Peb.ProcessParameters.CommandLine or ''}\n"
                 )
-                outfd.write("{0}\n".format(str(task.Peb.CSDVersion or '')))
+                outfd.write(f"{task.Peb.CSDVersion or ''}\n")
                 outfd.write("\n")
                 self.table_header(
                     outfd,
@@ -158,14 +156,12 @@ class DllList(common.AbstractWindowsCommand, cache.Testable):
             try:
                 pidlist = [int(p) for p in self._config.PID.split(',')]
             except ValueError:
-                debug.error("Invalid PID {0}".format(self._config.PID))
+                debug.error(f"Invalid PID {self._config.PID}")
 
             pids = [t for t in tasks if t.UniqueProcessId in pidlist]
             if len(pids) == 0:
                 debug.error(
-                    "Cannot find PID {0}. If its terminated or unlinked, use psscan and then supply --offset=OFFSET".format(
-                        self._config.PID
-                    )
+                    f"Cannot find PID {self._config.PID}. If its terminated or unlinked, use psscan and then supply --offset=OFFSET"
                 )
             return pids
 
@@ -173,14 +169,12 @@ class DllList(common.AbstractWindowsCommand, cache.Testable):
             try:
                 name_re = re.compile(self._config.NAME, re.I)
             except re.error:
-                debug.error("Invalid name {0}".format(self._config.NAME))
+                debug.error(f"Invalid name {self._config.NAME}")
 
             names = [t for t in tasks if name_re.search(str(t.ImageFileName))]
             if len(names) == 0:
                 debug.error(
-                    "Cannot find name {0}. If its terminated or unlinked, use psscan and then supply --offset=OFFSET".format(
-                        self._config.NAME
-                    )
+                    f"Cannot find name {self._config.NAME}. If its terminated or unlinked, use psscan and then supply --offset=OFFSET"
                 )
             return names
 
@@ -234,9 +228,7 @@ class DllList(common.AbstractWindowsCommand, cache.Testable):
         )
 
     @cache.CacheDecorator(
-        lambda self: "tests/pslist/pid={0}/offset={1}".format(
-            self._config.PID, self._config.OFFSET
-        )
+        lambda self: f"tests/pslist/pid={self._config.PID}/offset={self._config.OFFSET}"
     )
     def calculate(self):
         """Produces a list of processes, or just a single process based on an OFFSET"""
@@ -274,7 +266,7 @@ class PSList(DllList):
         self.table_header(
             outfd,
             [
-                ("Offset{0}".format(offsettype), "[addrpad]"),
+                (f"Offset{offsettype}", "[addrpad]"),
                 ("Name", "20s"),
                 ("PID", ">6"),
                 ("PPID", ">6"),
@@ -313,26 +305,19 @@ class PSList(DllList):
         links = set()
 
         for eprocess in data:
-            label = "{0} | {1} |".format(
-                eprocess.UniqueProcessId, eprocess.ImageFileName
-            )
+            label = f"{eprocess.UniqueProcessId} | {eprocess.ImageFileName} |"
             if eprocess.ExitTime:
-                label += "exited\\n{0}".format(eprocess.ExitTime)
+                label += f"exited\\n{eprocess.ExitTime}"
                 options = ' style = "filled" fillcolor = "lightgray" '
             else:
                 label += "running"
                 options = ''
 
             objects.add(
-                'pid{0} [label="{1}" shape="record" {2}];\n'.format(
-                    eprocess.UniqueProcessId, label, options
-                )
+                f'pid{eprocess.UniqueProcessId} [label="{label}" shape="record" {options}];\n'
             )
             links.add(
-                "pid{0} -> pid{1} [];\n".format(
-                    eprocess.InheritedFromUniqueProcessId,
-                    eprocess.UniqueProcessId,
-                )
+                f"pid{eprocess.InheritedFromUniqueProcessId} -> pid{eprocess.UniqueProcessId} [];\n"
             )
 
         ## Now write the dot file
@@ -437,7 +422,7 @@ class MemMap(DllList):
                 outfd.write("*" * 72 + "\n")
 
             task_space = task.get_process_address_space()
-            outfd.write("{0} pid: {1:6}\n".format(task.ImageFileName, pid))
+            outfd.write(f"{task.ImageFileName} pid: {pid:6}\n")
             first = False
 
             offset = 0
@@ -464,9 +449,7 @@ class MemMap(DllList):
                 outfd.write("Unable to read pages for task.\n")
 
     @cache.CacheDecorator(
-        lambda self: "tests/memmap/pid={0}/offset={1}".format(
-            self._config.PID, self._config.OFFSET
-        )
+        lambda self: f"tests/memmap/pid={self._config.PID}/offset={self._config.OFFSET}"
     )
     def calculate(self):
         tasks = DllList.calculate(self)
@@ -503,13 +486,11 @@ class MemDump(MemMap):
 
             task_space = task.get_process_address_space()
             outfd.write(
-                "Writing {0} [{1:6}] to {2}.dmp\n".format(
-                    task.ImageFileName, pid, str(pid)
-                )
+                f"Writing {task.ImageFileName} [{pid:6}] to {pid}.dmp\n"
             )
 
             f = open(
-                os.path.join(self._config.DUMP_DIR, str(pid) + ".dmp"), 'wb'
+                os.path.join(self._config.DUMP_DIR, f"{pid}.dmp"), 'wb'
             )
             if pagedata:
                 for p in pagedata:
@@ -517,9 +498,7 @@ class MemDump(MemMap):
                     if data == None:
                         if self._config.verbose:
                             outfd.write(
-                                "Memory Not Accessible: Virtual Address: 0x{0:x} Size: 0x{1:x}\n".format(
-                                    p[0], p[1]
-                                )
+                                f"Memory Not Accessible: Virtual Address: 0x{p[0]:x} Size: 0x{p[1]:x}\n"
                             )
                     else:
                         f.write(data)

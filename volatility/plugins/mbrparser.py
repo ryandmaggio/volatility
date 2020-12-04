@@ -133,7 +133,7 @@ MBR_types = {
 
 class PARTITION_ENTRY(obj.CType):
     def get_value(self, char):
-        padded = "\x00\x00\x00" + str(char)
+        padded = bytes([0, 0, 0, char.v()[0]])
         val = int(struct.unpack('>I', padded)[0])
         return val
 
@@ -171,34 +171,15 @@ class PARTITION_ENTRY(obj.CType):
         ]
 
     def __str__(self):
-        processed_entry = ""
         bootable = self.get_value(self.BootableFlag)
-        processed_entry = "Boot flag: {0:#x} {1}\n".format(
-            bootable, "(Bootable)" if self.is_bootable() else ''
-        )
-        processed_entry += "Partition type: {0:#x} ({1})\n".format(
-            self.get_value(self.PartitionType), self.get_type()
-        )
-        processed_entry += "Starting Sector (LBA): {0:#x} ({0})\n".format(
-            self.StartingLBA
-        )
-        processed_entry += (
-            "Starting CHS: Cylinder: {0} Head: {1} Sector: {2}\n".format(
-                self.StartingCylinder(),
-                self.StartingCHS[0],
-                self.StartingSector(),
-            )
-        )
-        processed_entry += (
-            "Ending CHS: Cylinder: {0} Head: {1} Sector: {2}\n".format(
-                self.EndingCylinder(), self.EndingCHS[0], self.EndingSector()
-            )
-        )
-        processed_entry += "Size in sectors: {0:#x} ({0})\n\n".format(
-            self.SizeInSectors
-        )
-        return processed_entry
-
+        return '\n'.join([
+            f"Boot flag: {bootable:#x} {'(Bootable)' if self.is_bootable() else ''}",
+            f"Partition type: {self.get_value(self.PartitionType):#x} ({self.get_type()})",
+            f"Starting Sector (LBA): {self.StartingLBA:#x} ({self.StartingLBA})",
+            f"Starting CHS: Cylinder: {self.StartingCylinder()} Head: {self.StartingCHS[0]} Sector: {self.StartingSector()}",
+            f"Ending CHS: Cylinder: {self.EndingCylinder()} Head: {self.EndingCHS[0]} Sector: {self.EndingSector()}",
+            f"Size in sectors: {self.SizeInSectors:#x} ({self.SizeInSectors})\n\n",
+        ])
 
 class MbrObjectTypes(obj.ProfileModification):
     def modification(self, profile):
@@ -357,20 +338,20 @@ class MBRParser(commands.Command):
                 self._config.OFFSET + diff, 440 - diff
             )
             if boot_code:
-                all_zeros = boot_code.count(chr(0)) == len(boot_code)
+                all_zeros = boot_code.count(b'\x00') == len(boot_code)
             if not all_zeros:
                 yield self._config.OFFSET, PARTITION_TABLE, boot_code
             else:
                 print("Not a valid MBR: Data all zeroed out")
         else:
-            scanner = MBRScanner(needles=['\x55\xaa'])
+            scanner = MBRScanner(needles=[b'\x55\xaa'])
             for offset in scanner.scan(address_space):
                 PARTITION_TABLE = obj.Object(
                     'PARTITION_TABLE', vm=address_space, offset=offset
                 )
                 boot_code = address_space.read(offset + diff, 440 - diff)
                 if boot_code:
-                    all_zeros = boot_code.count(chr(0)) == len(boot_code)
+                    all_zeros = boot_code.count(b'\x00') == len(boot_code)
                 if not all_zeros:
                     yield offset, PARTITION_TABLE, boot_code
 
@@ -378,9 +359,9 @@ class MBRParser(commands.Command):
         for offset in range(0, len(data), width):
             row_data = data[offset : offset + width]
             translated_data = [
-                x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data
+                chr(x) if x < 127 and x > 32 else "." for x in row_data
             ]
-            hexdata = " ".join(["{0:02x}".format(ord(x)) for x in row_data])
+            hexdata = " ".join([f"{x:02x}" for x in row_data])
 
             yield offset + given_offset, hexdata, translated_data
 
@@ -418,14 +399,12 @@ class MBRParser(commands.Command):
         ret = ""
         self.code_data = boot_code
         for (offset, size, instruction, hexdump) in iterable:
-            ret += "{0:010x}: {1:<32} {2}\n".format(
-                offset + start, hexdump, instruction
-            )
+            ret += f"{offset + start:010x}: {hexdump:<32} {instruction}\n"
             if instruction == "RET":
                 self.code_data = boot_code[0 : offset + size]
                 hexstuff = "\n" + "\n".join(
                     [
-                        "{0:010x}: {1:<48}  {2}".format(o, h, ''.join(c))
+                        f"{o:010x}: {h:<48}  {''.join(c)}"
                         for o, h, c in self.Hexdump(
                             boot_code[offset + size :], offset + start + size
                         )
@@ -498,12 +477,12 @@ class MBRParser(commands.Command):
             h.update(self.code_data)
             f.update(boot_code)
             if self._config.HASH:
-                hash = "{0}".format(h.hexdigest())
-                if hash.lower() != self._config.HASH.lower():
+                hdigest = h.hexdigest()
+                if hdigest.lower() != self._config.HASH.lower():
                     continue
             elif self._config.FULLHASH:
-                hash = "{0}".format(f.hexdigest())
-                if hash.lower() != self._config.FULLHASH.lower():
+                hdigest = f.hexdigest()
+                if hdigest.lower() != self._config.FULLHASH.lower():
                     continue
             if self.disk_mbr:
                 distance = self.levenshtein(

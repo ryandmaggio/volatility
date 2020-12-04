@@ -110,10 +110,7 @@ class PSTree(common.AbstractWindowsCommand):
                         del data[int(task.UniqueProcessId)]
                     except KeyError:
                         debug.warning(
-                            "PID {0} PPID {1} has already been seen".format(
-                                task.UniqueProcessId,
-                                task.InheritedFromUniqueProcessId,
-                            )
+                            f"PID {task.UniqueProcessId} PPID {task.InheritedFromUniqueProcessId} has already been seen"
                         )
 
                     for item in draw_branch(level + 1, task.UniqueProcessId):
@@ -160,11 +157,7 @@ class PSTree(common.AbstractWindowsCommand):
             for task in list(data.values()):
                 if task.InheritedFromUniqueProcessId == inherited_from:
 
-                    first_column = "{0} {1:#x}:{2:20}".format(
-                        "." * pad,
-                        task.obj_offset,
-                        str(task.ImageFileName or ''),
-                    )
+                    first_column = f"{'.' * pad} {task.obj_offset:#x}:{task.ImageFileName or '':20}"
 
                     self.table_row(
                         outfd,
@@ -178,37 +171,22 @@ class PSTree(common.AbstractWindowsCommand):
 
                     if self._config.VERBOSE:
                         outfd.write(
-                            "{0}    audit: {1}\n".format(
-                                ' ' * pad,
-                                str(
-                                    task.SeAuditProcessCreationInfo.ImageFileName.Name
-                                    or ''
-                                ),
-                            )
+                            f"{' ' * pad}    audit: {task.SeAuditProcessCreationInfo.ImageFileName.Name or ''}\n"
                         )
                         process_params = task.Peb.ProcessParameters
                         if process_params:
                             outfd.write(
-                                "{0}    cmd: {1}\n".format(
-                                    ' ' * pad,
-                                    str(process_params.CommandLine or ''),
-                                )
+                                f"{' ' * pad}    cmd: {process_params.CommandLine or ''}\n"
                             )
                             outfd.write(
-                                "{0}    path: {1}\n".format(
-                                    ' ' * pad,
-                                    str(process_params.ImagePathName or ''),
-                                )
+                                f"{' ' * pad}    path: {process_params.ImagePathName or ''}\n"
                             )
 
                     try:
                         del data[int(task.UniqueProcessId)]
                     except KeyError:
                         debug.warning(
-                            "PID {0} PPID {1} has already been seen".format(
-                                task.UniqueProcessId,
-                                task.InheritedFromUniqueProcessId,
-                            )
+                            f"PID {task.UniqueProcessId} PPID {task.InheritedFromUniqueProcessId} has already been seen"
                         )
 
                     draw_branch(pad + 1, task.UniqueProcessId)
@@ -219,7 +197,7 @@ class PSTree(common.AbstractWindowsCommand):
             draw_branch(0, root)
 
     @cache.CacheDecorator(
-        lambda self: "tests/pstree/verbose={0}".format(self._config.VERBOSE)
+        lambda self: f"tests/pstree/verbose={self._config.VERBOSE}"
     )
     def calculate(self):
 

@@ -50,7 +50,7 @@ class UnicodeString(basic.String):
     def __str__(self):
         result = (
             self.obj_vm.zread(self.obj_offset, self.length)
-            .split("\x00\x00")[0]
+            .split(b"\x00\x00")[0]
             .decode("utf16", "ignore")
         )
         if not result:
@@ -60,14 +60,12 @@ class UnicodeString(basic.String):
     def v(self):
         result = (
             self.obj_vm.zread(self.obj_offset, self.length)
-            .split("\x00\x00")[0]
+            .split(b"\x00\x00")[0]
             .decode("utf16", "ignore")
         )
         if not result:
             return obj.NoneObject(
-                "Cannot read string length {0} at {1:#x}".format(
-                    self.length, self.obj_offset
-                )
+                f"Cannot read string length {self.length} at {self.obj_offset:#x}"
             )
         return result
 
@@ -152,8 +150,8 @@ MFT_PATHS_FULL = {}
 
 
 class MFT_FILE_RECORD(obj.CType):
-    def remove_unprintable(self, str):
-        return str.encode("utf8", "ignore")
+    def remove_unprintable(self, data):
+        return data.decode("utf8", "ignore")
 
     def add_path(self, fileinfo):
         # it doesn't really make sense to add regular files to parent directory,
@@ -171,7 +169,7 @@ class MFT_FILE_RECORD(obj.CType):
 
     def get_full_path(self, fileinfo):
         if self.obj_vm._config.DEBUGOUT:
-            print("Building path for file {0}".format(fileinfo.get_name()))
+            print(f"Building path for file {fileinfo.get_name()}")
         parent = ""
         path = self.remove_unprintable(fileinfo.get_name()) or "(Null)"
         try:
@@ -191,7 +189,7 @@ class MFT_FILE_RECORD(obj.CType):
                 or int(parent_id) == 5
             ):
                 return path
-            path = "{0}\\{1}".format(parent["filename"], path)
+            path = f"{parent['filename']}\\{path}"
             parent_id = parent["ParentDirectory"] & 0xFFFFFF
             if parent_id in seen:
                 return path
@@ -207,14 +205,13 @@ class MFT_FILE_RECORD(obj.CType):
         return int(self.Flags) & 0x1 == 0x1
 
     def get_mft_type(self):
-        return "{0}{1}".format(
-            "In Use & " if self.is_inuse() else "",
-            "Directory" if self.is_directory() else "File",
-        )
+        in_use = "In Use & " if self.is_inuse() else ""
+        dir_or_file = "Directory" if self.is_directory() else "File"
+        return f"{in_use}{dir_or_file}"
 
     def parse_attributes(self, mft_buff, check=True, entrysize=1024):
         next_attr = self.ResidentAttributes
-        end = mft_buff.find("\xff\xff\xff\xff")
+        end = mft_buff.find(b"\xff\xff\xff\xff")
         if end == -1:
             end = entrysize
         attributes = []
@@ -298,9 +295,7 @@ class MFT_FILE_RECORD(obj.CType):
                                 and adsname.strip() != ""
                                 and dataseen
                             ):
-                                attr += " ADS Name: {0}".format(
-                                    adsname.strip()
-                                )
+                                attr += f" ADS Name: {adsname.strip()}"
                     dataseen = True
                 except struct.error:
                     next_attr = None
@@ -489,7 +484,7 @@ class STANDARD_INFORMATION(obj.CType):
 
     def __str__(self):
         bufferas = addrspace.BufferAddressSpace(
-            self.obj_vm._config, data="\x00\x00\x00\x00\x00\x00\x00\x00"
+            self.obj_vm._config, data=b"\x00\x00\x00\x00\x00\x00\x00\x00"
         )
         nulltime = obj.Object(
             "WinTimeStamp", vm=bufferas, offset=0, is_utc=True
@@ -511,9 +506,7 @@ class STANDARD_INFORMATION(obj.CType):
         except struct.error:
             accessed = nulltime
 
-        return "{0:20} {1:30} {2:30} {3:30} {4}".format(
-            creation, modified, mftaltered, accessed, self.get_type()
-        )
+        return f"{creation:20} {modified:30} {mftaltered:30} {accessed:30} {self.get_type()}"
 
     def body(self, path, record_num, size, offset):
         if path.strip() == "" or path == None:
@@ -526,7 +519,7 @@ class STANDARD_INFORMATION(obj.CType):
                 # non-base entry.  the analyst can investigate these types of records
                 # on his/her own by comparing record numbers in output or examining the
                 # given physical offset in memory for example
-                path = "{0} {1}".format(record["filename"], path)
+                path = f"{record['filename']} {path}"
 
         try:
             modified = self.ModifiedTime.v()
@@ -604,7 +597,7 @@ class FILE_NAME(STANDARD_INFORMATION):
 
     def __str__(self):
         bufferas = addrspace.BufferAddressSpace(
-            self.obj_vm._config, data="\x00\x00\x00\x00\x00\x00\x00\x00"
+            self.obj_vm._config, data=b"\x00\x00\x00\x00\x00\x00\x00\x00"
         )
         nulltime = obj.Object(
             "WinTimeStamp", vm=bufferas, offset=0, is_utc=True
@@ -626,17 +619,11 @@ class FILE_NAME(STANDARD_INFORMATION):
         except struct.error:
             accessed = nulltime
 
-        return "{0:20} {1:30} {2:30} {3:30} {4}".format(
-            creation,
-            modified,
-            mftaltered,
-            accessed,
-            self.remove_unprintable(self.get_name()),
-        )
+        return f"{creation:20} {modified:30} {mftaltered:30} {accessed:30} {self.remove_unprintable(self.get_name())}"
 
     def get_full(self, full):
         bufferas = addrspace.BufferAddressSpace(
-            self.obj_vm._config, data="\x00\x00\x00\x00\x00\x00\x00\x00"
+            self.obj_vm._config, data=b"\x00\x00\x00\x00\x00\x00\x00\x00"
         )
         nulltime = obj.Object(
             "WinTimeStamp", vm=bufferas, offset=0, is_utc=True
@@ -658,13 +645,7 @@ class FILE_NAME(STANDARD_INFORMATION):
         except struct.error:
             accessed = nulltime
         try:
-            return "{0:20} {1:30} {2:30} {3:30} {4}".format(
-                creation,
-                modified,
-                mftaltered,
-                accessed,
-                self.remove_unprintable(full),
-            )
+            return f"{creation:20} {modified:30} {mftaltered:30} {accessed:30} {self.remove_unprintable(full)}"
         except struct.error:
             return None
 
@@ -702,9 +683,7 @@ class FILE_NAME(STANDARD_INFORMATION):
 class OBJECT_ID(obj.CType):
     # Modified from analyzeMFT.py:
     def FmtObjectID(self, item):
-        record = ""
-        for i in item:
-            record += str(i)
+        record = bytes([i for i in item])
         return "{0}-{1}-{2}-{3}-{4}".format(
             binascii.hexlify(record[0:4]),
             binascii.hexlify(record[4:6]),
@@ -714,17 +693,12 @@ class OBJECT_ID(obj.CType):
         )
 
     def __str__(self):
-        string = "Object ID: {0}\n".format(self.FmtObjectID(self.ObjectID))
-        string += "Birth Volume ID: {0}\n".format(
-            self.FmtObjectID(self.BirthVolumeID)
-        )
-        string += "Birth Object ID: {0}\n".format(
-            self.FmtObjectID(self.BirthObjectID)
-        )
-        string += "Birth Domain ID: {0}\n".format(
-            self.FmtObjectID(self.BirthDomainID)
-        )
-        return string
+        return '\n'.join([
+            f"Object ID: {self.FmtObjectID(self.ObjectID)}",
+            f"Birth Volume ID: {self.FmtObjectID(self.BirthVolumeID)}",
+            f"Birth Object ID: {self.FmtObjectID(self.BirthObjectID)}",
+            f"Birth Domain ID: {self.FmtObjectID(self.BirthDomainID)}",
+        ])
 
 
 # Using structures defined in File System Forensic Analysis pg 353+
@@ -1053,7 +1027,7 @@ class MFTParser(common.AbstractWindowsCommand):
 
     def calculate(self):
         if self._config.MACHINE != "":
-            self._config.update("MACHINE", "{0} ".format(self._config.MACHINE))
+            self._config.update("MACHINE", f"{self._config.MACHINE} ")
         offsets = []
         address_space = utils.load_as(self._config, astype='physical')
         if self._config.OFFSET != None:
@@ -1068,7 +1042,7 @@ class MFTParser(common.AbstractWindowsCommand):
                 )
                 offsets.append((offset, mft_entry, mft_buff))
         else:
-            scanner = poolscan.MultiPoolScanner(needles=['FILE', 'BAAD'])
+            scanner = poolscan.MultiPoolScanner(needles=[b'FILE', b'BAAD'])
             print(
                 "Scanning for MFT entries and building directory, this can take a while"
             )
@@ -1095,7 +1069,7 @@ class MFTParser(common.AbstractWindowsCommand):
                     name = temp.FileName.get_name()
                 except struct.error:
                     if self._config.DEBUGOUT:
-                        print("Problem entry at offset:", hex(offset))
+                        print(f"Problem entry at offset: {hex(offset)}")
                     continue
 
                 if (int(mft_entry.RecordNumber), name) in seen:
@@ -1106,7 +1080,7 @@ class MFTParser(common.AbstractWindowsCommand):
 
         for offset, mft_entry, mft_buff in offsets:
             if self._config.DEBUGOUT:
-                print("Processing MFT Entry at offset:", hex(offset))
+                print(f"Processing MFT Entry at offset: {hex(offset)}")
             attributes = mft_entry.parse_attributes(
                 mft_buff, not self._config.NOCHECK, self._config.ENTRYSIZE
             )
@@ -1116,7 +1090,7 @@ class MFTParser(common.AbstractWindowsCommand):
         if self._config.DUMP_DIR != None and not os.path.isdir(
             self._config.DUMP_DIR
         ):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+            debug.error(f"{self._config.DUMP_DIR} is not a directory")
         # Some notes: every base MFT entry should have one $SI and at lease one $FN
         # Usually $SI occurs before $FN
         # We'll make an effort to get the filename from $FN for $SI
@@ -1135,22 +1109,14 @@ class MFTParser(common.AbstractWindowsCommand):
                         # if we are here, we've hit one $FN attribute for this entry already and have the full name
                         # so we can dump this $SI
                         outfd.write(
-                            "0|{0}\n".format(
-                                i.body(
-                                    full, mft_entry.RecordNumber, size, offset
-                                )
-                            )
+                            f"0|{i.body(full, mft_entry.RecordNumber, size, offset)}\n"
                         )
                     elif si != None:
                         # if we are here then we have more than one $SI attribute for this entry
                         # since we don't want to lose its info, we'll just dump it for now
                         # we won't have full path, but we'll have a filename most likely
                         outfd.write(
-                            "0|{0}\n".format(
-                                i.body(
-                                    "", mft_entry.RecordNumber, size, offset
-                                )
-                            )
+                            f"0|{i.body('', mft_entry.RecordNumber, size, offset)}\n"
                         )
                     elif si == None:
                         # this is the usual case and we'll save the $SI to process after we get the full path from the $FN
@@ -1160,22 +1126,11 @@ class MFTParser(common.AbstractWindowsCommand):
                         full = mft_entry.get_full_path(i)
                         size = int(i.RealFileSize)
                         outfd.write(
-                            "0|{0}\n".format(
-                                i.body(
-                                    full, mft_entry.RecordNumber, size, offset
-                                )
-                            )
+                            f"0|{i.body(full, mft_entry.RecordNumber, size, offset)}\n"
                         )
                         if si != None:
                             outfd.write(
-                                "0|{0}\n".format(
-                                    si.body(
-                                        full,
-                                        mft_entry.RecordNumber,
-                                        size,
-                                        offset,
-                                    )
-                                )
+                                f"0|{si.body(full, mft_entry.RecordNumber, size, offset)}\n"
                             )
                             si = None
                 elif a.startswith("DATA"):
@@ -1183,8 +1138,8 @@ class MFTParser(common.AbstractWindowsCommand):
                         file_string = ".".join(
                             [
                                 "file",
-                                "0x{0:x}".format(offset),
-                                "data{0}".format(datanum),
+                                f"0x{offset:x}",
+                                f"data{datanum}",
                                 "dmp",
                             ]
                         )
@@ -1200,9 +1155,7 @@ class MFTParser(common.AbstractWindowsCommand):
             if si != None:
                 # here we have a lone $SI in an MFT entry with no valid $FN.  This is most likely a non-base entry
                 outfd.write(
-                    "0|{0}\n".format(
-                        si.body("", mft_entry.RecordNumber, -1, offset)
-                    )
+                    f"0|{si.body('', mft_entry.RecordNumber, -1, offset)}\n"
                 )
 
     def unified_output(self, data):
@@ -1224,7 +1177,7 @@ class MFTParser(common.AbstractWindowsCommand):
 
     def generator(self, data):
         bufferas = addrspace.BufferAddressSpace(
-            self._config, data="\x00\x00\x00\x00\x00\x00\x00\x00"
+            self._config, data=b"\x00\x00\x00\x00\x00\x00\x00\x00"
         )
         nulltime = obj.Object(
             "WinTimeStamp", vm=bufferas, offset=0, is_utc=True
@@ -1235,7 +1188,7 @@ class MFTParser(common.AbstractWindowsCommand):
             datnum = 0
             for a, i in attributes:
                 if i == None:
-                    attrdata = ["Invalid (" + a + ")", "", "", "", "", ""]
+                    attrdata = [f"Invalid ({a})", "", "", "", "", ""]
                 elif a.startswith("STANDARD_INFORMATION"):
                     try:
                         modified = str(i.ModifiedTime)
@@ -1304,16 +1257,16 @@ class MFTParser(common.AbstractWindowsCommand):
         if self._config.DUMP_DIR != None and not os.path.isdir(
             self._config.DUMP_DIR
         ):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+            debug.error(f"{self._config.DUMP_DIR} is not a directory")
         border = "*" * 75
         for offset, mft_entry, attributes in data:
             if len(attributes) == 0:
                 continue
-            outfd.write("{0}\n".format(border))
-            outfd.write("MFT entry found at offset 0x{0:x}\n".format(offset))
-            outfd.write("Attribute: {0}\n".format(mft_entry.get_mft_type()))
-            outfd.write("Record Number: {0}\n".format(mft_entry.RecordNumber))
-            outfd.write("Link count: {0}\n".format(mft_entry.LinkCount))
+            outfd.write(f"{border}\n")
+            outfd.write(f"MFT entry found at offset 0x{offset:x}\n")
+            outfd.write(f"Attribute: {mft_entry.get_mft_type()}\n")
+            outfd.write(f"Record Number: {mft_entry.RecordNumber}\n")
+            outfd.write(f"Link count: {mft_entry.LinkCount}\n")
             outfd.write("\n")
             # there can be more than one resident $DATA attribute
             # e.g. ADS.  Therfore we need to differentiate somehow
@@ -1321,28 +1274,28 @@ class MFTParser(common.AbstractWindowsCommand):
             datanum = 0
             for a, i in attributes:
                 if i == None:
-                    outfd.write("${0}: malformed entry\n".format(a))
+                    outfd.write(f"${a}: malformed entry\n")
                     continue
                 if a.startswith("STANDARD_INFORMATION"):
-                    outfd.write("\n${0}\n".format(a))
+                    outfd.write(f"\n${a}\n")
                     self.table_header(outfd, i.get_header())
-                    outfd.write("{0}\n".format(str(i)))
+                    outfd.write(f"{i}\n")
                 elif a.startswith("FILE_NAME"):
-                    outfd.write("\n${0}\n".format(a))
+                    outfd.write(f"\n${a}\n")
                     if hasattr(i, "ParentDirectory"):
                         full = mft_entry.get_full_path(i)
                         self.table_header(outfd, i.get_header())
                         output = i.get_full(full)
                         if output == None:
                             continue
-                        outfd.write("{0}\n".format(output))
+                        outfd.write(f"{output}\n".format(output))
                     else:
-                        outfd.write("{0}\n".format(str(i)))
+                        outfd.write(f"{i}\n")
                 elif a.startswith("DATA"):
-                    outfd.write("\n${0}\n".format(a))
+                    outfd.write(f"\n${a}\n")
                     contents = "\n".join(
                         [
-                            "{0:010x}: {1:<48}  {2}".format(o, h, ''.join(c))
+                            f"{o:010x}: {h:<48}  {''.join(c)}"
                             for o, h, c in utils.Hexdump(i)
                         ]
                     )
@@ -1351,8 +1304,8 @@ class MFTParser(common.AbstractWindowsCommand):
                         file_string = ".".join(
                             [
                                 "file",
-                                "0x{0:x}".format(offset),
-                                "data{0}".format(datanum),
+                                f"0x{offset:x}",
+                                f"data{datanum}",
                                 "dmp",
                             ]
                         )
@@ -1367,4 +1320,4 @@ class MFTParser(common.AbstractWindowsCommand):
                 elif a == "OBJECT_ID":
                     outfd.write("\n$OBJECT_ID\n")
                     outfd.write(str(i))
-            outfd.write("\n{0}\n".format(border))
+            outfd.write(f"\n{border}\n")

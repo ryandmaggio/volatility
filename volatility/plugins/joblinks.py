@@ -47,7 +47,7 @@ class JobLinks(taskmods.DllList):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
         return TreeGrid(
             [
-                ("Offset{0}".format(offsettype), Address),
+                (f"Offset{offsettype}", Address),
                 ("Name", str),
                 ("PID", int),
                 ("PPID", int),
@@ -98,11 +98,7 @@ class JobLinks(taskmods.DllList):
                         offset = item.obj_vm.vtop(item.obj_offset)
                     path = str(item.ImageFileName)
                     if item.Peb:
-                        path = str(
-                            item.Peb.ProcessParameters.ImagePathName.v().encode(
-                                "utf8", "ignore"
-                            )
-                        )
+                        path = str(item.Peb.ProcessParameters.ImagePathName)
                     yield (
                         0,
                         [
@@ -127,7 +123,7 @@ class JobLinks(taskmods.DllList):
         self.table_header(
             outfd,
             [
-                ("Offset{0}".format(offsettype), "[addrpad]"),
+                (f"Offset{offsettype}", "[addrpad]"),
                 ("Name", "20s"),
                 ("PID", ">6"),
                 ("PPID", ">6"),
@@ -184,8 +180,6 @@ class JobLinks(taskmods.DllList):
                         "-",
                         "-",
                         "Yes",
-                        item.Peb.ProcessParameters.ImagePathName.v().encode(
-                            "utf8", "ignore"
-                        ),
+                        str(item.Peb.ProcessParameters.ImagePathName),
                     )
-                outfd.write("{0}\n".format(header))
+                outfd.write(f"{header}\n")
