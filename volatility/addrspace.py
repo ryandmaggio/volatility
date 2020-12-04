@@ -189,7 +189,11 @@ class BaseAddressSpace(object):
     @classmethod
     def address_compare(cls, a, b):
         """Compares two addresses, a and b, and return -1 if a is less than b, 0 if they're equal and 1 if a is greater than b"""
-        return cmp(cls.address_mask(a), cls.address_mask(b))
+        if cls.address_mask(a) < cls.address_mask(b):
+            return -1
+        if cls.address_mask(a) > cls.address_mask(b):
+            return 1
+        return 0
 
     @classmethod
     def address_equality(cls, a, b):

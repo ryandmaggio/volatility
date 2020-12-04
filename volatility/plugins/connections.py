@@ -79,8 +79,8 @@ class Connections(common.AbstractWindowsCommand):
                 offset = conn.obj_offset
             else:
                 offset = conn.obj_vm.vtop(conn.obj_offset)
-            local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
-            remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
+            local = f"{conn.LocalIpAddress}:{conn.LocalPort}"
+            remote = f"{conn.RemoteIpAddress}:{conn.RemotePort}"
             yield (
                 0,
                 [Address(offset), str(local), str(remote), int(conn.Pid)],
@@ -91,7 +91,7 @@ class Connections(common.AbstractWindowsCommand):
         self.table_header(
             outfd,
             [
-                ("Offset{0}".format(offsettype), "[addrpad]"),
+                (f"Offset{offsettype}", "[addrpad]"),
                 ("Local Address", "25"),
                 ("Remote Address", "25"),
                 ("Pid", ""),
@@ -103,8 +103,8 @@ class Connections(common.AbstractWindowsCommand):
                 offset = conn.obj_offset
             else:
                 offset = conn.obj_vm.vtop(conn.obj_offset)
-            local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
-            remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
+            local = f"{conn.LocalIpAddress}:{conn.LocalPort}"
+            remote = f"{conn.RemoteIpAddress}:{conn.RemotePort}"
             self.table_row(outfd, offset, local, remote, conn.Pid)
 
     @cache.CacheDecorator("tests/connections")

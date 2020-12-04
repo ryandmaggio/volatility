@@ -213,7 +213,7 @@ class Command(object):
             if length < 5:
                 debug.error("Cannot elide a string to length less than 5")
             even = (length + 1) % 2
-            length = (length - 3) / 2
+            length = (length - 3) // 2
             return f"{string[:length+even]}...{string[-length:]}"
 
     def format_value(self, value, fmt):

@@ -134,9 +134,7 @@ class CrashInfo(common.AbstractWindowsCommand):
 
         if result is None:
             debug.error(
-                "Memory Image could not be identified as {0}".format(
-                    self.target_as
-                )
+                f"Memory Image could not be identified as {self.target_as}"
             )
 
         return result
@@ -207,69 +205,33 @@ class CrashInfo(common.AbstractWindowsCommand):
         hdr = data.get_header()
         runs = data.get_runs()
 
-        outfd.write("{0}:\n".format(hdr.obj_name))
+        outfd.write(f"{hdr.obj_name}:\n")
         outfd.write(
-            " Majorversion:         0x{0:08x} ({1})\n".format(
-                hdr.MajorVersion, hdr.MajorVersion
-            )
+            f" Majorversion:         0x{hdr.MajorVersion:08x} ({hdr.MajorVersion})\n"
         )
         outfd.write(
-            " Minorversion:         0x{0:08x} ({1})\n".format(
-                hdr.MinorVersion, hdr.MinorVersion
-            )
+            f" Minorversion:         0x{hdr.MinorVersion:08x} ({hdr.MinorVersion})\n"
         )
-        outfd.write(
-            " KdSecondaryVersion    0x{0:08x}\n".format(hdr.KdSecondaryVersion)
-        )
-        outfd.write(
-            " DirectoryTableBase    0x{0:08x}\n".format(hdr.DirectoryTableBase)
-        )
-        outfd.write(
-            " PfnDataBase           0x{0:08x}\n".format(hdr.PfnDataBase)
-        )
-        outfd.write(
-            " PsLoadedModuleList    0x{0:08x}\n".format(hdr.PsLoadedModuleList)
-        )
-        outfd.write(
-            " PsActiveProcessHead   0x{0:08x}\n".format(
-                hdr.PsActiveProcessHead
-            )
-        )
-        outfd.write(
-            " MachineImageType      0x{0:08x}\n".format(hdr.MachineImageType)
-        )
-        outfd.write(
-            " NumberProcessors      0x{0:08x}\n".format(hdr.NumberProcessors)
-        )
-        outfd.write(
-            " BugCheckCode          0x{0:08x}\n".format(hdr.BugCheckCode)
-        )
+        outfd.write(f" KdSecondaryVersion    0x{hdr.KdSecondaryVersion:08x}\n")
+        outfd.write(f" DirectoryTableBase    0x{hdr.DirectoryTableBase:08x}\n")
+        outfd.write(f" PfnDataBase           0x{hdr.PfnDataBase:08x}\n")
+        outfd.write(f" PsLoadedModuleList    0x{hdr.PsLoadedModuleList:08x}\n")
+        outfd.write(f" PsActiveProcessHead   0x{hdr.PsActiveProcessHead:08x}\n")
+        outfd.write(f" MachineImageType      0x{hdr.MachineImageType:08x}\n")
+        outfd.write(f" NumberProcessors      0x{hdr.NumberProcessors:08x}\n")
+        outfd.write(f" BugCheckCode          0x{hdr.BugCheckCode:08x}\n")
         if hdr.obj_name != "_DMP_HEADER64":
-            outfd.write(
-                " PaeEnabled            0x{0:08x}\n".format(hdr.PaeEnabled)
-            )
-        outfd.write(
-            " KdDebuggerDataBlock   0x{0:08x}\n".format(
-                hdr.KdDebuggerDataBlock
-            )
-        )
-        outfd.write(
-            " ProductType           0x{0:08x}\n".format(hdr.ProductType)
-        )
-        outfd.write(" SuiteMask             0x{0:08x}\n".format(hdr.SuiteMask))
-        outfd.write(
-            " WriterStatus          0x{0:08x}\n".format(hdr.WriterStatus)
-        )
-        outfd.write(" Comment               {0}\n".format(hdr.Comment))
-        outfd.write(" DumpType              {0}\n".format(hdr.DumpType))
-        outfd.write(
-            " SystemTime            {0}\n".format(str(hdr.SystemTime or ''))
-        )
-        outfd.write(
-            " SystemUpTime          {0}\n".format(str(hdr.SystemUpTime or ''))
-        )
+            outfd.write(f" PaeEnabled            0x{hdr.PaeEnabled:08x}\n")
+        outfd.write(f" KdDebuggerDataBlock   0x{hdr.KdDebuggerDataBlock:08x}\n")
+        outfd.write(f" ProductType           0x{hdr.ProductType:08x}\n")
+        outfd.write(f" SuiteMask             0x{hdr.SuiteMask:08x}\n")
+        outfd.write(f" WriterStatus          0x{hdr.WriterStatus:08x}\n")
+        outfd.write(f" Comment               {hdr.Comment}\n")
+        outfd.write(f" DumpType              {hdr.DumpType}\n")
+        outfd.write(f" SystemTime            {hdr.SystemTime or ''}\n")
+        outfd.write(f" SystemUpTime          {hdr.SystemUpTime or ''}\n")
         outfd.write("\nPhysical Memory Description:\n")
-        outfd.write("Number of runs: {0}\n".format(len(runs)))
+        outfd.write(f"Number of runs: {len(runs)}\n")
         outfd.write("FileOffset    Start Address    Length\n")
         foffset = 0x1000
         if hdr.obj_name == "_DMP_HEADER64":
@@ -281,13 +243,9 @@ class CrashInfo(common.AbstractWindowsCommand):
 
         for run in runs:
             outfd.write(
-                "{0:08x}      {1:08x}         {2:08x}\n".format(
-                    foffset, run[0], run[2]
-                )
+                f"{foffset:08x}      {run[0]:08x}         {run[2]:08x}\n"
             )
             foffset += run[2]
         outfd.write(
-            "{0:08x}      {1:08x}\n".format(
-                foffset - 0x1000, (run[0] + run[2] - 0x1000)
-            )
+            f"{(foffset - 0x1000):08x}      {(run[0] + run[2] - 0x1000):08x}\n"
         )

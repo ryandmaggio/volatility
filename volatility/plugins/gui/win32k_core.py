@@ -61,7 +61,7 @@ class _MM_SESSION_SPACE(obj.CType):
         for mod in modules.lsmod(self.obj_vm):
             if str(mod.BaseDllName or '').lower() == "win32k.sys":
                 return mod.DllBase
-        return obj.Object("Cannot find win32k.sys base address")
+        return obj.NoneObject("Cannot find win32k.sys base address")
 
     def images(self):
         """Generator for images (modules) loaded into
@@ -483,28 +483,28 @@ class tagDESKTOP(tagWINDOWSTATION):
                     yield name, hook
 
     def windows(
-        self, win, filter=lambda x: True, level=0
+        self, win, fltr=lambda x: True, level=0
     ):  # pylint: disable-msg=W0622
         """Traverses windows in their Z order, bottom to top.
 
         @param win: an HWND to start. Usually this is the desktop
         window currently in focus.
 
-        @param filter: a callable (usually lambda) to use for filtering
+        @param fltr: a callable (usually lambda) to use for filtering
         the results. See below for examples:
 
         # only print subclassed windows
-        filter = lambda x : x.lpfnWndProc == x.pcls.lpfnWndProc
+        fltr = lambda x : x.lpfnWndProc == x.pcls.lpfnWndProc
 
         # only print processes named csrss.exe
-        filter = lambda x : str(x.head.pti.ppi.Process.ImageFileName).lower() \
+        fltr = lambda x : str(x.head.pti.ppi.Process.ImageFileName).lower() \
                                 == "csrss.exe" if x.head.pti.ppi else False
 
         # only print processes by pid
-        filter = lambda x : x.head.pti.pEThread.Cid.UniqueThread == 0x1020
+        fltr = lambda x : x.head.pti.pEThread.Cid.UniqueThread == 0x1020
 
         # only print visible windows
-        filter = lambda x : 'WS_VISIBLE' not in x.get_flags()
+        fltr = lambda x : 'WS_VISIBLE' not in x.get_flags()
         """
         seen = set()
         wins = []
@@ -517,14 +517,14 @@ class tagDESKTOP(tagWINDOWSTATION):
             cur = cur.spwndNext.dereference()
         while wins:
             cur = wins.pop()
-            if not list(filter(cur)):
+            if not fltr(cur):
                 continue
 
             yield cur, level
 
             if cur.spwndChild.is_valid() and cur.spwndChild.v() != 0:
                 for xwin, xlevel in self.windows(
-                    cur.spwndChild, filter=filter, level=level + 1
+                    cur.spwndChild, fltr=fltr, level=level + 1
                 ):
                     if xwin.obj_offset in seen:
                         break

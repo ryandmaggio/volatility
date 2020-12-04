@@ -751,7 +751,7 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
 
         # Make sure s in a list. This allows you to search for
         # multiple strings at once, without changing the API.
-        if type(s) != list:
+        if not isinstance(s, list):
             debug.warning(
                 "Single strings to search_process_memory is deprecated, use a list instead"
             )
@@ -1142,7 +1142,7 @@ class _OBJECT_HEADER(obj.CType):
     def __init__(self, *args, **kwargs):
         # Usually we don't add members to objects like this, but its an
         # exception due to lack of better options. See Issue #135.
-        self.HandleValue = kwargs.get("handle_value", 0)
+        self.HandleValue = int(kwargs.get("handle_value", 0))
         obj.CType.__init__(self, *args, **kwargs)
         # Create accessors for optional headers
         self.find_optional_headers()

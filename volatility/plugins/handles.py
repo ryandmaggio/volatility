@@ -87,7 +87,7 @@ class Handles(taskmods.DllList):
         offsettype = "(V)" if not self._config.PHYSICAL_OFFSET else "(P)"
         tg = renderers.TreeGrid(
             [
-                ("Offset{0}".format(offsettype), Address),
+                (f"Offset{offsettype}", Address),
                 ("Pid", int),
                 ("Handle", Hex),
                 ("Access", Hex),
@@ -104,7 +104,7 @@ class Handles(taskmods.DllList):
         self.table_header(
             outfd,
             [
-                ("Offset{0}".format(offsettype), "[addrpad]"),
+                (f"Offset{offsettype}", "[addrpad]"),
                 ("Pid", ">6"),
                 ("Handle", "[addr]"),
                 ("Access", "[addr]"),
@@ -160,15 +160,10 @@ class Handles(taskmods.DllList):
                         name = key_obj.full_key_name()
                     elif object_type == "Process":
                         proc_obj = handle.dereference_as("_EPROCESS")
-                        name = "{0}({1})".format(
-                            proc_obj.ImageFileName, proc_obj.UniqueProcessId
-                        )
+                        name = f"{proc_obj.ImageFileName}({proc_obj.UniqueProcessId})"
                     elif object_type == "Thread":
                         thrd_obj = handle.dereference_as("_ETHREAD")
-                        name = "TID {0} PID {1}".format(
-                            thrd_obj.Cid.UniqueThread,
-                            thrd_obj.Cid.UniqueProcess,
-                        )
+                        name = f"TID {thrd_obj.Cid.UniqueThread} PID {thrd_obj.Cid.UniqueProcess}"
                     elif handle.NameInfo.Name == None:
                         name = ''
                     else:

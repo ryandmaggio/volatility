@@ -85,10 +85,8 @@ class ConnScan(common.AbstractScanCommand):
         )
 
         for tcp_obj in data:
-            local = "{0}:{1}".format(tcp_obj.LocalIpAddress, tcp_obj.LocalPort)
-            remote = "{0}:{1}".format(
-                tcp_obj.RemoteIpAddress, tcp_obj.RemotePort
-            )
+            local = f"{tcp_obj.LocalIpAddress}:{tcp_obj.LocalPort}"
+            remote = f"{tcp_obj.RemoteIpAddress}:{tcp_obj.RemotePort}"
             self.table_row(
                 outfd, tcp_obj.obj_offset, local, remote, tcp_obj.Pid
             )
@@ -106,8 +104,8 @@ class ConnScan(common.AbstractScanCommand):
 
     def generator(self, data):
         for conn in data:
-            local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
-            remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
+            local = f"{conn.LocalIpAddress}:{conn.LocalPort}"
+            remote = f"{conn.RemoteIpAddress}:{conn.RemotePort}"
             yield (
                 0,
                 [
