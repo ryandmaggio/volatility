@@ -218,26 +218,17 @@ class AmCache(common.AbstractWindowsCommand):
         for result in data:
             if result["key"]:
                 keyfound = True
-                outfd.write("Registry: {0}\n".format(result["hive"]))
+                outfd.write(f"Registry: {result['hive']}\n")
                 outfd.write(
-                    "Key Path: {0}\n".format(
-                        self.regapi.reg_get_key_path(result["key"])
-                    )
+                    f"Key Path: {self.regapi.reg_get_key_path(result['key'])}\n"
                 )
                 outfd.write(
-                    "Key Last updated: {0}\n".format(
-                        result["key"].LastWriteTime
-                    )
+                    f"Key Last updated: {result['key'].LastWriteTime}\n"
                 )
-                outfd.write("Value Name: {0}\n".format(result["valuename"]))
-                outfd.write("Description: {0}\n".format(result["description"]))
-                outfd.write(
-                    "Value: {0}\n\n".format(
-                        result["timestamp"]
-                        if result["timestamp"]
-                        else result["value"]
-                    )
-                )
+                outfd.write(f"Value Name: {result['valuename']}\n")
+                outfd.write(f"Description: {result['description']}\n")
+                value = result["timestamp"] if result["timestamp"] else result["value"]
+                outfd.write(f"Value: {value}\n\n")
         if not keyfound:
             outfd.write(
                 "The requested key could not be found in the hive(s) searched\n"

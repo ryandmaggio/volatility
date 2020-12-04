@@ -62,10 +62,11 @@ class Cmdline(taskmods.DllList):
             except AttributeError:
                 pass
             if task.Peb:
-                cmdline = "{0}".format(
-                    str(task.Peb.ProcessParameters.CommandLine or '')
-                ).strip()
-            yield (0, [name, int(task.UniqueProcessId), str(cmdline)])
+                try:
+                    cmdline = task.Peb.ProcessParameters.CommandLine.v()
+                except:
+                    cmdline = ''
+            yield (0, [name, int(task.UniqueProcessId), cmdline])
 
     def render_text(self, outfd, data):
         for task in data:
@@ -84,11 +85,12 @@ class Cmdline(taskmods.DllList):
                 pass
 
             outfd.write("*" * 72 + "\n")
-            outfd.write("{0} pid: {1:6}\n".format(name, pid))
+            outfd.write(f"{name} pid: {pid:6}\n")
 
             if task.Peb:
-                outfd.write(
-                    "Command line : {0}\n".format(
-                        str(task.Peb.ProcessParameters.CommandLine or '')
-                    )
-                )
+                try:
+                    cmdline = task.Peb.ProcessParameters.CommandLine.v()
+                except Exception as exc:
+                    raise exc
+                    cmdline = ''
+                outfd.write(f"Command line : {cmdline}\n")

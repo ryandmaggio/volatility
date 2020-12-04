@@ -49,11 +49,9 @@ class RegistryApi(object):
         this is just in case we want to check our offsets and which hive(s) was/were chosen
         """
         for item in self.all_offsets:
-            print("0x{0:x}".format(item), self.all_offsets[item])
+            print(f"0x{item:x}", self.all_offsets[item])
         for item in self.current_offsets:
-            print(
-                'current', "0x{0:x}".format(item), self.current_offsets[item]
-            )
+            print('current', f"0x{item:x}", self.current_offsets[item])
 
     def populate_offsets(self):
         """
@@ -81,9 +79,7 @@ class RegistryApi(object):
                     self.addr_space, self._config, offset
                 )
                 if fullname:
-                    return "ControlSet00{0}".format(
-                        hashdump.find_control_set(sysaddr)
-                    )
+                    return f"ControlSet00{hashdump.find_control_set(sysaddr)}"
                 else:
                     return hashdump.find_control_set(sysaddr)
         return None
@@ -101,8 +97,8 @@ class RegistryApi(object):
                 self.current_offsets[item] = name
             elif (
                 user != None
-                and name.lower().find('\\' + user.lower() + '\\') != -1
-                and name.lower().find("\\" + "ntuser.dat ") != -1
+                and name.lower().find(f'\\{user.lower()}\\') != -1
+                and name.lower().find("\\ntuser.dat ") != -1
             ):
                 # user's NTUSER.DAT hive
                 self.current_offsets[item] = name
@@ -120,7 +116,7 @@ class RegistryApi(object):
                 self.current_offsets[item] = name
             elif (
                 hive_name != None
-                and name.lower().find("\\" + hive_name.lower() + " ") != -1
+                and name.lower().find(f"\\{hive_name.lower()} ") != -1
                 and user == None
             ):
                 # a particular hive indicated by hive_name
@@ -170,7 +166,7 @@ class RegistryApi(object):
         while key.Parent and key.Parent & 0xFFFFFFFF > 0x20:
             key = key.Parent.dereference()
             if utils.remove_unprintable(str(key.Name)) != "":
-                path = "{0}\\{1}".format(key.Name, path)
+                path = f"{key.Name}\\{path}"
         return path
 
     def reg_yield_key(self, hive_name, key, user=None, given_root=None):
@@ -204,7 +200,7 @@ class RegistryApi(object):
         if k:
             for s in rawreg.subkeys(k):
                 if s.Name:
-                    item = key + '\\' + s.Name
+                    item = f'{key}\\{s.Name}'
                     yield item
 
     def reg_get_all_subkeys(self, hive_name, key, user=None, given_root=None):
@@ -298,7 +294,7 @@ class RegistryApi(object):
                 pass
             else:
                 time = (
-                    "{0}".format(root.LastWriteTime)
+                    f"{root.LastWriteTime}"
                     if not rawtime
                     else root.LastWriteTime
                 )
@@ -324,9 +320,9 @@ class RegistryApi(object):
                         yield (time, root.Name)
                 for s in rawreg.subkeys(root):
                     if reg:
-                        keys.append([s, reg_name, root.Name + "\\" + s.Name])
+                        keys.append([s, reg_name, f"{root.Name}\\{s.Name}"])
                     else:
-                        keys.append([s, root.Name + "\\" + s.Name])
+                        keys.append([s, f"{root.Name}\\{s.Name}"])
 
         # Get subkeys
         if reg:
@@ -342,12 +338,11 @@ class RegistryApi(object):
                     yield (time, reg_name, name)
                 for s in rawreg.subkeys(k):
                     if name and s.Name:
-                        item = name + '\\' + s.Name
-                        keys.append([s, reg_name, item])
+                        keys.append([s, reg_name, f'{name}\\{s.Name}'])
         else:
             for k, name in keys:
                 time = (
-                    "{0}".format(k.LastWriteTime)
+                    f"{k.LastWriteTime}"
                     if not rawtime
                     else k.LastWriteTime
                 )
@@ -358,8 +353,7 @@ class RegistryApi(object):
 
                 for s in rawreg.subkeys(k):
                     if name and s.Name:
-                        item = name + '\\' + s.Name
-                        keys.append([s, item])
+                        keys.append([s, f'{name}\\{s.Name}'])
 
     def reg_get_last_modified(
         self, hive_name, count=1, user=None, start=None, end=None, reg=False

@@ -41,7 +41,7 @@ class PoolScanHive(poolscan.PoolScanner):
     def __init__(self, address_space):
         poolscan.PoolScanner.__init__(self, address_space)
         self.struct_name = "_CMHIVE"
-        self.pooltag = "CM10"
+        self.pooltag = b"CM10"
         size = self.address_space.profile.get_obj_size("_CMHIVE")
         self.checks = [
             ('CheckPoolSize', dict(condition=lambda x: x >= size)),
@@ -72,7 +72,7 @@ class HiveScan(common.AbstractScanCommand):
         arch = metadata.get("memory_model", "32bit")
 
         if version >= (6, 3) and arch == "64bit":
-            for pool in bigpools.BigPagePoolScanner(addr_space).scan(["CM10"]):
+            for pool in bigpools.BigPagePoolScanner(addr_space).scan([b"CM10"]):
                 yield pool.Va.dereference_as("_CMHIVE")
         else:
             for result in self.scan_results(addr_space):

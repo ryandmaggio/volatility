@@ -51,7 +51,7 @@ class PoolScanUdpEndpoint(poolscan.PoolScanner):
     def __init__(self, address_space):
         poolscan.PoolScanner.__init__(self, address_space)
 
-        self.pooltag = "UdpA"
+        self.pooltag = b"UdpA"
         self.struct_name = "_UDP_ENDPOINT"
 
         self.checks = [
@@ -67,7 +67,7 @@ class PoolScanTcpListener(poolscan.PoolScanner):
     def __init__(self, address_space):
         poolscan.PoolScanner.__init__(self, address_space)
 
-        self.pooltag = "TcpL"
+        self.pooltag = b"TcpL"
         self.struct_name = "_TCP_LISTENER"
 
         self.checks = [
@@ -83,7 +83,7 @@ class PoolScanTcpEndpoint(poolscan.PoolScanner):
     def __init__(self, address_space):
         poolscan.PoolScanner.__init__(self, address_space)
 
-        self.pooltag = "TcpE"
+        self.pooltag = b"TcpE"
         self.struct_name = "_TCP_ENDPOINT"
 
         self.checks = [

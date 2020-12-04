@@ -43,7 +43,7 @@ class PoolScanSocket(poolscan.PoolScanner):
         poolscan.PoolScanner.__init__(self, address_space)
 
         self.struct_name = "_ADDRESS_OBJECT"
-        self.pooltag = "TCPA"
+        self.pooltag = b"TCPA"
 
         self.checks = [
             ('CheckPoolSize', dict(condition=lambda x: x >= 0x15C)),

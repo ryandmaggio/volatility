@@ -32,7 +32,7 @@ class PoolScanAtom(poolscan.PoolScanner):
     def __init__(self, address_space):
         poolscan.PoolScanner.__init__(self, address_space)
 
-        self.pooltag = "AtmT"
+        self.pooltag = b"AtmT"
         self.struct_name = "_RTL_ATOM_TABLE"
 
         self.checks = [

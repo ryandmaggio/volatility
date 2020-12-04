@@ -393,9 +393,7 @@ class _IMAGE_EXPORT_DIRECTORY(obj.CType):
             ):
                 n = self._name(func_rva)
                 f = obj.NoneObject(
-                    "Ordinal function {0} in module {1} forwards to {2}".format(
-                        ordinal, str(self.obj_parent.BaseDllName or ''), n
-                    )
+                    f"Ordinal function {ordinal} in module {self.obj_parent.BaseDllName or ''} forwards to {n}"
                 )
             else:
                 n = self._name(name_rva)
@@ -530,7 +528,7 @@ class _IMAGE_IMPORT_DESCRIPTOR(obj.CType):
             self.obj_offset,
             self.obj_vm.profile.get_obj_size('_IMAGE_IMPORT_DESCRIPTOR'),
         )
-        return data.count(chr(0)) == len(data)
+        return data.count(b'\x00') == len(data)
 
 
 class _LDR_DATA_TABLE_ENTRY(obj.CType):
@@ -584,28 +582,21 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
 
     def _directory(self, dir_index):
         """Return the requested IMAGE_DATA_DIRECTORY"""
-
         nt_header = self._nt_header()
         if nt_header == None:
-            raise ValueError('No directory index {0}'.format(dir_index))
-
+            raise ValueError(f"No directory index {dir_index}")
         data_dir = nt_header.OptionalHeader.DataDirectory[dir_index]
         if data_dir == None:
-            raise ValueError('No directory index {0}'.format(dir_index))
-
+            raise ValueError(f"No directory index {dir_index}")
         # Make sure the directory exists
         if data_dir.VirtualAddress == 0 or data_dir.Size == 0:
-            raise ValueError('No directory index {0}'.format(dir_index))
-
+            raise ValueError(f"No directory index {dir_index}")
         # Make sure the directory VA and Size are sane
         if (
             data_dir.VirtualAddress + data_dir.Size
             > nt_header.OptionalHeader.SizeOfImage
         ):
-            raise ValueError(
-                'Invalid directory for index {0}'.format(dir_index)
-            )
-
+            raise ValueError(f"Invalid directory for index {dir_index}")
         return data_dir
 
     def export_dir(self):
@@ -657,8 +648,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         try:
             data_dir = self.import_dir()
         except ValueError as why:
-            print(why)
-            return  # previously raise StopIteration
+            return # previously raise StopIteration
 
         i = 0
 
@@ -685,6 +675,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
                 break
 
             dll_name = desc.dll_name()
+            print(dll_name)
 
             for o, f, n in desc._imported_functions():
                 yield dll_name, o, f, n
@@ -697,7 +688,6 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         try:
             data_dir = self.export_dir()
         except ValueError as why:
-            print(why)
             return  # previously raise StopIteration
 
         expdir = obj.Object(
@@ -722,9 +712,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
 
         if self.e_magic != 0x5A4D:
             raise ValueError(
-                'e_magic {0:04X} is not a valid DOS signature.'.format(
-                    self.e_magic
-                )
+                f"e_magic {self.e_magic:04X} is not a valid DOS signature."
             )
 
         nt_header = obj.Object(
@@ -736,9 +724,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
 
         if nt_header.Signature != 0x4550:
             raise ValueError(
-                'NT header signature {0:04X} is not a valid'.format(
-                    nt_header.Signature
-                )
+                f"NT header signature {nt_header.Signature:04X} is not a valid"
             )
 
         return nt_header
@@ -750,7 +736,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
             nt_header = self.get_nt_header()
         except ValueError as ve:
             return obj.NoneObject(
-                "PE file failed initial sanity checks: {0}".format(ve)
+                f"PE file failed initial sanity checks: {ve}"
             )
 
         try:
@@ -846,9 +832,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
                     "Section start on disk not aligned to file alignment.\n"
                 )
                 debug.warning(
-                    "Adjusted section start from {0} to {1}.\n".format(
-                        sect.PointerToRawData, foa
-                    )
+                    f"Adjusted section start from {sect.PointerToRawData} to {foa}.\n"
                 )
             yield self.get_code(
                 sect.VirtualAddress + self.obj_offset, sect.SizeOfRawData, foa
@@ -1004,21 +988,15 @@ class _IMAGE_SECTION_HEADER(obj.CType):
         image_size = self.obj_parent.OptionalHeader.SizeOfImage
         if self.VirtualAddress > image_size:
             raise exceptions.SanityCheckException(
-                'VirtualAddress {0:08x} is past the end of image.'.format(
-                    self.VirtualAddress
-                )
+                f"VirtualAddress {self.VirtualAddress:08x} is past the end of image."
             )
         if self.Misc.VirtualSize > image_size:
             raise exceptions.SanityCheckException(
-                'VirtualSize {0:08x} is larger than image size.'.format(
-                    self.Misc.VirtualSize
-                )
+                f"VirtualSize {self.Misc.VirtualSize:08x} is larger than image size."
             )
         if self.SizeOfRawData > image_size:
             raise exceptions.SanityCheckException(
-                'SizeOfRawData {0:08x} is larger than image size.'.format(
-                    self.SizeOfRawData
-                )
+                f"SizeOfRawData {self.SizeOfRawData:08x} is larger than image size."
             )
 
 
@@ -1100,9 +1078,7 @@ class VerStruct(obj.CType):
                         # Make sure value isn't a generator, and we've a subtree to deal with
                         if isinstance(value, type(strings)):
                             debug.debug(
-                                "  {0} : Subtrees not yet implemented\n".format(
-                                    string
-                                )
+                                f"  {string} : Subtrees not yet implemented\n"
                             )
                         else:
                             yield string, self.display_unicode(value)
@@ -1125,19 +1101,11 @@ class _VS_FIXEDFILEINFO(obj.CType):
 
     def file_version(self):
         """Returns the file version"""
-        return (
-            self.get_version(self.FileVerMS)
-            + "."
-            + self.get_version(self.FileVerLS)
-        )
+        return f"{self.get_version(self.FileVerMS)}.{self.get_version(self.FileVerLS)}"
 
     def product_version(self):
         """Returns the product version"""
-        return (
-            self.get_version(self.ProdVerMS)
-            + "."
-            + self.get_version(self.ProdVerLS)
-        )
+        return f"{self.get_version(self.ProdVerMS)}.{self.get_version(self.ProdVerLS)}"
 
     def get_version(self, value):
         """Returns a version in four parts"""
@@ -1180,7 +1148,7 @@ class _VS_FIXEDFILEINFO(obj.CType):
                 parent=self,
                 choices=choices,
             )
-            ftype += " (" + str(subtype) + ")"
+            ftype += f" ({str(subtype)})"
 
         return ftype
 

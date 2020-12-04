@@ -292,9 +292,7 @@ class _UNICODE_STRING(obj.CType):
             return data
         else:
             return obj.NoneObject(
-                "Buffer length {0} for _UNICODE_STRING not within bounds".format(
-                    length
-                )
+                f"Buffer length {length} for _UNICODE_STRING not within bounds"
             )
 
     def proxied(self, _name):
@@ -310,7 +308,7 @@ class _UNICODE_STRING(obj.CType):
         return format(self.v(), formatspec)
 
     def __str__(self):
-        return str(self.v().encode("utf8", "ignore"))
+        return str(self.v())
 
     def __unicode__(self):
         return str(self.dereference())
@@ -412,7 +410,7 @@ class WinTimeStamp(obj.NativeType):
         return self.v() != 0
 
     def __str__(self):
-        return "{0}".format(self)
+        return f"{self}"
 
     def as_datetime(self):
         try:
@@ -421,7 +419,7 @@ class WinTimeStamp(obj.NativeType):
                 # Only do dt.replace when dealing with UTC
                 dt = dt.replace(tzinfo=timefmt.UTC())
         except ValueError as e:
-            return obj.NoneObject("Datetime conversion failure: " + str(e))
+            return obj.NoneObject(f"Datetime conversion failure: {e}")
         return dt
 
     def __format__(self, formatspec):
@@ -450,7 +448,7 @@ class DosDate(obj.NativeType):
         return self.v() != 0
 
     def __str__(self):
-        return "{0}".format(self)
+        return f"{self}"
 
     def as_datetime(self):
         try:
@@ -459,7 +457,7 @@ class DosDate(obj.NativeType):
                 # Only do dt.replace when dealing with UTC
                 dt = dt.replace(tzinfo=timefmt.UTC())
         except ValueError as e:
-            return obj.NoneObject("Datetime conversion failure: " + str(e))
+            return obj.NoneObject(f"Datetime conversion failure: {e}")
         return dt
 
     def __format__(self, formatspec):
@@ -482,19 +480,10 @@ class DosDate(obj.NativeType):
         dosdate is already in UTC: http://download.polytechnic.edu.na/pub4/download.sourceforge.net/pub/sourceforge/l/project/li/liblnk/Documentation/Windows%20Shell%20Item%20format/Windows%20Shell%20Item%20format.pdf
         """
         date = struct.unpack(
-            ">H",
-            ''.join(
-                [chr(x) for x in [(dosdate >> 8) & 0xFF, (dosdate & 0xFF)]]
-            ),
+            ">H", bytes([(dosdate >> 8) & 0xFF, (dosdate & 0xFF)]),
         )[0]
         time = struct.unpack(
-            ">H",
-            ''.join(
-                [
-                    chr(x)
-                    for x in [(dosdate >> 24) & 0xFF, (dosdate >> 16) & 0xFF]
-                ]
-            ),
+            ">H", bytes([(dosdate >> 24) & 0xFF, (dosdate >> 16) & 0xFF]),
         )[0]
         seconds = (time & 0x1F) * 2
         minutes = (time & 0x7E0) >> 5
@@ -587,7 +576,7 @@ class _EPROCESS(obj.CType, ExecutiveObjectMixin):
         except AssertionError as _e:
             return obj.NoneObject("Unable to get process AS")
 
-        process_as.name = "Process {0}".format(self.UniqueProcessId)
+        process_as.name = f"Process {self.UniqueProcessId}"
 
         return process_as
 
@@ -1164,7 +1153,7 @@ class _OBJECT_HEADER(obj.CType):
 
         for name, objtype in self.optional_headers:
             if self.obj_vm.profile.has_type(objtype):
-                header_offset = self.m(name + 'Offset').v()
+                header_offset = self.m(f'{name}Offset').v()
                 if header_offset:
                     o = obj.Object(
                         objtype,
@@ -1174,9 +1163,7 @@ class _OBJECT_HEADER(obj.CType):
                     )
                 else:
                     o = obj.NoneObject(
-                        "Header {0} not set for object at {1:#x}".format(
-                            name, offset
-                        )
+                        f"Header {name} not set for object at {offset:#x}"
                     )
 
                 self.newattr(name, o)
@@ -1695,56 +1682,56 @@ class PoolTagModification(obj.ProfileModification):
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Proc", protected=protected),
+                                dict(tag=b"Proc", protected=protected),
                             ],
                         ],
                         'MutexPoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Muta", protected=protected),
+                                dict(tag=b"Muta", protected=protected),
                             ],
                         ],
                         'SymlinkPoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Symb", protected=protected),
+                                dict(tag=b"Symb", protected=protected),
                             ],
                         ],
                         'DriverPoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Driv", protected=protected),
+                                dict(tag=b"Driv", protected=protected),
                             ],
                         ],
                         'FilePoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="File", protected=protected),
+                                dict(tag=b"File", protected=protected),
                             ],
                         ],
                         'WindPoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Wind", protected=protected),
+                                dict(tag=b"Wind", protected=protected),
                             ],
                         ],
                         'ThreadPoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="Thre", protected=protected),
+                                dict(tag=b"Thre", protected=protected),
                             ],
                         ],
                         'ObjectTypePoolTag': [
                             0x0,
                             [
                                 'VolMagicPoolTag',
-                                dict(tag="ObjT", protected=protected),
+                                dict(tag=b"ObjT", protected=protected),
                             ],
                         ],
                     },

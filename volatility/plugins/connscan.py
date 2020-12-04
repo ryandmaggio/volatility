@@ -42,7 +42,7 @@ class PoolScanConn(poolscan.PoolScanner):
         poolscan.PoolScanner.__init__(self, address_space)
 
         self.struct_name = "_TCPT_OBJECT"
-        self.pooltag = "TCPT"
+        self.pooltag = b"TCPT"
 
         self.checks = [
             ('CheckPoolSize', dict(condition=lambda x: x >= 0x198)),

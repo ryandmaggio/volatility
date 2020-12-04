@@ -45,7 +45,7 @@ class PoolScanModule(poolscan.PoolScanner):
         poolscan.PoolScanner.__init__(self, address_space)
 
         self.struct_name = "_LDR_DATA_TABLE_ENTRY"
-        self.pooltag = "MmLd"
+        self.pooltag = b"MmLd"
         self.checks = [
             ('CheckPoolSize', dict(condition=lambda x: x >= 0x4C)),
             ('CheckPoolType', dict(paged=False, non_paged=True, free=True)),

@@ -31,7 +31,6 @@ import volatility.constants as constants
 import volatility.plugins.overlays.native_types as native_types
 import volatility.utils as utils
 import volatility.timefmt as timefmt
-import encodings.utf_16
 
 
 class String(obj.BaseObject):
@@ -101,7 +100,7 @@ class String(obj.BaseObject):
         value = self.v()
         if isinstance(value, obj.NoneObject):
             return ""
-        return value.decode('ascii', 'replace')
+        return value.decode(self.encoding, 'replace')
 
     def __unicode__(self):
         """This function returns the unicode encoding of the data retrieved by .v()
