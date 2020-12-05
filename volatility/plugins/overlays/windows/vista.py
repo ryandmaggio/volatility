@@ -184,7 +184,7 @@ class VistaPolicyKey(obj.ProfileModification):
                 {
                     'PolicyKey': [
                         0x0,
-                        ['VolatilityMagic', dict(value="PolEKList")],
+                        ['VolatilityMagic', dict(value=b"PolEKList")],
                     ],
                 },
             ]

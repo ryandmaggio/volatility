@@ -79,7 +79,7 @@ windows_overlay = {
             ],
             'PolicyKey': [
                 0x0,
-                ['VolatilityMagic', dict(value="PolSecretEncryptionKey")],
+                ['VolatilityMagic', dict(value=b"PolSecretEncryptionKey")],
             ],
         },
     ],
