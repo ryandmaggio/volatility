@@ -27,7 +27,7 @@ for file in $(ls "${DUMP_DIR_1}"); do
     if [[ -f "${DUMP_DIR_2}/${file}" ]]; then
         first=$(cat "${DUMP_DIR_1}/${file}" | sha256sum -b - | cut -d' ' -f1)
         second=$(cat "${DUMP_DIR_2}/${file}" | sha256sum -b - | cut -d' ' -f1)
-        if [[ "${first}" != "${second}" ]]; then
+        if [[ "${first}" == "${second}" ]]; then
             printf "[%-28s]: \e[0;32mSUCCESS (same output)\x1b[0;0m\n" "${file}"
         else
             printf "[%-28s]: \e[0;31mFAILURE (output differs)\x1b[0;0m\n" "${file}"
