@@ -124,9 +124,9 @@ run-test unloadedmodules
 run-test userassist
 run-test userhandles
 #run-test vaddump
-#run-test vadinfo
-#run-test vadtree
-#run-test vadwalk
+run-test vadinfo -p "${VADINFO_PID}"
+run-test vadtree -p "${VADTREE_PID}"
+run-test vadwalk -p "${VADWALK_PID}"
 run-test vboxinfo
 run-test verinfo
 run-test vmwareinfo
