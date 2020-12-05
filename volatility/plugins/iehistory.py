@@ -95,24 +95,32 @@ class _DEST_RECORD(obj.CType):
     def url_and_title(self):
         url_buf = self.obj_vm.zread(self.URLStart.obj_offset, 4096)
 
-        url = ""
-        title = ""
+        url = b""
+        title = b""
 
         # look for where url ends
-        idx = url_buf.find("\x00\x00")
+        idx = url_buf.find(b"\x00\x00")
         if idx > 0:
             idx = idx + 2
             tmpurl = url_buf[:idx]
             for u in tmpurl:
-                if 31 < ord(u) < 127:
-                    url = url + u
+                if 31 < u < 127:
+                    url = url + bytes([u])
+            try:
+                url = url.decode('ascii')
+            except:
+                pass
 
-            idx2 = url_buf[idx:].find("\x00\x00")
+            idx2 = url_buf[idx:].find(b"\x00\x00")
             if idx2 > 0:
                 tmptitle = url_buf[idx : idx + idx2 + 2]
                 for t in tmptitle:
-                    if 31 < ord(t) < 127:
-                        title = title + t
+                    if 31 < t < 127:
+                        title = title + bytes([t])
+                try:
+                    title = title.decode('ascii')
+                except:
+                    pass
 
         return url, title
 
@@ -222,18 +230,18 @@ class IEHistory(taskmods.DllList):
     def calculate(self):
         ## Select the tags to scan for. Always find visited URLs,
         ## but make freed and redirected records optional.
-        tags = ["URL ", "DEST"]
+        tags = [b"URL ", b"DEST"]
         if self._config.LEAK:
-            tags.append("LEAK")
+            tags.append(b"LEAK")
         if self._config.REDR:
-            tags.append("REDR")
+            tags.append(b"REDR")
 
         ## Define the record type based on the tag
         tag_records = {
-            "URL ": "_URL_RECORD",
-            "LEAK": "_URL_RECORD",
-            "REDR": "_REDR_RECORD",
-            "DEST": "_DEST_RECORD",
+            b"URL ": "_URL_RECORD",
+            b"LEAK": "_URL_RECORD",
+            b"REDR": "_REDR_RECORD",
+            b"DEST": "_DEST_RECORD",
         }
 
         vad_filter = lambda x: (
@@ -327,58 +335,41 @@ class IEHistory(taskmods.DllList):
                 if len(url) > 4:
                     outfd.write("*" * 50 + "\n")
                     outfd.write(
-                        "Process: {0} {1}\n".format(
-                            process.UniqueProcessId, process.ImageFileName
-                        )
+                        f"Process: {process.UniqueProcessId} {process.ImageFileName}\n"
                     )
                     outfd.write(
-                        "Cache type \"{0}\" at {1:#x}\n".format(
-                            record.Signature, record.obj_offset
-                        )
+                        f"Cache type \"{record.Signature}\" at {record.obj_offset:#x}\n"
                     )
                     outfd.write(
-                        "Last modified: {0}\n".format(record.LastModified)
+                        f"Last modified: {record.LastModified}\n"
                     )
                     outfd.write(
-                        "Last accessed: {0}\n".format(record.LastAccessed)
+                        f"Last accessed: {record.LastAccessed}\n"
                     )
-                    outfd.write("URL: {0}\n".format(url))
+                    outfd.write(f"URL: {url}\n")
                     if len(title) > 4:
-                        outfd.write("Title: {0}\n".format(title))
+                        outfd.write(f"Title: {title}\n")
             else:
                 outfd.write("*" * 50 + "\n")
                 outfd.write(
-                    "Process: {0} {1}\n".format(
-                        process.UniqueProcessId, process.ImageFileName
-                    )
+                    f"Process: {process.UniqueProcessId} {process.ImageFileName}\n"
                 )
                 outfd.write(
-                    "Cache type \"{0}\" at {1:#x}\n".format(
-                        record.Signature, record.obj_offset
-                    )
+                    f"Cache type \"{record.Signature}\" at {record.obj_offset:#x}\n"
                 )
-                outfd.write("Record length: {0:#x}\n".format(record.Length))
-                outfd.write("Location: {0}\n".format(record.Url))
+                outfd.write(f"Record length: {record.Length:#x}\n")
+                outfd.write(f"Location: {record.Url}\n")
                 ## Extended fields are available for these records
                 if record.obj_name == "_URL_RECORD":
+                    outfd.write(f"Last modified: {record.LastModified}\n")
+                    outfd.write(f"Last accessed: {record.LastAccessed}\n")
                     outfd.write(
-                        "Last modified: {0}\n".format(record.LastModified)
-                    )
-                    outfd.write(
-                        "Last accessed: {0}\n".format(record.LastAccessed)
-                    )
-                    outfd.write(
-                        "File Offset: {0:#x}, Data Offset: {1:#x}, Data Length: {2:#x}\n".format(
-                            record.Length,
-                            record.FileOffset,
-                            record.DataOffset,
-                            record.DataSize,
-                        )
+                        f"File Offset: {record.FileOffset:#x}, Data Offset: {record.DataOffset:#x}, Data Size: {record.DataSize:#x}\n"
                     )
                     if record.FileOffset > 0:
-                        outfd.write("File: {0}\n".format(record.File))
+                        outfd.write(f"File: {record.File}\n")
                     if record.has_data():
-                        outfd.write("Data: {0}\n".format(record.Data))
+                        outfd.write(f"Data: {record.Data}\n")
 
     def render_csv(self, outfd, data):
         for process, record in data:
@@ -388,7 +379,5 @@ class IEHistory(taskmods.DllList):
             else:
                 t1 = t2 = ""
             outfd.write(
-                "{0},{1},{2},{3}\n".format(
-                    record.Signature, t1.strip(), t2.strip(), record.Url
-                )
+                f"{record.Signature},{t1.strip()},{t2.strip()},{record.Url}\n"
             )
