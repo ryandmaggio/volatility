@@ -15,7 +15,7 @@ echo "[IMAGE=${IMAGE} PROFILE=${PROFILE}]"
 
 run-test() {
     start=$(date +%s)
-    volatility2 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@} &> "${TEST_DIR}/${1}.txt"
+    volatility2 "${PLUGIN_OPTION}" -f "${IMAGE}" --profile="${PROFILE}" ${@} &> "${TEST_DIR}/${1}.txt"
     status=${?}
     elapsed=$(($(date +%s) - start))
     if [[ ${status} -eq 0 ]]; then
