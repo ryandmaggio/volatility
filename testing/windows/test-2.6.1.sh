@@ -19,14 +19,14 @@ run-test() {
     status=${?}
     elapsed=$(($(date +%s) - start))
     if [[ ${status} -eq 0 ]]; then
-        printf "[%-28s](took %-4s secs): \e[0;32mSUCCESS\x1b[0;0m\n" "${1}" "${elapsed}"
+        printf "[%-28s](took %-4s secs): \e[0;32mPASSED\x1b[0;0m\n" "${1}" "${elapsed}"
     else
-        printf "[%-28s](took %-4s secs): \e[0;31mFAILURE\x1b[0;0m\n" "${1}" "${elapsed}"
+        printf "[%-28s](took %-4s secs): \e[0;31mFAILED\x1b[0;0m\n" "${1}" "${elapsed}"
     fi
 }
 
 run-test amcache
-run-test apihooks
+#run-test apihooks
 run-test atoms
 run-test atomscan
 run-test auditpol

@@ -60,10 +60,10 @@ def load_as(config, astype='virtual', **kwargs):
                 debug.debug(f"Failed instantiating {cls.__name__}: {e}", 2)
                 error.append_reason(cls.__name__, e)
                 continue
-            except Exception as e:
-                debug.debug(f"Failed instantiating (exception): {e}")
-                error.append_reason(f"{cls.__name__} - EXCEPTION", e)
-                continue
+            #except Exception as e:
+            #    debug.debug(f"Failed instantiating (exception): {e}")
+            #    error.append_reason(f"{cls.__name__} - EXCEPTION", e)
+            #    continue
 
     if not isinstance(base_as, addrspace.AbstractVirtualAddressSpace) and (
         astype == 'virtual'

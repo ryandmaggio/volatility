@@ -67,6 +67,9 @@ class DWARFParser(object):
         self.anons = 0
         self.base = 10
 
+        if isinstance(data, bytes):
+            data = data.decode('ascii')
+
         if data:
             for line in data.splitlines():
                 self.feed_line(line)
@@ -446,6 +449,5 @@ class DWARFParser(object):
 
 if __name__ == '__main__':
     import sys
-
-    dp = DWARFParser(open(sys.argv[1], "rb").read())
+    dp = DWARFParser(open(sys.argv[1], "r").read())
     dp.print_output()

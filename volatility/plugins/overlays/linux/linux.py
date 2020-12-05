@@ -185,6 +185,9 @@ def parse_system_map(data, module):
     mem_model = None
     arch = "x86"
 
+    if isinstance(data, bytes):
+        data = data.decode('ascii')
+
     # get the system map
     for line in data.splitlines():
         (str_addr, symbol_type, symbol) = line.strip().split()
@@ -245,7 +248,7 @@ def LinuxProfileFactory(profpkg):
         return None
 
     class AbstractLinuxProfile(obj.Profile):
-        __doc__ = "A Profile for Linux " + profilename + " " + arch
+        __doc__ = f"A Profile for Linux {profilename} {arch}"
         _md_os = "linux"
         _md_memory_model = memmodel
         _md_arch = arch
@@ -352,7 +355,6 @@ def LinuxProfileFactory(profpkg):
                     f.filename, len(list(sysmapvar.keys())), profilename
                 )
             )
-
             self.sys_map.update(sysmapvar)
 
         def get_all_symbols(self, module="kernel"):
@@ -373,7 +375,7 @@ def LinuxProfileFactory(profpkg):
                     ret.append((name, addr))
             else:
                 debug.info(
-                    "All symbols requested for non-existent module %s" % module
+                    f"All symbols requested for non-existent module {module}"
                 )
 
             return ret
@@ -408,7 +410,7 @@ def LinuxProfileFactory(profpkg):
             return ret
 
         def get_symbol_by_address(self, module, sym_address):
-            key = "%s|%d" % (module, sym_address)
+            key = f"{module}|{sym_address}"
 
             if key in self.sym_addr_cache:
                 ret = self.sym_addr_cache[key]
@@ -486,9 +488,7 @@ def LinuxProfileFactory(profpkg):
                     if len(sym_list) > 1:
                         if nm_type == "":
                             debug.debug(
-                                "Requested symbol {0:s} in module {1:s} has multiple definitions and no type given\n".format(
-                                    sym_name, module
-                                )
+                                f"Requested symbol {sym_name:s} in module {module:s} has multiple definitions and no type given\n"
                             )
                             return None
                         else:
@@ -500,24 +500,18 @@ def LinuxProfileFactory(profpkg):
 
                             if ret == None:
                                 debug.error(
-                                    "Requested symbol {0:s} in module {1:s} could not be found\n".format(
-                                        sym_name, module
-                                    )
+                                    f"Requested symbol {sym_name:s} in module {module:s} could not be found\n"
                                 )
                     else:
                         # get the address of the symbol
                         ret = sym_list[0][0]
                 else:
                     debug.debug(
-                        "Requested symbol {0:s} not found in module {1:s}\n".format(
-                            sym_name, module
-                        )
+                        f"Requested symbol {sym_name:s} not found in module {module:s}\n"
                     )
             else:
                 debug.info(
-                    "Requested module {0:s} not found in symbol table\n".format(
-                        module
-                    )
+                    f"Requested module {module:s} not found in symbol table\n"
                 )
 
             if ret:
@@ -542,9 +536,7 @@ def LinuxProfileFactory(profpkg):
                     if len(sym_list) > 1:
                         if nm_type == "":
                             debug.debug(
-                                "Requested symbol {0:s} in module {1:s} has multiple definitions and no type given\n".format(
-                                    sym_name, module
-                                )
+                                f"Requested symbol {sym_name:s} in module {module:s} has multiple definitions and no type given\n"
                             )
                             return None
                         else:
@@ -555,30 +547,24 @@ def LinuxProfileFactory(profpkg):
 
                             if ret == None:
                                 debug.error(
-                                    "Requested symbol {0:s} in module {1:s} could not be found\n".format(
-                                        sym_name, module
-                                    )
+                                    f"Requested symbol {sym_name:s} in module {module:s} could not be found\n"
                                 )
                     else:
                         # get the type of the symbol
                         ret = sym_list[0][1]
                 else:
                     debug.debug(
-                        "Requested symbol {0:s} not found in module {1:s}\n".format(
-                            sym_name, module
-                        )
+                        f"Requested symbol {sym_name:s} not found in module {module:s}\n"
                     )
             else:
                 debug.info(
-                    "Requested module {0:s} not found in symbol table\n".format(
-                        module
-                    )
+                    f"Requested module {module:s} not found in symbol table\n"
                 )
 
             return ret
 
     cls = AbstractLinuxProfile
-    cls.__name__ = 'Linux' + profilename.replace('.', '_') + arch
+    cls.__name__ = f"Linux{profilename.replace('.', '_')}{arch}"
 
     return cls
 
@@ -971,7 +957,7 @@ class net_device(obj.CType):
 
         if "perm_addr" in self.members:
             hwaddr = self.perm_addr
-            macaddr = ":".join(["{0:02x}".format(x) for x in hwaddr][:6])
+            macaddr = ":".join([f"{x:02x}" for x in hwaddr][:6])
 
         if macaddr == "00:00:00:00:00:00":
             if type(self.dev_addr) == volatility.obj.Pointer:
@@ -980,7 +966,7 @@ class net_device(obj.CType):
                 addr = self.dev_addr.obj_offset
 
             hwaddr = self.obj_vm.zread(addr, 6)
-            macaddr = ":".join(["{0:02x}".format(ord(x)) for x in hwaddr][:6])
+            macaddr = ":".join([f"{x:02x}" for x in hwaddr][:6])
 
         return macaddr
 
@@ -1084,9 +1070,7 @@ class module_struct(obj.CType):
             self.obj_vm.profile.get_symbol("param_get_ulong"): "unsigned long",
             self.obj_vm.profile.get_symbol("param_get_long"): "long",
             self.obj_vm.profile.get_symbol("param_get_uint"): "unsigned int",
-            self.obj_vm.profile.get_symbol(
-                "param_get_ushort"
-            ): "unsigned short",
+            self.obj_vm.profile.get_symbol("param_get_ushort"): "unsigned short",
             self.obj_vm.profile.get_symbol("param_get_short"): "short",
             self.obj_vm.profile.get_symbol("param_get_byte"): "char",
         }
@@ -1194,11 +1178,11 @@ class module_struct(obj.CType):
             if not sym_name:
                 continue
 
-            idx = sym_name.index("\x00")
+            idx = sym_name.index(b"\x00")
             if idx != -1:
                 sym_name = sym_name[:idx]
 
-            if sym_name != "":
+            if sym_name != b"":
                 ret_syms.append((str(sym_name), sym_struct.st_value.v()))
 
         return ret_syms
@@ -1482,8 +1466,7 @@ class task_struct(obj.CType):
 
             if last_end != -1 and last_end != start + read_size:
                 debug.error(
-                    "busted LOAD segments in %s | %d -> %x != %x + %x"
-                    % (task.comm, task.pid, last_end, start, read_size)
+                    f"busted LOAD segments in {task.comm} | {task.pid} -> {last_end:x} != {start:x} + {read_size:x}"
                 )
 
             buf = proc_as.zread(start, read_size)
@@ -1556,7 +1539,7 @@ class task_struct(obj.CType):
             return
 
         for off in self.search_process_memory(
-            ["\x40\x00\x00\x00"], heap_only=True
+            [b"\x40\x00\x00\x00"], heap_only=True
         ):
             # test the number of buckets
             htable = obj.Object(
@@ -1579,7 +1562,7 @@ class task_struct(obj.CType):
         for vma in self.get_proc_maps():
             sig = proc_as.read(vma.vm_start, 4)
 
-            if sig == "\x7fELF":
+            if sig == b"\x7fELF":
                 flags = str(vma.vm_flags)
 
                 if flags in ["rw-", "r--"]:
@@ -1694,9 +1677,7 @@ class task_struct(obj.CType):
                     if vma.vm_file:
                         hookdesc = linux_common.get_path(task, vma.vm_file)
                     else:
-                        hookdesc = '[{0:x}:{1:x},{2}]'.format(
-                            vma.vm_start, vma.vm_end, vma.vm_flags
-                        )
+                        hookdesc = f'[{vma.vm_start:x}:{vma.vm_end:x},{vma.vm_flags}]'
 
                 if hookdesc == "":
                     hookdesc = 'invalid memory'
@@ -1810,9 +1791,7 @@ class task_struct(obj.CType):
             if hook_vma.vm_file:
                 hookdesc = linux_common.get_path(self, hook_vma.vm_file)
             else:
-                hookdesc = '[{0:x}:{1:x},{2}]'.format(
-                    hook_vma.vm_start, hook_vma.vm_end, hook_vma.vm_flags
-                )
+                hookdesc = f'[{hook_vma.vm_start:x}:{hook_vma.vm_end:x},{hook_vma.vm_flags}]'
 
         return (hook_vma, hookdesc)
 
@@ -1925,9 +1904,9 @@ class task_struct(obj.CType):
                     buf = proc_as.read(firstaddr, 64)
                     if not buf:
                         continue
-                    eqidx = buf.find("=")
+                    eqidx = buf.find(b"=")
                     if eqidx > 0:
-                        nullidx = buf.find("\x00")
+                        nullidx = buf.find(b"\x00")
                         # single char name, =
                         if nullidx >= eqidx:
                             env_start = addr
@@ -1964,8 +1943,8 @@ class task_struct(obj.CType):
                         if not varstr:
                             continue
 
-                        eqidx = varstr.find("=")
-                        idx = varstr.find("\x00")
+                        eqidx = varstr.find(b"=")
+                        idx = varstr.find(b"\x00")
 
                         if idx == -1 or eqidx == -1 or idx < eqidx:
                             continue
@@ -2030,7 +2009,7 @@ class task_struct(obj.CType):
                 ptr2 = struct.unpack(pack_format, ptr_test2)[0]
 
                 test = proc_as.read(ptr2 + 4, 4)
-                if not test or test != "\x40\x00\x00\x00":
+                if not test or test != b"\x40\x00\x00\x00":
                     continue
 
                 htable = obj.Object(
@@ -2185,7 +2164,7 @@ class task_struct(obj.CType):
         except AssertionError as _e:
             return obj.NoneObject("Unable to get process AS")
 
-        process_as.name = "Process {0}".format(self.pid)
+        process_as.name = f"Process {self.pid}"
 
         return process_as
 
@@ -2392,18 +2371,18 @@ class task_struct(obj.CType):
             for n_idx in dt_needed:
                 buf = proc_as.read(dt_strtab + n_idx, 256)
                 if buf:
-                    idx = buf.find("\x00")
+                    idx = buf.find(b"\x00")
                     if idx != -1:
                         buf = buf[:idx]
 
                     if len(buf) > 0:
                         needed.append(buf)
 
-            soname = ""
+            soname = b""
             if dt_soname:
                 soname = proc_as.read(dt_strtab + dt_soname, 256)
                 if soname:
-                    idx = soname.find("\x00")
+                    idx = soname.find(b"\x00")
                     if idx != -1:
                         soname = soname[:idx]
 
@@ -2515,8 +2494,8 @@ class task_struct(obj.CType):
             if 4 < size_to_read < 4096:
                 args = proc_as.read(start, size_to_read)
                 if args:
-                    for vals in args.split("\x00"):
-                        ents = vals.split("=")
+                    for vals in args.split(b"\x00"):
+                        ents = vals.split(b"=")
 
                         if len(ents) == 2:
                             yield ents[0], ents[1]
@@ -2525,7 +2504,7 @@ class task_struct(obj.CType):
         env = ""
 
         for key, value in self.psenv():
-            env = env + "%s=%s " % (key, value)
+            env += f"{key}={value} "
 
         if len(env) > 1 and env[-1] == " ":
             env = env[:-1]
@@ -2537,7 +2516,7 @@ class task_struct(obj.CType):
             # set the as with our new dtb so we can read from userland
             proc_as = self.get_process_address_space()
             if proc_as == None:
-                return ""
+                return b""
 
             # read argv from userland
             start = self.mm.arg_start.v()
@@ -2545,20 +2524,20 @@ class task_struct(obj.CType):
             size_to_read = self.mm.arg_end - self.mm.arg_start
 
             if size_to_read < 1 or size_to_read > 4096:
-                name = ""
+                name = b""
             else:
                 argv = proc_as.read(start, size_to_read)
 
                 if argv:
                     # split the \x00 buffer into args
-                    name = " ".join(argv.split("\x00"))
+                    name = b" ".join(argv.split(b"\x00"))
                 else:
-                    name = ""
+                    name = b""
         else:
             # kernel thread
-            name = "[" + self.comm + "]"
+            name = b"[" + self.comm + b"]"
 
-        if len(name) > 1 and name[-1] == " ":
+        if len(name) > 1 and name[-1] == b" ":
             name = name[:-1]
 
         return name
@@ -2784,7 +2763,7 @@ class VolatilityDTB(obj.VolatilityMagic):
 
                 buf = pas.read(read_addr, 12)
                 if buf:
-                    idx = buf.find("swapper")
+                    idx = buf.find(b"swapper")
                     if idx == 0:
                         good_dtb = sym_addr
                         break
@@ -2792,7 +2771,7 @@ class VolatilityDTB(obj.VolatilityMagic):
         # check for relocated or physical aslr kernel
         if good_dtb == -1:
             scanner = swapperScan(
-                needles=["swapper/0\x00\x00\x00\x00\x00\x00"]
+                needles=[b"swapper/0\x00\x00\x00\x00\x00\x00"]
             )
             ctr = 0
             for swapper_offset in scanner.scan(self.obj_vm):
@@ -2800,13 +2779,13 @@ class VolatilityDTB(obj.VolatilityMagic):
 
                 if (
                     pas.read(swapper_address + state_offset, 4)
-                    != "\x00\x00\x00\x00"
+                    != b"\x00\x00\x00\x00"
                 ):
                     continue
 
                 if (
                     pas.read(swapper_address + pid_offset, 4)
-                    != "\x00\x00\x00\x00"
+                    != b"\x00\x00\x00\x00"
                 ):
                     continue
 
@@ -2820,7 +2799,7 @@ class VolatilityDTB(obj.VolatilityMagic):
 
                 if (
                     pas.zread(good_dtb, 8)
-                    != "\x00\x00\x00\x00\x00\x00\x00\x00"
+                    != b"\x00\x00\x00\x00\x00\x00\x00\x00"
                 ):
                     continue
 

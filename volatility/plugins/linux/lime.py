@@ -20,6 +20,7 @@
 
 import volatility.plugins.crashinfo as crashinfo
 import volatility.plugins.linux.common as linux_common
+import volatility.debug as debug
 
 
 class LiMEInfo(linux_common.AbstractLinuxCommand):
@@ -40,9 +41,7 @@ class LiMEInfo(linux_common.AbstractLinuxCommand):
 
         if result is None:
             debug.error(
-                "Memory Image could not be identified as {0}".format(
-                    self.target_as
-                )
+                f"Memory Image could not be identified as {self.target_as}"
             )
 
         return result

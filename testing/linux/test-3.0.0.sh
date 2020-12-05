@@ -19,126 +19,81 @@ run-test() {
     status=${?}
     elapsed=$(($(date +%s) - start))
     if [[ ${status} -eq 0 ]]; then
-        printf "[%-28s](took %-4s secs): \e[0;32mSUCCESS\x1b[0;0m\n" "${1}" "${elapsed}"
+        printf "[%-28s](took %-4s secs): \e[0;32mPASSED\x1b[0;0m\n" "${1}" "${elapsed}"
     else
-        printf "[%-28s](took %-4s secs): \e[0;31mFAILURE\x1b[0;0m\n" "${1}" "${elapsed}"
+        printf "[%-28s](took %-4s secs): \e[0;31mFAILED\x1b[0;0m\n" "${1}" "${elapsed}"
     fi
 }
 
-run-test amcache
-run-test apihooks
-run-test atoms
-run-test atomscan
-run-test auditpol
-run-test bigpools
-run-test bioskbd
-run-test cachedump
-run-test callbacks
-run-test clipboard
-run-test cmdline
-run-test cmdscan
-run-test imageinfo
-run-test connections
-run-test connscan
-run-test consoles
-run-test crashinfo
-run-test deskscan
-run-test devicetree
-run-test dlldump -p "${DLLDUMP_PID}" -r "${DLLDUMP_RGX}" -D "${DUMP_DIR}"
-run-test dlllist
-run-test driverirp
-run-test drivermodule
-run-test driverscan
-run-test dumpcerts
-run-test dumpfiles -Q "${DUMPFIL_OFT}" -D "${DUMP_DIR}"
-run-test dumpregistry -o "${DUMPREG_OFT}" -D "${DUMP_DIR}"
-run-test editbox
-run-test envars
-run-test eventhooks
-run-test evtlogs
-run-test filescan
-run-test gahti
-run-test gditimers
-run-test gdt
-run-test getservicesids
-run-test getsids
-run-test handles
-run-test hashdump
-run-test hibinfo
-run-test hivedump
-run-test hivelist
-run-test hivescan
-run-test hpakextract
-run-test hpakinfo
-run-test idt
-run-test iehistory
-run-test imagecopy
-run-test impscan
-run-test joblinks
-#run-test kdbgscan
-#run-test kpcrscan
-run-test ldrmodules
 run-test limeinfo
-run-test lsadump
-run-test machoinfo
-run-test malfind
-run-test mbrparser
-run-test memdump -p "${MEMDUMP_PID}" -D "${DUMP_DIR}"
-run-test memmap
-run-test messagehooks
-run-test mftparser
-run-test moddump -r "${MODDUMP_RGX}" -D "${DUMP_DIR}"
-run-test modscan
-run-test modules
-run-test multiscan
-run-test mutantscan
-run-test netscan
-run-test notepad
-run-test objtypescan
-run-test patcher
-run-test poolpeek --tag "${POOLPEEK_TAG}"
-run-test pooltracker
-run-test printkey
-run-test privs
-run-test procdump -p "${PROCDUMP_PID}" -D "${DUMP_DIR}"
-run-test pslist
-run-test psscan
-run-test pstree
-run-test psxview
-run-test qemuinfo
-run-test raw2dmp
-run-test screenshot
-run-test servicediff
-run-test sessions
-run-test shellbags
-run-test shimcache
-run-test shutdowntime
-run-test sockets
-run-test sockscan
-run-test ssdt
-run-test strings
-run-test svcscan
-run-test symlinkscan
-run-test thrdscan
-run-test threads
-run-test timeliner
-run-test timers
-run-test truecryptmaster
-run-test truecryptpassphrase
-run-test truecryptsummary
-run-test unloadedmodules
-run-test userassist
-run-test userhandles
-#run-test vaddump
-run-test vadinfo -p "${VADINFO_PID}"
-run-test vadtree -p "${VADTREE_PID}"
-run-test vadwalk -p "${VADWALK_PID}"
-run-test vboxinfo
-run-test verinfo
-run-test vmwareinfo
-#run-test volshell
-run-test win10cookie
-run-test windows
-run-test wintree
-run-test wndscan
-run-test yarascan
+#run-test linux_apihooks
+run-test linux_arp
+run-test linux_aslr_shift
+run-test linux_banner
+run-test linux_bash
+run-test linux_bash_env
+run-test linux_bash_hash
+run-test linux_check_afinfo
+run-test linux_check_creds
+run-test linux_check_evt_arm
+run-test linux_check_fop
+run-test linux_check_idt
+run-test linux_check_inline_kernel
+run-test linux_check_modules
+run-test linux_check_syscall
+run-test linux_check_syscall_arm
+run-test linux_check_tty
+run-test linux_cpuinfo
+run-test linux_dentry_cache
+run-test linux_dmesg
+run-test linux_dump_map
+run-test linux_dynamic_env
+run-test linux_elfs
+run-test linux_enumerate_files
+run-test linux_find_file
+run-test linux_getcwd
+run-test linux_hidden_modules
+run-test linux_ifconfig
+run-test linux_info_regs
+run-test linux_iomem
+run-test linux_kernel_opened_files
+run-test linux_keyboard_notifiers
+run-test linux_ldrmodules
+run-test linux_library_list
+run-test linux_librarydump
+run-test linux_list_raw
+run-test linux_lsmod
+run-test linux_lsof
+run-test linux_malfind
+run-test linux_memmap
+run-test linux_moddump
+run-test linux_mount
+run-test linux_mount_cache
+run-test linux_netfilter
+run-test linux_netscan
+run-test linux_netstat
+run-test linux_pidhashtable
+run-test linux_pkt_queues
+run-test linux_plthook
+run-test linux_proc_maps
+run-test linux_proc_maps_rb
+run-test linux_procdump
+run-test linux_process_hollow
+run-test linux_psaux
+run-test linux_psenv
+run-test linux_pslist
+run-test linux_pslist_cache
+run-test linux_psscan
+run-test linux_pstree
+run-test linux_psxview
+run-test linux_recover_filesystem
+run-test linux_route_cache
+run-test linux_sk_buff_cache
+run-test linux_slabinfo
+run-test linux_strings
+run-test linux_threads
+run-test linux_tmpfs
+run-test linux_truecrypt_passphrase
+run-test linux_vma_cache
+#run-test linux_volshell
+run-test linux_yarascan

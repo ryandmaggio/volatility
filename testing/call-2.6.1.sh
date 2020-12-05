@@ -12,7 +12,7 @@ volatility2 "${PLUGIN_OPTION}" -f "${IMAGE}" --profile="${PROFILE}" ${@}
 status=${?}
 elapsed=$(($(date +%s) - start))
 if [[ ${status} -eq 0 ]]; then
-    printf "(took %-4s secs): \e[0;32mSUCCESS\x1b[0;0m\n" "${elapsed}"
+    printf "(took %-4s secs): \e[0;32mPASSED\x1b[0;0m\n" "${elapsed}"
 else
-    printf "(took %-4s secs): \e[0;31mFAILURE\x1b[0;0m\n" "${elapsed}"
+    printf "(took %-4s secs): \e[0;31mFAILED\x1b[0;0m\n" "${elapsed}"
 fi
