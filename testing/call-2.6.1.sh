@@ -9,5 +9,10 @@ fi
 echo "[IMAGE=${IMAGE} PROFILE=${PROFILE}]"
 start=$(date +%s)
 volatility2 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@} |& tee output.txt
+status=${?}
 elapsed=$(($(date +%s) - start))
-printf "[took %-4s secs]\n" "${elapsed}"
+if [[ ${status} -eq 0 ]]; then
+    printf "(took %-4s secs): \e[0;32mSUCCESS\x1b[0;0m\n" "${elapsed}"
+else
+    printf "(took %-4s secs): \e[0;31mFAILURE\x1b[0;0m\n" "${elapsed}"
+fi
