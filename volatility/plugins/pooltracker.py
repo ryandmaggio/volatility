@@ -125,9 +125,7 @@ class PoolTracker(common.AbstractWindowsCommand):
             or table_size > 100000
         ):
             debug.error(
-                "Cannot find the table or its size is unexpected: {0}".format(
-                    table_size
-                )
+                f"Cannot find the table or its size is unexpected: {table_size}"
             )
 
         entries = obj.Object(
@@ -163,7 +161,7 @@ class PoolTracker(common.AbstractWindowsCommand):
         for entry, driver, reason in data:
             if str(entry.Key) == "":
                 continue
-            outfd.write("{0} - {1} - {2}\n".format(entry.Key, driver, reason))
+            outfd.write(f"{entry.Key} - {driver} - {reason}\n")
 
     def render_text(self, outfd, data):
 
@@ -276,7 +274,7 @@ class PoolPeek(common.AbstractWindowsCommand):
     def calculate(self):
         addr_space = utils.load_as(self._config)
 
-        tag = self._config.TAG
+        tag = self._config.TAG.encode('ascii')
 
         if tag == None:
             debug.error("You must enter a --tag to find")
