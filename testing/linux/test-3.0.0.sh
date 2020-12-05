@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VOL_VERS="2.6.1"
+VOL_VERS="3.0.0"
 TEST_DIR="test-${VOL_VERS}-output"
 DUMP_DIR="test-${VOL_VERS}-dumpdr"
 mkdir -p "${TEST_DIR}" "${DUMP_DIR}"
@@ -15,7 +15,7 @@ echo "[IMAGE=${IMAGE} PROFILE=${PROFILE}]"
 
 run-test() {
     start=$(date +%s)
-    volatility2 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@} &> "${TEST_DIR}/${1}.txt"
+    volatility3 -f "${IMAGE}" --profile="${PROFILE}" ${@} &> "${TEST_DIR}/${1}.txt"
     status=${?}
     elapsed=$(($(date +%s) - start))
     if [[ ${status} -eq 0 ]]; then
@@ -30,7 +30,7 @@ run-test apihooks
 run-test atoms
 run-test atomscan
 run-test auditpol
-run-test bigpools && sed -E -i -e 's/0x([0-9a-f]+)L/0x\1/g' "${TEST_DIR}/bigpools.txt"
+run-test bigpools
 run-test bioskbd
 run-test cachedump
 run-test callbacks
@@ -129,7 +129,7 @@ run-test truecryptsummary
 run-test unloadedmodules
 run-test userassist
 run-test userhandles
-run-test vaddump -p "${VADDUMP_PID}"
+#run-test vaddump
 run-test vadinfo -p "${VADINFO_PID}"
 run-test vadtree -p "${VADTREE_PID}"
 run-test vadwalk -p "${VADWALK_PID}"

@@ -6,13 +6,19 @@ mkdir -p "${TEST_DIR}" "${DUMP_DIR}"
 
 . vars.sh
 
+PLUGIN_OPTION=""
+if [ ! -z "${PLUGINS}" ]; then
+    PLUGIN_OPTION="--plugins=${PLUGINS}"
+fi
+
 echo "[IMAGE=${IMAGE} PROFILE=${PROFILE}]"
 
 run-test() {
     start=$(date +%s)
-    volatility3 -f "${IMAGE}" --profile="${PROFILE}" ${@} &> "${TEST_DIR}/${1}.txt"
+    volatility3 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@} &> "${TEST_DIR}/${1}.txt"
+    status=${?}
     elapsed=$(($(date +%s) - start))
-    if [[ ${?} -eq 0 ]]; then
+    if [[ ${status} -eq 0 ]]; then
         printf "[%-28s](took %-4s secs): \e[0;32mSUCCESS\x1b[0;0m\n" "${1}" "${elapsed}"
     else
         printf "[%-28s](took %-4s secs): \e[0;31mFAILURE\x1b[0;0m\n" "${1}" "${elapsed}"

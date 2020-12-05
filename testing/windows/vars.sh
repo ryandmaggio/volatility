@@ -1,6 +1,7 @@
 # Customize this file as needed
 IMAGE=/path/to/memdump.dmp
 PROFILE=profileIdentifier
+PLUGINS=
 GLOBAL_PID=4242
 DLLDUMP_PID="${GLOBAL_PID}"
 DLLDUMP_RGX=example.exe
