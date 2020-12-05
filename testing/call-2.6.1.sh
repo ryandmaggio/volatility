@@ -8,7 +8,7 @@ fi
 
 echo "[IMAGE=${IMAGE} PROFILE=${PROFILE}]"
 start=$(date +%s)
-volatility2 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@} |& tee output.txt
+volatility2 -f "${IMAGE}" --profile="${PROFILE}" "${PLUGIN_OPTION}" ${@}
 status=${?}
 elapsed=$(($(date +%s) - start))
 if [[ ${status} -eq 0 ]]; then
