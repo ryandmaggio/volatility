@@ -8,6 +8,7 @@ DUMP_DIR_2="test-${VERS_2}-dumpdr"
 #
 # DIFF CONSOLE OUTPUT FILES
 #
+echo "[DIFFING CONSOLE OUTPUT FILES]"
 for file in $(ls "${TEST_DIR_1}"); do
     if [[ -f "${TEST_DIR_2}/${file}" ]]; then
         &>/dev/null diff <(tail -n+2 "${TEST_DIR_1}/${file}") <(tail -n+2 "${TEST_DIR_2}/${file}")
@@ -23,6 +24,7 @@ done
 #
 # DIFF DUMP OUTPUT FILES
 #
+echo "[DIFFING DUMP OUTPUT FILES]"
 for file in $(ls "${DUMP_DIR_1}"); do
     if [[ -f "${DUMP_DIR_2}/${file}" ]]; then
         first=$(cat "${DUMP_DIR_1}/${file}" | sha256sum -b - | cut -d' ' -f1)
