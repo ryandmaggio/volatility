@@ -463,7 +463,7 @@ class _SHARED_CACHE_MAP(obj.CType):
         # represents one 256-KB view in the system cache. There a are a couple
         # options to use for the data size: ValidDataLength, FileSize,
         # and SectionSize.
-        full_blocks = SectionSize / VACB_BLOCK
+        full_blocks = SectionSize // VACB_BLOCK
         left_over = SectionSize % VACB_BLOCK
 
         # As an optimization, the shared cache map object contains a VACB index
@@ -1222,7 +1222,7 @@ class DumpFiles(common.AbstractWindowsCommand):
         try:
             pidlist = [int(p) for p in self._config.PID.split(',')]
         except ValueError:
-            debug.error("Invalid PID {0}".format(self._config.PID))
+            debug.error(f"Invalid PID {self._config.PID}")
 
         return [t for t in tasks if t.UniqueProcessId in pidlist]
 
@@ -1254,7 +1254,7 @@ class DumpFiles(common.AbstractWindowsCommand):
 
         vaddr, length = int(vaddr), int(length)
 
-        ret = ''
+        ret = b''
 
         while length > 0:
             chunk_len = min(length, PAGE_SIZE - (vaddr % PAGE_SIZE))
@@ -1263,9 +1263,9 @@ class DumpFiles(common.AbstractWindowsCommand):
             if vm.vtop(vaddr) is None:
                 zpad.append([vaddr, chunk_len])
                 if pad:
-                    buf = '\x00' * chunk_len
+                    buf = b'\x00' * chunk_len
                 else:
-                    buf = ''
+                    buf = b''
             else:
                 mdata.append([vaddr, chunk_len])
 
@@ -1321,7 +1321,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                     file_re = re.compile(self._config.REGEX)
             except re.error as e:
                 debug.error(
-                    'Error parsing regular expression: {0:s}'.format(e)
+                    f"Error parsing regular expression: {e}"
                 )
 
         # Check to see if a specific physical address was specified for a
@@ -1342,7 +1342,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                 procfiles.append((None, phys))
             except ValueError:
                 debug.error(
-                    "Invalid PHYSOFFSET {0}".format(self._config.PHYSOFFSET)
+                    f"Invalid PHYSOFFSET {self._config.PHYSOFFSET}"
                 )
 
         # Iterate through the process list and collect all references to
@@ -1462,12 +1462,10 @@ class DumpFiles(common.AbstractWindowsCommand):
                                 control_area_list.append(control_area)
 
                                 # The format of the filenames: file.<pid>.<control_area>.[img|dat]
-                                ca_offset_string = "0x{0:x}".format(
-                                    control_area.obj_offset
-                                )
+                                ca_offset_string = f"0x{control_area.obj_offset:x}"
                                 if self._config.NAME and name != None:
                                     fname = name.split("\\")
-                                    ca_offset_string += "." + fname[-1]
+                                    ca_offset_string += f".{fname[-1]}"
                                 file_string = ".".join(
                                     [
                                         "file",
@@ -1511,12 +1509,10 @@ class DumpFiles(common.AbstractWindowsCommand):
                                 control_area_list.append(control_area)
 
                                 # The format of the filenames: file.<pid>.<control_area>.[img|dat]
-                                ca_offset_string = "0x{0:x}".format(
-                                    control_area.obj_offset
-                                )
+                                ca_offset_string = f"0x{control_area.obj_offset:x}"
                                 if self._config.NAME and name != None:
                                     fname = name.split("\\")
-                                    ca_offset_string += "." + fname[-1]
+                                    ca_offset_string += f".{fname[-1]}"
                                 file_string = ".".join(
                                     [
                                         "file",
@@ -1571,20 +1567,13 @@ class DumpFiles(common.AbstractWindowsCommand):
                         else:
                             continue
 
-                        shared_cache_map_string = ".0x{0:x}".format(
-                            shared_cache_map.obj_offset
-                        )
+                        shared_cache_map_string = f".0x{shared_cache_map.obj_offset:x}"
                         if self._config.NAME and name != None:
                             fname = name.split("\\")
-                            shared_cache_map_string = (
-                                shared_cache_map_string + "." + fname[-1]
-                            )
+                            shared_cache_map_string += f".{fname[-1]}"
                         of_path = os.path.join(
                             self._config.DUMP_DIR,
-                            "file."
-                            + str(pid)
-                            + shared_cache_map_string
-                            + ".vacb",
+                            f"file.{pid}{shared_cache_map_string}.vacb",
                         )
 
                         vacbary = shared_cache_map.extract_scm_file()
@@ -1620,7 +1609,7 @@ class DumpFiles(common.AbstractWindowsCommand):
         if self._config.DUMP_DIR == None:
             debug.error("Please specify a dump directory (--dump-dir)")
         if not os.path.isdir(self._config.DUMP_DIR):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+            debug.error(f"{self._config.DUMP_DIR} is not a directory")
 
         if self._config.SUMMARY_FILE:
             summaryfo = open(self._config.SUMMARY_FILE, 'wb')
@@ -1785,7 +1774,7 @@ class DumpFiles(common.AbstractWindowsCommand):
         if self._config.DUMP_DIR == None:
             debug.error("Please specify a dump directory (--dump-dir)")
         if not os.path.isdir(self._config.DUMP_DIR):
-            debug.error(self._config.DUMP_DIR + " is not a directory")
+            debug.error(f"{self._config.DUMP_DIR} is not a directory")
 
         if self._config.SUMMARY_FILE:
             summaryfo = open(self._config.SUMMARY_FILE, 'wb')
@@ -1797,7 +1786,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                 outfd.write(
                     "DataSectionObject {0:#010x}   {1:<6} {2}\n".format(
                         summaryinfo['fobj'],
-                        summaryinfo['pid'],
+                        str(summaryinfo['pid']),
                         summaryinfo['name'],
                     )
                 )
@@ -1816,7 +1805,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                     except (IOError, OverflowError):
                         debug.debug(
                             "IOError: Pid: {0} File: {1} PhysAddr: {2} Size: {3}".format(
-                                summaryinfo['pid'],
+                                str(summaryinfo['pid']),
                                 summaryinfo['name'],
                                 mdata[0],
                                 mdata[2],
@@ -1843,7 +1832,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                 outfd.write(
                     "ImageSectionObject {0:#010x}   {1:<6} {2}\n".format(
                         summaryinfo['fobj'],
-                        summaryinfo['pid'],
+                        str(summaryinfo['pid']),
                         summaryinfo['name'],
                     )
                 )
@@ -1863,7 +1852,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                     except (IOError, OverflowError):
                         debug.debug(
                             "IOError: Pid: {0} File: {1} PhysAddr: {2} Size: {3}".format(
-                                summaryinfo['pid'],
+                                str(summaryinfo['pid']),
                                 summaryinfo['name'],
                                 mdata[0],
                                 mdata[2],
@@ -1893,7 +1882,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                 outfd.write(
                     "SharedCacheMap {0:#010x}   {1:<6} {2}\n".format(
                         summaryinfo['fobj'],
-                        summaryinfo['pid'],
+                        str(summaryinfo['pid']),
                         summaryinfo['name'],
                     )
                 )

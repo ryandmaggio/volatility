@@ -780,7 +780,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
         full_blocks = ((data_size + (data_start % 0x1000)) / 0x1000) - 1
         left_over = (data_size + data_start) % 0x1000
 
-        code = ""
+        code = b""
 
         # Deal with reads that are smaller than a block
         if data_size < first_block:
@@ -1169,22 +1169,14 @@ class _VS_FIXEDFILEINFO(obj.CType):
 
     def v(self):
         """Returns the value of the structure"""
-        val = (
-            "File version    : {0}\n"
-            + "Product version : {1}\n"
-            + "Flags           : {2}\n"
-            + "OS              : {3}\n"
-            + "File Type       : {4}\n"
-            + "File Date       : {5}"
-        ).format(
-            self.file_version(),
-            self.product_version(),
-            self.flags(),
-            self.FileOS,
-            self.file_type(),
-            self.FileDate or '',
-        )
-        return val
+        return '\n'.join([
+            f"File version    : {self.file_version()}",
+            f"Product version : {self.product_version()}",
+            f"Flags           : {self.flags()}",
+            f"OS              : {self.FileOS}",
+            f"File Type       : {self.file_type()}",
+            f"File Date       : {self.FileDate or ''}",
+        ])
 
 
 class _IMAGE_RESOURCE_DIR_STRING_U(obj.CType):
