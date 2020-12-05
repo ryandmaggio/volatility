@@ -1,0 +1,11 @@
+# Customize this file as needed
+IMAGE=/path/to/memdump.dmp
+PROFILE=profileIdentifier
+DLLDUMP_PID=
+DLLDUMP_RGX=
+DUMPFIL_OFT=
+DUMPREG_OFT=
+MEMDUMP_PID=
+MODDUMP_RGX=
+POOLPEEK_TAG=
+PROCDUMP_PID=
