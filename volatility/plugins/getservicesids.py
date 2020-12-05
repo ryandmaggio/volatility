@@ -502,8 +502,9 @@ servicesids = {
 
 def createservicesid(svc):
     """ Calculate the Service SID """
-    uni = ''.join([c + '\x00' for c in svc])
-    sha = hashlib.sha1(uni.upper()).digest()  # pylint: disable-msg=E1101
+
+    uni = svc.upper().encode('utf-16-le')
+    sha = hashlib.sha1(uni).digest()  # pylint: disable-msg=E1101
     dec = list()
     for i in range(5):
         ## The use of struct here is OK. It doesn't make much sense
