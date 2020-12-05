@@ -100,7 +100,12 @@ class String(obj.BaseObject):
         value = self.v()
         if isinstance(value, obj.NoneObject):
             return ""
-        return value.decode(self.encoding, 'replace')
+        decoded = value.decode(self.encoding, 'replace')
+        if '\x00' in decoded:
+            decoded = decoded[:decoded.find('\x00')]
+        if '�' in decoded:
+            decoded = decoded.replace('�', '?')
+        return decoded
 
     def __unicode__(self):
         """This function returns the unicode encoding of the data retrieved by .v()

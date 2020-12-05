@@ -197,17 +197,13 @@ class BigPageTable(obj.VolatilityMagic):
             ):
                 break
 
-        debug.debug("Distance Map: {0}".format(repr(self.distance)))
-        debug.debug("PoolTrackTable: {0:#x}".format(track_table))
+        debug.debug(f"Distance Map: {repr(self.distance)}")
+        debug.debug(f"PoolTrackTable: {track_table:#x}")
         debug.debug(
-            "PoolBigPageTable: {0:#x} => {1:#x}".format(
-                table_base.obj_offset, table_base
-            )
+            f"PoolBigPageTable: {table_base.obj_offset:#x} => {table_base:#x}"
         )
         debug.debug(
-            "PoolBigPageTableSize: {0:#x} => {1:#x}".format(
-                table_size.obj_offset, table_size
-            )
+            f"PoolBigPageTableSize: {table_size.obj_offset:#x} => {table_size:#x}"
         )
         yield table_base, table_size
 

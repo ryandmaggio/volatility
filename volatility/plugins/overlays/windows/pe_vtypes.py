@@ -675,7 +675,6 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
                 break
 
             dll_name = desc.dll_name()
-            print(dll_name)
 
             for o, f, n in desc._imported_functions():
                 yield dll_name, o, f, n

@@ -45,12 +45,12 @@ def decrypt_aes(secret, key):
         sha.update(secret[28:60])
     aeskey = sha.digest()
 
-    data = ""
+    data = b''
     for i in range(60, len(secret), 16):
         aes = AES.new(aeskey, AES.MODE_CBC, '\x00' * 16)
         buf = secret[i : i + 16]
         if len(buf) < 16:
-            buf += (16 - len(buf)) * "\00"
+            buf += (16 - len(buf)) * b"\x00"
         data += aes.decrypt(buf)
 
     return data
@@ -99,7 +99,7 @@ def decrypt_secret(secret, key):
 
     Decrypts a block of data with DES using given key.
     Note that key can be longer than 7 bytes."""
-    decrypted_data = ''
+    decrypted_data = b''
     j = 0  # key index
     for i in range(0, len(secret), 8):
         enc_block = secret[i : i + 8]
@@ -107,7 +107,7 @@ def decrypt_secret(secret, key):
         des_key = hashdump.str_to_key(block_key)
 
         des = DES.new(des_key, DES.MODE_ECB)
-        enc_block = enc_block + "\x00" * int(abs(8 - len(enc_block)) % 8)
+        enc_block = enc_block + b'\x00' * int(abs(8 - len(enc_block)) % 8)
         decrypted_data += des.decrypt(enc_block)
 
         j += 7

@@ -85,7 +85,6 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
     def __getstate__(self):
         result = addrspace.BaseAddressSpace.__getstate__(self)
         result['hive_addr'] = self.hive.obj_offset
-
         return result
 
     def vtop(self, vaddr):
@@ -112,28 +111,28 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
         length = int(length)
         vaddr = int(vaddr)
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
-        full_blocks = ((length + (vaddr % BLOCK_SIZE)) / BLOCK_SIZE) - 1
+        full_blocks = ((length + (vaddr % BLOCK_SIZE)) // BLOCK_SIZE) - 1
         left_over = (length + vaddr) % BLOCK_SIZE
 
         paddr = self.vtop(vaddr)
         if paddr == None and zero:
             if length < first_block:
-                return "\0" * length
+                return b'\x00' * length
             else:
-                stuff_read = "\0" * first_block
+                stuff_read = b'\x00' * first_block
         elif paddr == None:
             return None
         else:
             if length < first_block:
                 stuff_read = self.base.read(paddr, length)
                 if not stuff_read and zero:
-                    return "\0" * length
+                    return b'\x00' * length
                 else:
                     return stuff_read
 
             stuff_read = self.base.read(paddr, first_block)
             if not stuff_read and zero:
-                stuff_read = "\0" * first_block
+                stuff_read = b'\x00' * first_block
             elif not stuff_read:
                 return None
 
@@ -141,13 +140,13 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
         for _i in range(0, full_blocks):
             paddr = self.vtop(new_vaddr)
             if paddr == None and zero:
-                stuff_read = stuff_read + "\0" * BLOCK_SIZE
+                stuff_read = stuff_read + b'\x00' * BLOCK_SIZE
             elif paddr == None:
                 return None
             else:
                 new_stuff = self.base.read(paddr, BLOCK_SIZE)
                 if not new_stuff and zero:
-                    new_stuff = "\0" * BLOCK_SIZE
+                    new_stuff = b'\x00' * BLOCK_SIZE
                 elif not new_stuff:
                     return None
                 else:
@@ -157,7 +156,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
         if left_over > 0:
             paddr = self.vtop(new_vaddr)
             if paddr == None and zero:
-                stuff_read = stuff_read + "\0" * left_over
+                stuff_read = stuff_read + b'\x00' * left_over
             elif paddr == None:
                 return None
             else:
@@ -188,7 +187,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
         if baseblock:
             outf.write(baseblock)
         else:
-            outf.write("\0" * BLOCK_SIZE)
+            outf.write(b'\x00' * BLOCK_SIZE)
 
         length = self.hive.Storage[0].Length.v()
         for i in range(0, length, BLOCK_SIZE):
@@ -200,18 +199,14 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
                 data = self.base.read(paddr, BLOCK_SIZE)
             else:
                 summary.write(
-                    "No mapping found for index {0:x}, filling with NULLs\n".format(
-                        i
-                    )
+                    f"No mapping found for index {i:x}, filling with NULLs\n"
                 )
 
             if not data:
                 summary.write(
-                    "Physical layer returned None for index {0:x}, filling with NULL\n".format(
-                        i
-                    )
+                    f"Physical layer returned None for index {i:x}, filling with NULL\n"
                 )
-                data = '\0' * BLOCK_SIZE
+                data = b'\x00' * BLOCK_SIZE
 
             outf.write(data)
 
@@ -224,7 +219,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
             ci = lambda x: x | 0x80000000
 
         length = self.hive.Storage[stor].Length.v()
-        total_blocks = length / BLOCK_SIZE
+        total_blocks = length // BLOCK_SIZE
         bad_blocks_reg = 0
         bad_blocks_mem = 0
         for i in range(0, length, BLOCK_SIZE):
@@ -241,19 +236,13 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
             if not data:
                 bad_blocks_mem += 1
 
-        print("{0} bytes in hive.".format(length))
+        print(f"{length} bytes in hive.")
         print(
-            "{0} blocks not loaded by CM, {1} blocks paged out, {2} total blocks.".format(
-                bad_blocks_reg, bad_blocks_mem, total_blocks
-            )
+            f"{bad_blocks_reg} blocks not loaded by CM, {bad_blocks_mem} blocks paged out, {total_blocks} total blocks."
         )
         if total_blocks:
-            print(
-                "Total of {0:.2f}% of hive unreadable.".format(
-                    ((bad_blocks_reg + bad_blocks_mem) / float(total_blocks))
-                    * 100
-                )
-            )
+            ratio = ((bad_blocks_reg + bad_blocks_mem) / total_blocks) * 100
+            print(f"Total of {ratio:.2f}% of hive unreadable.")
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
@@ -268,40 +257,40 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
 
     def read(self, vaddr, length, zero=False):
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
-        full_blocks = ((length + (vaddr % BLOCK_SIZE)) / BLOCK_SIZE) - 1
+        full_blocks = ((length + (vaddr % BLOCK_SIZE)) // BLOCK_SIZE) - 1
         left_over = (length + vaddr) % BLOCK_SIZE
 
         paddr = self.vtop(vaddr)
         if paddr == None and zero:
             if length < first_block:
-                return "\0" * length
+                return b'\x00' * length
             else:
-                stuff_read = "\0" * first_block
+                stuff_read = b'\x00' * first_block
         elif paddr == None:
             return None
         else:
             if length < first_block:
                 stuff_read = self.base.read(paddr, length)
                 if not stuff_read and zero:
-                    return "\0" * length
+                    return b'\x00' * length
                 else:
                     return stuff_read
 
             stuff_read = self.base.read(paddr, first_block)
             if not stuff_read and zero:
-                stuff_read = "\0" * first_block
+                stuff_read = b'\x00' * first_block
 
         new_vaddr = vaddr + first_block
         for _i in range(0, full_blocks):
             paddr = self.vtop(new_vaddr)
             if paddr == None and zero:
-                stuff_read = stuff_read + "\0" * BLOCK_SIZE
+                stuff_read = stuff_read + b'\x00' * BLOCK_SIZE
             elif paddr == None:
                 return None
             else:
                 new_stuff = self.base.read(paddr, BLOCK_SIZE)
                 if not new_stuff and zero:
-                    new_stuff = "\0" * BLOCK_SIZE
+                    new_stuff = b'\x00' * BLOCK_SIZE
                 elif not new_stuff:
                     return None
                 else:
@@ -311,7 +300,7 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
         if left_over > 0:
             paddr = self.vtop(new_vaddr)
             if paddr == None and zero:
-                stuff_read = stuff_read + "\0" * left_over
+                stuff_read = stuff_read + b'\x00' * left_over
             elif paddr == None:
                 return None
             else:

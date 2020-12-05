@@ -235,7 +235,7 @@ class AMD64PagedMemory(paged.AbstractWritablePagedMemory):
             string = None
         if not string:
             return obj.NoneObject(
-                "Unable to read_long_long_phys at " + hex(addr)
+                f"Unable to read_long_long_phys at {hex(addr)}"
             )
         (longlongval,) = self._longlong_struct.unpack(string)
         return longlongval

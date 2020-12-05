@@ -313,52 +313,60 @@ p = [
 ]
 
 # Constants for SAM decrypt algorithm
-aqwerty = "!@#$%^&*()qwertyUIOPAzxcvbnmQQQQQQQQQQQQ)(*@&%\0"
-anum = "0123456789012345678901234567890123456789\0"
-antpassword = "NTPASSWORD\0"
-almpassword = "LMPASSWORD\0"
-lmkey = "KGS!@#$%"
+aqwerty = b"!@#$%^&*()qwertyUIOPAzxcvbnmQQQQQQQQQQQQ)(*@&%\x00"
+anum = b"0123456789012345678901234567890123456789\x00"
+antpassword = b"NTPASSWORD\x00"
+almpassword = b"LMPASSWORD\x00"
+lmkey = b"KGS!@#$%"
 
 empty_lm = bytes.fromhex("aad3b435b51404eeaad3b435b51404ee")
 empty_nt = bytes.fromhex("31d6cfe0d16ae931b73c59d7e0c089c0")
 
 
-def str_to_key(s):
-    key = []
-    key.append(ord(s[0]) >> 1)
-    key.append(((ord(s[0]) & 0x01) << 6) | (ord(s[1]) >> 2))
-    key.append(((ord(s[1]) & 0x03) << 5) | (ord(s[2]) >> 3))
-    key.append(((ord(s[2]) & 0x07) << 4) | (ord(s[3]) >> 4))
-    key.append(((ord(s[3]) & 0x0F) << 3) | (ord(s[4]) >> 5))
-    key.append(((ord(s[4]) & 0x1F) << 2) | (ord(s[5]) >> 6))
-    key.append(((ord(s[5]) & 0x3F) << 1) | (ord(s[6]) >> 7))
-    key.append(ord(s[6]) & 0x7F)
+def bytes_to_key(s):
+    key = [
+        s[0] >> 1,
+        ((s[0] & 0x01) << 6) | (s[1] >> 2),
+        ((s[1] & 0x03) << 5) | (s[2] >> 3),
+        ((s[2] & 0x07) << 4) | (s[3] >> 4),
+        ((s[3] & 0x0F) << 3) | (s[4] >> 5),
+        ((s[4] & 0x1F) << 2) | (s[5] >> 6),
+        ((s[5] & 0x3F) << 1) | (s[6] >> 7),
+        s[6] & 0x7F,
+    ]
     for i in range(8):
         key[i] = key[i] << 1
         key[i] = odd_parity[key[i]]
-    return "".join(chr(k) for k in key)
+    return bytes(key)
 
 
 def sid_to_key(sid):
-    s1 = ""
-    s1 += chr(sid & 0xFF)
-    s1 += chr((sid >> 8) & 0xFF)
-    s1 += chr((sid >> 16) & 0xFF)
-    s1 += chr((sid >> 24) & 0xFF)
-    s1 += s1[0]
-    s1 += s1[1]
-    s1 += s1[2]
-    s2 = s1[3] + s1[0] + s1[1] + s1[2]
-    s2 += s2[0] + s2[1] + s2[2]
-
-    return str_to_key(s1), str_to_key(s2)
+    s1 = bytes([
+        sid & 0xFF,
+        (sid >> 8) & 0xFF,
+        (sid >> 16) & 0xFF,
+        (sid >> 24) & 0xFF,
+        sid & 0xFF,
+        (sid >> 8) & 0xFF,
+        (sid >> 16) & 0xFF,
+    ])
+    s2 = bytes([
+        s1[3],
+        s1[0],
+        s1[1],
+        s1[2],
+        s1[3],
+        s1[0],
+        s1[1],
+    ])
+    return bytes_to_key(s1), bytes_to_key(s2)
 
 
 def hash_lm(pw):
     pw = pw[:14].upper()
-    pw = pw + ('\0' * (14 - len(pw)))
-    d1 = DES.new(str_to_key(pw[:7]), DES.MODE_ECB)
-    d2 = DES.new(str_to_key(pw[7:]), DES.MODE_ECB)
+    pw = pw + (b'\x00' * (14 - len(pw)))
+    d1 = DES.new(bytes_to_key(pw[:7]), DES.MODE_ECB)
+    d2 = DES.new(bytes_to_key(pw[7:]), DES.MODE_ECB)
     return d1.encrypt(lmkey) + d2.encrypt(lmkey)
 
 
@@ -395,18 +403,18 @@ def get_bootkey(sysaddr):
     if not lsa:
         return None
 
-    bootkey = ""
+    bootkey = b""
 
     for lk in lsa_keys:
         key = rawreg.open_key(lsa, [lk])
         class_data = sysaddr.read(key.Class, key.ClassLength)
         if class_data == None:
             return ""
-        bootkey += class_data.decode('utf-16-le').decode('hex')
+        bootkey += bytes.fromhex(class_data.decode('utf-16-le'))
 
-    bootkey_scrambled = ""
+    bootkey_scrambled = b""
     for i in range(len(bootkey)):
-        bootkey_scrambled += bootkey[p[i]]
+        bootkey_scrambled += bytes([bootkey[p[i]]])
 
     return bootkey_scrambled
 
@@ -476,14 +484,12 @@ def decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey):
     if enc_lm_hash:
         lmhash = decrypt_single_hash(rid, hbootkey, enc_lm_hash, almpassword)
     else:
-        lmhash = ""
-
+        lmhash = b""
     # NT Hash
     if enc_nt_hash:
         nthash = decrypt_single_hash(rid, hbootkey, enc_nt_hash, antpassword)
     else:
-        nthash = ""
-
+        nthash = b""
     return lmhash, nthash
 
 
@@ -508,14 +514,12 @@ def encrypt_hashes(rid, lm_hash, nt_hash, hbootkey):
     if lm_hash:
         enc_lmhash = encrypt_single_hash(rid, hbootkey, lm_hash, almpassword)
     else:
-        enc_lmhash = ""
-
+        enc_lmhash = b""
     # NT Hash
     if nt_hash:
         enc_nthash = encrypt_single_hash(rid, hbootkey, nt_hash, antpassword)
     else:
-        enc_nthash = ""
-
+        enc_nthash = b""
     return enc_lmhash, enc_nthash
 
 
@@ -537,12 +541,12 @@ def get_user_hashes(user_key, hbootkey):
     if lm_len:
         enc_lm_hash = V[lm_offset : lm_offset + 0x10]
     else:
-        enc_lm_hash = ""
+        enc_lm_hash = b""
 
     if nt_len:
         enc_nt_hash = V[nt_offset : nt_offset + 0x10]
     else:
-        enc_nt_hash = ""
+        enc_nt_hash = b""
 
     return decrypt_hashes(rid, enc_lm_hash, enc_nt_hash, hbootkey)
 
@@ -598,9 +602,7 @@ def dump_hashes(sysaddr, samaddr):
         for user in get_user_keys(samaddr):
             ret = get_user_hashes(user, hbootkey)
             if not ret:
-                yield obj.NoneObject(
-                    "Cannot get user hashes for {0}".format(user)
-                )
+                yield obj.NoneObject(f"Cannot get user hashes for {user}")
             else:
                 lmhash, nthash = ret
                 if not lmhash:
@@ -614,12 +616,7 @@ def dump_hashes(sysaddr, samaddr):
                     name = name.encode('ascii', 'ignore')
                 else:
                     name = "(unavailable)"
-                yield "{0}:{1}:{2}:{3}:::".format(
-                    name,
-                    int(str(user.Name), 16),
-                    lmhash.encode('hex'),
-                    nthash.encode('hex'),
-                )
+                yield f"{name}:{int(str(user.Name), 16)}:{lmhash.hex()}:{nthash.hex()}:::"
     else:
         yield obj.NoneObject("Hbootkey is not valid")
 

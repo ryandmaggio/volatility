@@ -108,7 +108,7 @@ class NoneObject(object):
         return format('-', str(spec))
 
     def __next__(self):
-        return  # previously raise StopIteration()
+        raise StopIteration()
 
     def __getattr__(self, attr):
         # By returning self for any unknown attribute

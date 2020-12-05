@@ -31,11 +31,11 @@ import volatility.obj as obj
 import struct
 
 ROOT_INDEX = 0x20
-LH_SIG = "lh"
-LF_SIG = "lf"
-RI_SIG = "ri"
-NK_SIG = "nk"
-VK_SIG = "vk"
+LH_SIG = b"lh"
+LF_SIG = b"lf"
+RI_SIG = b"ri"
+NK_SIG = b"nk"
+VK_SIG = b"vk"
 
 BIG_DATA_MAGIC = 0x3FD8
 
@@ -93,12 +93,8 @@ def open_key(root, key):
     for s in subkeys(root):
         if s.Name.upper() == keyname.upper():
             return open_key(s, key)
-    debug.debug(
-        "Couldn't find subkey {0} of {1}".format(keyname, root.Name), 1
-    )
-    return obj.NoneObject(
-        "Couldn't find subkey {0} of {1}".format(keyname, root.Name)
-    )
+    debug.debug(f"Couldn't find subkey {keyname} of {root.Name}", 1)
+    return obj.NoneObject(f"Couldn't find subkey {keyname} of {root.Name}")
 
 
 def read_sklist(sk):
@@ -211,16 +207,14 @@ def value_data(val):
             return (
                 valtype,
                 obj.NoneObject(
-                    "Value data did not match the expected data size for a {0}".format(
-                        valtype
-                    )
+                    f"Value data did not match the expected data size for a {valtype}"
                 ),
             )
 
     if valtype in ["REG_SZ", "REG_EXPAND_SZ", "REG_LINK"]:
         valdata = valdata.decode('utf-16-le', "ignore")
     elif valtype == "REG_MULTI_SZ":
-        valdata = valdata.decode('utf-16-le', "ignore").split('\0')
+        valdata = valdata.decode('utf-16-le', "ignore").split(b'\x00')
     elif valtype in ["REG_DWORD", "REG_DWORD_BIG_ENDIAN", "REG_QWORD"]:
         valdata = struct.unpack(value_formats[valtype], valdata)[0]
     return (valtype, valdata)

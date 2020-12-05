@@ -72,13 +72,13 @@ class PrintKey(hivelist.HiveList):
         addr_space = utils.load_as(self._config)
 
         if not self._config.HIVE_OFFSET:
-            hive_offsets = [
+            hive_offsets = {
                 h.obj_offset for h in hivelist.HiveList.calculate(self)
-            ]
+            }
         else:
-            hive_offsets = [self._config.HIVE_OFFSET]
+            hive_offsets = {self._config.HIVE_OFFSET}
 
-        for hoff in set(hive_offsets):
+        for hoff in sorted(list(hive_offsets)):
             h = hivemod.HiveAddressSpace(addr_space, self._config, hoff)
             name = obj.Object("_CMHIVE", vm=addr_space, offset=hoff).get_name()
             root = rawreg.get_root(h)
@@ -89,9 +89,10 @@ class PrintKey(hivelist.HiveList):
                     )
             else:
                 if self._config.KEY:
-                    yield name, rawreg.open_key(
+                    opened_key = rawreg.open_key(
                         root, self._config.KEY.split('\\')
                     )
+                    yield name, opened_key
                 else:
                     yield name, root
 
@@ -105,24 +106,16 @@ class PrintKey(hivelist.HiveList):
             if key:
                 keyfound = True
                 outfd.write("----------------------------\n")
-                outfd.write("Registry: {0}\n".format(reg))
-                outfd.write(
-                    "Key name: {0} {1:3s}\n".format(
-                        key.Name, self.voltext(key)
-                    )
-                )
-                outfd.write("Last updated: {0}\n".format(key.LastWriteTime))
+                outfd.write(f"Registry: {reg}\n")
+                outfd.write(f"Key name: {key.Name} {self.voltext(key):3s}\n")
+                outfd.write(f"Last updated: {key.LastWriteTime}\n")
                 outfd.write("\n")
                 outfd.write("Subkeys:\n")
                 for s in rawreg.subkeys(key):
                     if s.Name == None:
-                        outfd.write(
-                            "  Unknown subkey at {0:#x}\n".format(s.obj_offset)
-                        )
+                        outfd.write(f"  Unknown subkey at {s.obj_offset:#x}\n")
                     else:
-                        outfd.write(
-                            "  {1:3s} {0}\n".format(s.Name, self.voltext(s))
-                        )
+                        outfd.write(f"  {self.voltext(s):3s} {s.Name}\n")
                 outfd.write("\n")
                 outfd.write("Values:\n")
                 for v in rawreg.values(key):
@@ -130,9 +123,7 @@ class PrintKey(hivelist.HiveList):
                     if tp == 'REG_BINARY' or tp == 'REG_NONE':
                         dat = "\n" + "\n".join(
                             [
-                                "{0:#010x}  {1:<48}  {2}".format(
-                                    o, h, ''.join(c)
-                                )
+                                f"{o:#010x}  {h:<48}  {''.join(c)}"
                                 for o, h, c in utils.Hexdump(dat)
                             ]
                         )
@@ -142,9 +133,7 @@ class PrintKey(hivelist.HiveList):
                         for i in range(len(dat)):
                             dat[i] = dat[i].encode("ascii", 'backslashreplace')
                     outfd.write(
-                        "{0:13} {1:15} : {3:3s} {2}\n".format(
-                            tp, v.Name, dat, self.voltext(v)
-                        )
+                        f"{tp:13} {v.Name:15} : {self.voltext(v):3s} {dat}\n"
                     )
         if not keyfound:
             outfd.write(
@@ -176,10 +165,10 @@ class PrintKey(hivelist.HiveList):
                 yield (
                     0,
                     [
-                        str("{0}".format(reg)),
-                        str("{0}".format(key.Name)),
-                        str("{0:3s}".format(self.voltext(key))),
-                        str("{0}".format(key.LastWriteTime)),
+                        f"{reg}",
+                        f"{key.Name}",
+                        f"{self.voltext(key):3s}",
+                        f"{key.LastWriteTime}",
                         "-",
                         "-",
                         "-",
@@ -195,15 +184,11 @@ class PrintKey(hivelist.HiveList):
                             yield (
                                 0,
                                 [
-                                    str("{0}".format(reg)),
-                                    str("{0}".format(key.Name)),
-                                    str("{0:3s}".format(self.voltext(key))),
-                                    str("{0}".format(key.LastWriteTime)),
-                                    str(
-                                        "Unknown subkey: {0}".format(
-                                            s.Name.reason
-                                        )
-                                    ),
+                                    f"{reg}",
+                                    f"{key.Name}",
+                                    f"{self.voltext(key):3s}",
+                                    f"{key.LastWriteTime}",
+                                    f"Unknown subkey: {s.Name.reason}",
                                     "-",
                                     "-",
                                     "-",
@@ -215,12 +200,12 @@ class PrintKey(hivelist.HiveList):
                             yield (
                                 0,
                                 [
-                                    str("{0}".format(reg)),
-                                    str("{0}".format(key.Name)),
-                                    str("{0:3s}".format(self.voltext(key))),
-                                    str("{0}".format(key.LastWriteTime)),
-                                    str("{0}".format(s.Name)),
-                                    str("{0:3s}".format(self.voltext(s))),
+                                    f"{reg}",
+                                    f"{key.Name}",
+                                    f"{self.voltext(key):3s}",
+                                    f"{key.LastWriteTime}",
+                                    f"{s.Name}",
+                                    f"{self.voltext(s):3s}",
                                     "-",
                                     "-",
                                     "-",
@@ -243,16 +228,16 @@ class PrintKey(hivelist.HiveList):
                         yield (
                             0,
                             [
-                                str("{0}".format(reg)),
-                                str("{0}".format(key.Name)),
-                                str("{0:3s}".format(self.voltext(key))),
-                                str("{0}".format(key.LastWriteTime)),
+                                f"{reg}",
+                                f"{key.Name}",
+                                f"{self.voltext(key):3s}",
+                                f"{key.LastWriteTime}",
                                 "-",
                                 "-",
-                                str(tp),
-                                str("{0}".format(v.Name)),
-                                str("{0:3s}".format(self.voltext(v))),
-                                str(dat),
+                                f"{tp}",
+                                f"{v.Name}",
+                                f"{self.voltext(v):3s}",
+                                f"{dat}",
                             ],
                         )
 
@@ -281,7 +266,7 @@ class HiveDump(common.AbstractWindowsCommand):
         return rawreg.get_root(h)
 
     def render_text(self, outfd, data):
-        outfd.write("{0:20s} {1}\n".format("Last Written", "Key"))
+        outfd.write(f"{'Last Written':20s} Key\n")
         self.print_key(outfd, '', data)
 
     def unified_output(self, data):
@@ -294,17 +279,14 @@ class HiveDump(common.AbstractWindowsCommand):
         keys = [(data, path)]
         for key, path in keys:
             if key:
-                yield (0, [str("{0}".format(key.LastWriteTime)), str(path)])
+                yield (0, [f"{key.LastWriteTime}", str(path)])
                 for s in rawreg.subkeys(key):
-                    item = "{0}\\{1}".format(path, s.Name)
+                    item = f"{path}\\{s.Name}"
                     keys.append((s, item))
 
     def print_key(self, outfd, keypath, key):
         if key.Name != None:
-            outfd.write(
-                "{0:20s} {1}\n".format(
-                    key.LastWriteTime, keypath + "\\" + key.Name
-                )
-            )
+            kp = f"{keypath}\\{key.Name}"
+            outfd.write(f"{key.LastWriteTime:20s} {kp}\n")
         for k in rawreg.subkeys(key):
-            self.print_key(outfd, keypath + "\\" + key.Name, k)
+            self.print_key(outfd, f"{keypath}\\{key.Name}", k)
