@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import os
@@ -153,9 +153,9 @@ class linux_check_fop(linux_common.AbstractLinuxCommand):
                 if cur.obj_offset == last_cur:
                     break
 
-                if cur == cur.__next__:
+                if cur == cur.next:
                     break
-                cur = cur.__next__
+                cur = cur.next
                 if cur.obj_offset in self.seen_proc:
                     break
                 else:
@@ -179,12 +179,12 @@ class linux_check_fop(linux_common.AbstractLinuxCommand):
                     hook_address,
                 ) in self._walk_proc_old(subdir, f_op_members, modules, name):
                     yield (subname, hooked_member, hook_address)
-                subdir = subdir.__next__
+                subdir = subdir.next
 
             last_cur = cur.obj_offset
-            if cur == cur.__next__:
+            if cur == cur.next:
                 break
-            cur = cur.__next__
+            cur = cur.next
 
     def _walk_rb(self, rb):
         nodes = []

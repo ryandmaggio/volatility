@@ -1325,7 +1325,7 @@ class proc(obj.CType):
                 yield info_addr
 
     def get_proc_maps(self):
-        map = self.task.map.hdr.links.__next__
+        map = self.task.map.hdr.links.next
 
         seen = set()
 
@@ -1342,7 +1342,7 @@ class proc(obj.CType):
             if 4095 < map_size < 0x800000000000 and map_size % 4096 == 0:
                 yield map
 
-            map = map.links.__next__
+            map = map.links.next
 
     def find_heap_map(self):
         ret = None

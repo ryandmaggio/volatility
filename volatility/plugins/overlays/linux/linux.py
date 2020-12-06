@@ -653,7 +653,7 @@ class hlist_node(obj.CType):
 
     def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.__next__) or bool(self.pprev)
+        return bool(self.next) or bool(self.pprev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
@@ -702,7 +702,7 @@ class list_head(obj.CType):
 
     def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.__next__) or bool(self.prev)
+        return bool(self.next) or bool(self.prev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)
@@ -751,7 +751,7 @@ class hlist_bl_node(obj.CType):
 
     def __bool__(self):
         ## List entries are valid when both Flinks and Blink are valid
-        return bool(self.__next__) or bool(self.prev)
+        return bool(self.next) or bool(self.prev)
 
     def __iter__(self):
         return self.list_of_type(self.obj_parent.obj_name, self.obj_name)

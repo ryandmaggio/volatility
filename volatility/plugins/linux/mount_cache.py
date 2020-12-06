@@ -60,7 +60,7 @@ class linux_mount_cache(linux_mount.linux_mount):
                 "String", offset=fs.name, vm=self.addr_space, length=256
             )
             all_fs[str(fsname)] = fs
-            fs = fs.__next__
+            fs = fs.next
 
         return all_fs
 

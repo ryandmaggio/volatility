@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import volatility.obj as obj
 import volatility.utils as utils
@@ -161,7 +161,7 @@ class mac_interest_handlers(common.AbstractMacCommand):
                     offset=v,
                     vm=self.addr_space,
                 )
-                notifier_ptr = cmd.fCommandChain.__next__
+                notifier_ptr = cmd.fCommandChain.next
                 first_ptr = notifier_ptr
 
                 last = 0
@@ -177,7 +177,7 @@ class mac_interest_handlers(common.AbstractMacCommand):
                         break
 
                     last = notifier_ptr
-                    notifier_ptr = notifier.chain.__next__
+                    notifier_ptr = notifier.chain.next
 
                     if notifier_ptr == first_ptr:
                         break

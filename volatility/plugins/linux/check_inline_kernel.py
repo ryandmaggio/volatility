@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -224,9 +224,9 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
     def walk_proc(self, cur, f_op_members, modules, parent=""):
         while cur:
             if cur.obj_offset in self.seen_proc:
-                if cur == cur.__next__:
+                if cur == cur.next:
                     break
-                cur = cur.__next__
+                cur = cur.next
                 continue
 
             self.seen_proc[cur.obj_offset] = 1
@@ -259,11 +259,11 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
                     hook_address,
                 ) in self.walk_proc(subdir, f_op_members, modules, name):
                     yield (sub_name, hooked_member, hook_type, hook_address)
-                subdir = subdir.__next__
+                subdir = subdir.next
 
-            if cur == cur.__next__:
+            if cur == cur.next:
                 break
-            cur = cur.__next__
+            cur = cur.next
 
     def check_proc_root_fops(self, f_op_members, modules):
         self.seen_proc = {}

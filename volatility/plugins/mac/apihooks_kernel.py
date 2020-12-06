@@ -18,7 +18,7 @@
 @author:       Cem Gurkok
 @license:      GNU General Public License 2.0 or later
 @contact:      cemgurkok@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -98,7 +98,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
                     if str(kmod.name) == kext_name:
                         kext_addr = kmod.address
                         break
-                    kmod = kmod.__next__
+                    kmod = kmod.next
                 if kext_addr == None:
                     yield
         elif kext_obj != None:
@@ -215,7 +215,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
         kmod = kmodaddr.dereference_as("kmod_info")
         while kmod.is_valid():
             kexts.append(kmod)
-            kmod = kmod.__next__
+            kmod = kmod.next
 
         for kext in kexts:
             if addr >= kext.address and addr <= (
@@ -628,7 +628,7 @@ class mac_apihooks_kernel(common.AbstractMacCommand):
             kext_addr_list.append(
                 (kmod.address.v(), kmod.address + kmod.m('size'), kmod.name)
             )
-            kmod = kmod.__next__
+            kmod = kmod.next
 
         # loop thru kexts
         for kext_address, kext_end, kext_name in kext_addr_list:

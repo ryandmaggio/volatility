@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import struct
@@ -217,7 +217,7 @@ class mac64_bash_hash_table(bash_funcs):
                     yield bucket
 
                     seen[bucket.v()] = 1
-                    bucket = bucket.__next__
+                    bucket = bucket.next
 
 
 class mac32_bash_hash_table(bash_funcs):
@@ -255,7 +255,7 @@ class mac32_bash_hash_table(bash_funcs):
                 ):
                     yield bucket
 
-                    bucket = bucket.__next__
+                    bucket = bucket.next
 
 
 class mac64_pathdata(bash_funcs):

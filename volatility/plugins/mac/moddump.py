@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import os
 import re
@@ -94,12 +94,12 @@ class mac_moddump(common.AbstractMacCommand):
 
             while mod.is_valid():
                 if self._config.REGEX and not mod_re.search(str(mod.name)):
-                    mod = mod.__next__
+                    mod = mod.next
                     continue
 
                 yield mod
 
-                mod = mod.__next__
+                mod = mod.next
 
     def unified_output(self, data):
         if not self._config.DUMP_DIR or not os.path.isdir(

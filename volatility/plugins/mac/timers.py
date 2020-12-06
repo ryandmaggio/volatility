@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import volatility.obj as obj
 import volatility.plugins.mac.common as common
@@ -58,7 +58,7 @@ class mac_timers(common.AbstractMacCommand):
             c = cpu_data.rtclock_timer
             q = c.queue
 
-            ent = q.head.__next__
+            ent = q.head.next
             first = ent
             seen = {}
 
@@ -85,7 +85,7 @@ class mac_timers(common.AbstractMacCommand):
 
                 yield func, timer.param0, timer.param1, timer.deadline, entry_time, module, handler_sym
 
-                ent = timer.q_link.__next__
+                ent = timer.q_link.next
 
                 if ent == first or ent.v() in seen:
                     break

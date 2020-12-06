@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.plugins.linux.common as linux_common
@@ -71,7 +71,7 @@ class linux_list_raw(linux_common.AbstractLinuxCommand):
 
                 sk = obj.Object(
                     "sock",
-                    offset=sk.sk_node.__next__ - offset,
+                    offset=sk.sk_node.next - offset,
                     vm=self.addr_space,
                 )
 

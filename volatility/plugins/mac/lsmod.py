@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -75,7 +75,7 @@ class mac_lsmod(common.AbstractMacCommand):
             ):
                 yield kmod
 
-            kmod = kmod.__next__
+            kmod = kmod.next
 
     def unified_output(self, data):
         return TreeGrid(

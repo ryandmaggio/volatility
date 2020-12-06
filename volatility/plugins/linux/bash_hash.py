@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import struct
@@ -144,7 +144,7 @@ class _bash_hash_table(obj.CType):
                     if pdata.path.is_valid() and (0 <= pdata.flags <= 2):
                         yield bucket
 
-                    bucket = bucket.__next__
+                    bucket = bucket.next
 
 
 class BashHashTypes(obj.ProfileModification):

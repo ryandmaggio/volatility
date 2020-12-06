@@ -50,7 +50,7 @@ class linux_kernel_opened_files(linux_common.AbstractLinuxCommand):
             )
             cnt = cnt + 1
             last_node = node
-            node = dentry.d_hash.__next__
+            node = dentry.d_hash.next
 
     def _walk_node_node(self, node):
         last_node = None
@@ -62,7 +62,7 @@ class linux_kernel_opened_files(linux_common.AbstractLinuxCommand):
 
             cnt = cnt + 1
             last_node = node
-            node = node.__next__
+            node = node.next
 
     def _walk_node(self, node):
         last_node = None

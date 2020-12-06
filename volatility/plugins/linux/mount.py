@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -129,7 +129,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
         hash_mnts = {}
         seen_outer = {}
         for (idx, outerlist) in enumerate(mnt_list):
-            if outerlist == None or outerlist.__next__ == None:
+            if outerlist == None or outerlist.next == None:
                 continue
 
             if outerlist.next.v() in seen_outer:
@@ -138,7 +138,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
             seen_outer[outerlist.next.v()] = 1
 
             if (
-                outerlist == outerlist.__next__
+                outerlist == outerlist.next
                 or not outerlist.m("next").is_valid()
             ):
                 continue
@@ -279,7 +279,7 @@ class linux_mount(linux_common.AbstractLinuxCommand):
                 "String", offset=fs.name, vm=self.addr_space, length=256
             )
             all_fs[str(fsname)] = fs
-            fs = fs.__next__
+            fs = fs.next
 
         return all_fs
 

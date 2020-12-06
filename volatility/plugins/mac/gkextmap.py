@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -43,7 +43,7 @@ class mac_lsmod_kext_map(lsmod.mac_lsmod):
         kext = kextmap.hdr
 
         for i in range(nentries):
-            kext = kext.links.__next__
+            kext = kext.links.next
 
             if not kext:
                 break
