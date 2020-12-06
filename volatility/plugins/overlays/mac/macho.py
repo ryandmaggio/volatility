@@ -538,7 +538,7 @@ class macho_header(macho):
             if idx != -1:
                 name = name[:idx]
 
-        return name
+        return name.decode('utf-8')
 
     def address_for_symbol(self, sym_name):
         ret = None

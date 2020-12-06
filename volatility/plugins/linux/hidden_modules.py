@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import re
 
@@ -76,10 +76,10 @@ class linux_hidden_modules(linux_common.AbstractLinuxCommand):
         min_addr = min_addr_sym & ~0xFFF
         max_addr = (max_addr_sym & ~0xFFF) + 0x1000
 
-        scan_buf = ""
+        scan_buf = b""
         llen = max_addr - min_addr
 
-        allfs = "\xff" * 4096
+        allfs = b"\xff" * 4096
 
         memory_model = self.addr_space.profile.metadata.get(
             'memory_model', '32bit'
@@ -115,9 +115,9 @@ class linux_hidden_modules(linux_common.AbstractLinuxCommand):
         ]
 
         for num in check_nums:
-            check_bufs.append("\x00" * num)
+            check_bufs.append(b"\x00" * num)
             replace_bufs.append(
-                ("\xff" * (num - minus_size)) + "\x00" * minus_size
+                (b"\xff" * (num - minus_size)) + b"\x00" * minus_size
             )
 
         for page in range(min_addr, max_addr, 4096):
@@ -127,7 +127,7 @@ class linux_hidden_modules(linux_common.AbstractLinuxCommand):
             if tmp:
                 non_zero = False
                 for t in tmp:
-                    if t != "\x00":
+                    if t != b"\x00":
                         non_zero = True
                         break
 
@@ -139,7 +139,7 @@ class linux_hidden_modules(linux_common.AbstractLinuxCommand):
             scan_buf = scan_buf + to_append
 
         for cur_addr in re.finditer(
-            "(?=(\x00\x00\x00\x00|\x01\x00\x00\x00|\x02\x00\x00\x00))",
+            rb"(?=(\x00\x00\x00\x00|\x01\x00\x00\x00|\x02\x00\x00\x00))",
             scan_buf,
         ):
             mod_addr = min_addr + cur_addr.start()

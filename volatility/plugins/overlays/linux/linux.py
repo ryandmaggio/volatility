@@ -2376,9 +2376,9 @@ class task_struct(obj.CType):
                         buf = buf[:idx]
 
                     if len(buf) > 0:
-                        needed.append(buf)
+                        needed.append(buf.decode('utf-8', 'replace'))
 
-            soname = b""
+            soname = ""
             if dt_soname:
                 soname = proc_as.read(dt_strtab + dt_soname, 256)
                 if soname:
@@ -2386,8 +2386,12 @@ class task_struct(obj.CType):
                     if idx != -1:
                         soname = soname[:idx]
 
+            if soname:
+                soname = soname.decode('utf-8', 'replace')
+
             if not soname or len(soname) == 0:
                 soname = linux_common.get_path(self, vma.vm_file)
+
 
             if pt_loads:
                 (elf_start, elf_end) = (
@@ -2498,7 +2502,10 @@ class task_struct(obj.CType):
                         ents = vals.split(b"=")
 
                         if len(ents) == 2:
-                            yield ents[0], ents[1]
+                            yield (
+                                ents[0].decode('utf-8', 'replace'),
+                                ents[1].decode('utf-8', 'replace'),
+                            )
 
     def get_environment(self):
         env = ""
@@ -2511,12 +2518,12 @@ class task_struct(obj.CType):
 
         return env
 
-    def get_commandline(self):
+    def get_commandline(self) -> str:
         if self.mm:
             # set the as with our new dtb so we can read from userland
             proc_as = self.get_process_address_space()
             if proc_as == None:
-                return b""
+                return ""
 
             # read argv from userland
             start = self.mm.arg_start.v()
@@ -2524,20 +2531,20 @@ class task_struct(obj.CType):
             size_to_read = self.mm.arg_end - self.mm.arg_start
 
             if size_to_read < 1 or size_to_read > 4096:
-                name = b""
+                name = ""
             else:
                 argv = proc_as.read(start, size_to_read)
 
                 if argv:
                     # split the \x00 buffer into args
-                    name = b" ".join(argv.split(b"\x00"))
+                    name = " ".join([arg.decode('utf-8', 'replace') for arg in argv.split(b"\x00")])
                 else:
-                    name = b""
+                    name = ""
         else:
             # kernel thread
-            name = b"[" + self.comm + b"]"
+            name = "[" + self.comm + "]"
 
-        if len(name) > 1 and name[-1] == b" ":
+        if len(name) > 1 and name[-1] == " ":
             name = name[:-1]
 
         return name

@@ -221,7 +221,7 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
                     hook_address,
                 )
 
-    def walk_proc(self, cur, f_op_members, modules, parent=""):
+    def walk_proc(self, cur, f_op_members, modules, parent=b""):
         while cur:
             if cur.obj_offset in self.seen_proc:
                 if cur == cur.next:
@@ -233,7 +233,7 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
 
             name = (
                 parent
-                + "/"
+                + b"/"
                 + self.addr_space.read(cur.name.obj_offset, cur.namelen + 1)
             )
             idx = name.find(b"\x00")

@@ -531,7 +531,7 @@ class elf_hdr(elf):
                 name = name[:idx]
         else:
             name = b"N/A"
-        return name
+        return name.decode('utf-8')
 
     def relocation_symbol(self, reloc):
         ridx = reloc.relocation_symbol_index()
@@ -575,7 +575,7 @@ class elf_hdr(elf):
                 else:
                     struct_size = 16
             else:
-                print("unknown relocation type: %d" % dt_pltrel)
+                print(f"unknown relocation type: {dt_pltrel}")
 
             # arr = obj.Object(theType="Array", targetType=struct_name, parent = self, count = dt_pltrelsz // struct_size, offset = dt_jmprel, vm = self.obj_vm)
 
@@ -897,7 +897,7 @@ class elf_link_map(elf):
         idx = buf.find(b"\x00")
         if idx != -1:
             buf = buf[:idx]
-        return buf
+        return buf.decode('utf-8')
 
     @property
     def l_next(self):

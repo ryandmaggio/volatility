@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -119,7 +119,7 @@ class linux_process_hollow(linux_pslist.linux_pslist):
                     if mem_buffer != None and disk_buffer != mem_buffer:
                         yield task, symname, full_address
                     elif mem_buffer == None:
-                        print("Function %s paged out in memory" % symname)
+                        print(f"Function {symname} paged out in memory")
 
     def render_text(self, outfd, data):
         self.table_header(
