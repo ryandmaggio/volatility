@@ -65,7 +65,7 @@ run-test linux_list_raw
 run-test linux_lsmod
 run-test linux_lsof
 run-test linux_malfind
-run-test linux_memmap
+run-test linux_memmap -p "${MEMMAP_PID}"
 run-test linux_moddump
 run-test linux_mount
 run-test linux_mount_cache
