@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -85,7 +85,7 @@ class linux_dmesg(linux_common.AbstractLinuxCommand):
                 break
 
             ret = ret + "[{0}.{1}] {2}\n".format(
-                cur_ts, cur_ts / 1000000000, buf
+                cur_ts, cur_ts // 1000000000, buf
             )
 
             cur_addr = cur_addr + cur_len

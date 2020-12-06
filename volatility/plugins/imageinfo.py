@@ -162,7 +162,7 @@ class ImageInfo(kdbgscan.KDBGScan):
             return k
         result['ImageDatetime'] = k.SystemTime
         result['ImageTz'] = timefmt.OffsetTzInfo(
-            -k.TimeZoneBias.as_windows_timestamp() / 10000000
+            -k.TimeZoneBias.as_windows_timestamp() // 10000000
         )
 
         return result

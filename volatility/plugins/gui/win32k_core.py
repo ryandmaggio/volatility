@@ -110,7 +110,7 @@ class _MM_SESSION_SPACE(obj.CType):
                         targetType="unsigned long",
                         offset=desired_section.VirtualAddress
                         + dos_header.obj_offset,
-                        count=desired_section.Misc.VirtualSize / 4,
+                        count=desired_section.Misc.VirtualSize // 4,
                         vm=self.obj_vm,
                     )
             except ValueError:
@@ -138,7 +138,7 @@ class _MM_SESSION_SPACE(obj.CType):
             "Array",
             targetType="unsigned long",
             offset=self.Win32KBase,
-            count=len(data) / 4,
+            count=len(data) // 4,
             vm=buffer_as,
         )
 
@@ -234,7 +234,7 @@ class tagSHAREDINFO(obj.CType):
         # number of _HANDLEENTRY structures.
         return (
             self.psi.cbHandleTable
-            / self.obj_vm.profile.get_obj_size("_HANDLEENTRY")
+            // self.obj_vm.profile.get_obj_size("_HANDLEENTRY")
             == self.psi.cHandleEntries
         )
 

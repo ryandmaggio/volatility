@@ -480,7 +480,7 @@ class TrueCryptPassphrase(common.AbstractWindowsCommand):
             "Array",
             targetType="int",
             offset=base,
-            count=size / 4,
+            count=size // 4,
             vm=addr_space,
         )
 

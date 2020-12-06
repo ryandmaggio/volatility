@@ -76,7 +76,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
         entries = obj.Object(
             "Array",
             targetType="unsigned long long",
-            count=kdbg_size / 8,
+            count=kdbg_size // 8,
             offset=kdbg_block,
             vm=self.obj_vm,
         )
@@ -136,7 +136,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
         found_size = False
 
         for size in sizes:
-            val = struct.pack("I", size / alignment)
+            val = struct.pack("I", size // alignment)
             if code.find(val) != -1:
                 found_size = True
                 break

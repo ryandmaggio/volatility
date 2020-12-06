@@ -69,9 +69,9 @@ def parse_cache_entry(cache_data):
 
 def parse_decrypted_cache(dec_data, uname_len, domain_len, domain_name_len):
     uname_off = 72
-    pad = 2 * ((uname_len / 2) % 2)
+    pad = 2 * ((uname_len // 2) % 2)
     domain_off = uname_off + uname_len + pad
-    pad = 2 * ((domain_len / 2) % 2)
+    pad = 2 * ((domain_len // 2) % 2)
     domain_name_off = domain_off + domain_len + pad
 
     hashh = dec_data[:0x10]

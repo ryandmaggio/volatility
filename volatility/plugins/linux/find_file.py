@@ -246,7 +246,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
         )
 
     def get_slot_offset(self, parent, slot):
-        return (slot.v() - parent.slots.obj_offset) / self.ptr_size
+        return (slot.v() - parent.slots.obj_offset) // self.ptr_size
 
     def radix_tree_descend(self, parent, node, index):
         offset = (index >> parent.shift) & self.RADIX_TREE_MAP_MASK
@@ -469,7 +469,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
             return  # previously raise StopIteration
 
         extra = file_size % 4096
-        idxs = file_size / 4096
+        idxs = file_size // 4096
 
         if extra > 0:
             extra = 4096 - extra

@@ -98,7 +98,7 @@ class mac_calendar(pstasks.mac_tasks):
                 # only read/write without filebacks
                 if not (map.get_perms() == "rw-" and not map.get_path()):
                     continue
-                pages = (map.links.end - map.links.start) / 4096
+                pages = (map.links.end - map.links.start) // 4096
                 for i in range(pages):
                     start = map.links.start + i * 4096
                     data = space.zread(start, 4096)

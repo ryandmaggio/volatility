@@ -559,7 +559,7 @@ class process_info(object):
         @param address: The address to find
         @return: an index into process_info.stack
         """
-        return (address - self.vm_stack_low) / address_size
+        return (address - self.vm_stack_low) // address_size
 
     def _generate_thread_stack_list(self):
         """

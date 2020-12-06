@@ -581,7 +581,7 @@ class macho_header(macho):
         else:
             idx_type = "unsigned long long"
 
-        num_idxs = sect_size / (self.get_bits() / 8)
+        num_idxs = sect_size // (self.get_bits() // 8)
 
         for seg in self.segments():
             if str(seg.segname) == "__DATA":

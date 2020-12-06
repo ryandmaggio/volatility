@@ -391,7 +391,7 @@ class WinTimeStamp(obj.NativeType):
         if windows_time == None or windows_time == 0:
             unix_time = 0
         else:
-            unix_time = windows_time / 10000000
+            unix_time = windows_time // 10000000
             unix_time = unix_time - 11644473600
 
         if unix_time < 0:
@@ -1031,10 +1031,10 @@ class _HANDLE_TABLE(obj.CType):
         # by the size of the data type contained within the page. For more information
         # see http://blogs.technet.com/b/markrussinovich/archive/2009/09/29/3283844.aspx
         if level > 0:
-            count = 0x1000 / self.obj_vm.profile.get_obj_size("address")
+            count = 0x1000 // self.obj_vm.profile.get_obj_size("address")
             targetType = "address"
         else:
-            count = 0x1000 / self.obj_vm.profile.get_obj_size(
+            count = 0x1000 // self.obj_vm.profile.get_obj_size(
                 "_HANDLE_TABLE_ENTRY"
             )
             targetType = "_HANDLE_TABLE_ENTRY"
@@ -1078,7 +1078,7 @@ class _HANDLE_TABLE(obj.CType):
                     # Finally, compute the handle value for this object.
                     handle_value = (
                         (entry.obj_offset - offset)
-                        / (handle_entry_size / handle_multiplier)
+                        // (handle_entry_size // handle_multiplier)
                     ) + handle_level_base
 
                     ## OK We got to the bottom table, we just resolve

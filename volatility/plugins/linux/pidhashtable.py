@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -300,7 +300,7 @@ class linux_pidhashtable(linux_pslist.linux_pslist):
         node = self.radix_tree_indirect_to_ptr(node)
 
         if is_indirect and hasattr(node, "shift"):
-            height = (node.shift / self.RADIX_TREE_MAP_SHIFT) + 1
+            height = (node.shift // self.RADIX_TREE_MAP_SHIFT) + 1
 
         if height == 0:
             yield node
@@ -389,7 +389,7 @@ class linux_pidhashtable(linux_pslist.linux_pslist):
         node = obj.Object("xa_node", offset=root, vm=self.addr_space)
 
         if is_internal and hasattr(node, "shift"):
-            height = (node.shift / self.XA_CHUNK_SHIFT) + 1
+            height = (node.shift // self.XA_CHUNK_SHIFT) + 1
 
         for node in self._do_walk_xarray(ff, node, height, 0):
             if node and node.is_valid():

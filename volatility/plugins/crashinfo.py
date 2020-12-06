@@ -40,7 +40,7 @@ class _DMP_HEADER(obj.CType):
             return obj.NoneObject("No uptime recorded")
 
         # 1 uptime is 100ns so convert that to microsec
-        msec = self.m('SystemUpTime') / 10
+        msec = self.m('SystemUpTime') // 10
 
         return datetime.timedelta(microseconds=msec)
 

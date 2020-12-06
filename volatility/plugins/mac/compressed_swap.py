@@ -230,7 +230,7 @@ class mac_compressed_swap(common.AbstractMacCommand):
             c_nextslot = c_segments[i].c_seg.c_nextslot
             yield (
                 "Last valid slot",
-                str((c_nextslot - 1) / self.C_SEG_SLOT_ARRAY_SIZE)
+                str((c_nextslot - 1) // self.C_SEG_SLOT_ARRAY_SIZE)
                 + ", "
                 + str((c_nextslot - 1) % self.C_SEG_SLOT_ARRAY_SIZE),
                 "",
@@ -254,9 +254,9 @@ class mac_compressed_swap(common.AbstractMacCommand):
                     ):
                         cslot = cslots[j2]
                         (csize, compressed, status) = (
-                            (4096 / 4, False, "UNCOMPRESSED")
+                            (4096 // 4, False, "UNCOMPRESSED")
                             if (cslot.c_size == 4095)
-                            else (cslot.c_size / 4, True, "COMPRESSED")
+                            else (cslot.c_size // 4, True, "COMPRESSED")
                         )
                         if csize > 0:
                             yield (

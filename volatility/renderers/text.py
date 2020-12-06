@@ -88,7 +88,7 @@ class TextRenderer(Renderer):
             if length < self.min_column_width:
                 return string
             even = (length + 1) % 2
-            length = (length - 3) / 2
+            length = (length - 3) // 2
             return string[: length + even] + "..." + string[-length:]
 
     def _validate_grid(self, grid):

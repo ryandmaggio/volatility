@@ -1080,7 +1080,7 @@ class ShellBags(common.AbstractWindowsCommand):
                 )
                 i = 0
                 while i < len(data) - 4:
-                    list[obj.Object("int", offset=i, vm=bufferas).v()] = i / 4
+                    list[obj.Object("int", offset=i, vm=bufferas).v()] = i // 4
                     i += 4
                 items["MruListEx"] = list
             elif len(data) >= 0x10:

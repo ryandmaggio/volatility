@@ -119,7 +119,7 @@ pe_vtypes = {
                 ['array', len("VS_VERSION_INFO "), ['unsigned short']],
             ],
             'FileInfo': [
-                lambda x: (((x.Key.obj_offset + x.Key.size() + 3) / 4) * 4),
+                lambda x: (((x.Key.obj_offset + x.Key.size() + 3) // 4) * 4),
                 ['_VS_FIXEDFILEINFO'],
             ],
         },
@@ -777,7 +777,7 @@ class _IMAGE_DOS_HEADER(obj.CType):
     def get_code(self, data_start, data_size, offset):
         """Returns a single section of re-created data from a file image"""
         first_block = 0x1000 - data_start % 0x1000
-        full_blocks = ((data_size + (data_start % 0x1000)) / 0x1000) - 1
+        full_blocks = ((data_size + (data_start % 0x1000)) // 0x1000) - 1
         left_over = (data_size + data_start) % 0x1000
 
         code = b""
@@ -1031,7 +1031,7 @@ class VerStruct(obj.CType):
 
     def offset_pad(self, offset):
         """Pads an offset to a 32-bit alignment"""
-        return ((offset + 3) / 4) * 4
+        return ((offset + 3) // 4) * 4
 
     def get_children(self):
         """Returns the available children"""

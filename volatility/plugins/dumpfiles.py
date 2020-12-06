@@ -558,7 +558,7 @@ class _SHARED_CACHE_MAP(obj.CType):
 
         # tree_depth = math.ceil((math.ceil(math.log(file_size, 2)) - 18)/7)
         level_depth = math.ceil(math.log(SectionSize, 2))
-        level_depth = (level_depth - VACB_OFFSET_SHIFT) / VACB_LEVEL_SHIFT
+        level_depth = (level_depth - VACB_OFFSET_SHIFT) // VACB_LEVEL_SHIFT
         level_depth = math.ceil(level_depth)
         limit_depth = level_depth
 

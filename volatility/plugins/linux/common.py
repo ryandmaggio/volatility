@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import os, re
 
@@ -350,7 +350,7 @@ def get_time_vars(obj_vm):
             tv64 = (oreal & 0xFFFFFFFF) - (oboot & 0xFFFFFFFF)
 
         if tv64:
-            tv64 = (tv64 / 100000000) * -1
+            tv64 = (tv64 // 100000000) * -1
             timeo = vol_timespec(tv64, 0)
         else:
             timeo = None

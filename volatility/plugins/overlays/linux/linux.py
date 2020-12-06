@@ -2194,7 +2194,7 @@ class task_struct(obj.CType):
                         # size_cache tells us if we are a 32 or 64 bit ELF file
                         link_map_addr = obj.Object(
                             "Pointer",
-                            offset=got_start + (dsec.size_cache / 8),
+                            offset=got_start + (dsec.size_cache // 8),
                             vm=proc_as,
                         )
                         link_map = obj.Object(
@@ -2402,11 +2402,11 @@ class task_struct(obj.CType):
                 yield elf, elf_start, elf_end, soname, needed
 
     def ACTHZ(self, CLOCK_TICK_RATE, HZ):
-        LATCH = (CLOCK_TICK_RATE + HZ / 2) / HZ
+        LATCH = (CLOCK_TICK_RATE + HZ // 2) // HZ
         return self.SH_DIV(CLOCK_TICK_RATE, LATCH, 8)
 
     def SH_DIV(self, NOM, DEN, LSH):
-        return ((NOM / DEN) << LSH) + (((NOM % DEN) << LSH) + DEN / 2) / DEN
+        return ((NOM // DEN) << LSH) + (((NOM % DEN) << LSH) + DEN // 2) // DEN
 
     def TICK_NSEC(self):
         HZ = 1000
@@ -2435,7 +2435,7 @@ class task_struct(obj.CType):
             nsecs = nsecs + linux_common.nsecs_per
             secs = secs - 1
 
-        boot_time = secs + (nsecs / linux_common.nsecs_per / 100)
+        boot_time = secs + (nsecs // linux_common.nsecs_per // 100)
 
         return boot_time
 
@@ -2450,11 +2450,11 @@ class task_struct(obj.CType):
             and type(start_time.v()) == int
         ):
             start_time = linux_common.vol_timespec(
-                start_time.v() / 0x989680 / 100, 0
+                start_time.v() // 0x989680 // 100, 0
             )
 
         start_secs = start_time.tv_sec + (
-            start_time.tv_nsec / linux_common.nsecs_per / 100
+            start_time.tv_nsec // linux_common.nsecs_per // 100
         )
 
         boot_time = self.get_boot_time()
@@ -2994,7 +2994,7 @@ class page(obj.CType):
 
         phys_offset = (
             self.obj_offset - mem_map_ptr
-        ) / self.obj_vm.profile.get_obj_size("page")
+        ) // self.obj_vm.profile.get_obj_size("page")
 
         phys_offset = phys_offset << 12
 

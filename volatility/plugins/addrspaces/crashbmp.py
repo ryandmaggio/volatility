@@ -50,7 +50,7 @@ class BitmapDmpVTypes(obj.ProfileModification):
                             0x38,
                             [
                                 'array',
-                                lambda x: (x.BitmapSize + 7) / 0x8,
+                                lambda x: (x.BitmapSize + 7) // 0x8,
                                 ['unsigned char'],
                             ],
                         ],
@@ -58,7 +58,7 @@ class BitmapDmpVTypes(obj.ProfileModification):
                             0x38,
                             [
                                 'array',
-                                lambda x: (x.BitmapSize + 31) / 32,
+                                lambda x: (x.BitmapSize + 31) // 32,
                                 ['unsigned long'],
                             ],
                         ],
@@ -115,7 +115,7 @@ class WindowsCrashDumpSpace64BitMap(crash.WindowsCrashDumpSpace32):
         lastbitseen = 0  # Most recent bit processed
         offset = self.bitmaphdr2.HeaderSize  # Size of file headers
 
-        for i in range(0, ((self.bitmaphdr2.BitmapSize + 31) / 32)):
+        for i in range(0, ((self.bitmaphdr2.BitmapSize + 31) // 32)):
             if self.bitmaphdr.Buffer2[i] == 0:
                 if firstbit != None:
                     lastbit = ((i - 1) * 32) + 31

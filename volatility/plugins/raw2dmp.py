@@ -52,7 +52,7 @@ class Raw2dmp(imagecopy.ImageCopy):
 
         headerlen = pspace.profile.get_obj_size(header_format)
         headerspace = addrspace.BufferAddressSpace(
-            config, 0, "PAGE" * (headerlen / 4)
+            config, 0, "PAGE" * (headerlen // 4)
         )
         header = obj.Object(header_format, offset=0, vm=headerspace)
 
@@ -123,7 +123,7 @@ class Raw2dmp(imagecopy.ImageCopy):
         # space that may have holes for device memory, that would fail because
         # any runs after the first hole would then be at the wrong offset.
         last_run = list(pspace.get_available_addresses())[-1]
-        num_pages = (last_run[0] + last_run[1]) / 0x1000
+        num_pages = (last_run[0] + last_run[1]) // 0x1000
 
         header.PhysicalMemoryBlockBuffer.NumberOfRuns = 0x00000001
         header.PhysicalMemoryBlockBuffer.NumberOfPages = num_pages

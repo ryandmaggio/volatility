@@ -409,7 +409,7 @@ class vnode(obj.CType):
     '''
     static inline uintptr_t vm_page_unpack_ptr(uintptr_t p)
     {
-            if (!p) 
+            if (!p)
                     return ((uintptr_t)0);
 
             if (p & VM_PACKED_FROM_VM_PAGES_ARRAY)
@@ -1193,7 +1193,7 @@ class proc(obj.CType):
         nsecs_per = 1000000
 
         start_time = self.p_start
-        start_secs = start_time.tv_sec + (start_time.tv_usec / nsecs_per)
+        start_secs = start_time.tv_sec + (start_time.tv_usec // nsecs_per)
 
         # convert the integer as little endian. we catch struct.error
         # here because if the process has exited (i.e. detected with mac_dead_procs)

@@ -121,7 +121,7 @@ class HPAKAddressSpace(standard.FileAddressSpace):
             length = self.physmem.Length
 
         chunk_size = 4096
-        chunks = length / chunk_size
+        chunks = length // chunk_size
 
         def get_chunk(addr, size):
             data = self.base.read(addr, size)

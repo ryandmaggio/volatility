@@ -286,7 +286,7 @@ class tagSHAREDINFO(win32k_core.tagSHAREDINFO):
             return False
 
         return (
-            self.psi.cbHandleTable / self.HeEntrySize
+            self.psi.cbHandleTable // self.HeEntrySize
             == self.psi.cHandleEntries
         )
 

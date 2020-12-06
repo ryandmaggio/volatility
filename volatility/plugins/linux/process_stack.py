@@ -590,7 +590,7 @@ class linux_process_stack(linux_process_info.linux_process_info):
                 debug.info(
                     "Scanned {} stack addresses before finding the __libc_start_main return address".format(
                         (start_stack - address)
-                        / linux_process_info.address_size
+                        // linux_process_info.address_size
                     )
                 )
                 return address

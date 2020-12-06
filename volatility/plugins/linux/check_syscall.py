@@ -22,7 +22,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import os
@@ -57,7 +57,7 @@ class linux_check_syscall(linux_common.AbstractLinuxCommand):
 
         next_sym_addr = self.profile.get_next_symbol_address(table_name)
 
-        return (next_sym_addr - table_addr) / divisor
+        return (next_sym_addr - table_addr) // divisor
 
     def _get_table_size_meta(self):
         """

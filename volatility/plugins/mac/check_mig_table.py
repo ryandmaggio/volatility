@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import volatility.obj as obj
 import volatility.plugins.mac.common as common
@@ -52,7 +52,7 @@ class mac_check_mig_table(common.AbstractMacCommand):
             di_addr = self.addr_space.profile.get_symbol(
                 "_mig_table_max_displ"
             )
-            ele_size = (di_addr - mig_buckets_addr) / n
+            ele_size = (di_addr - mig_buckets_addr) // n
 
             ele_type = "mig_hash_entry"
 

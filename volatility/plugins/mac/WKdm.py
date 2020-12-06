@@ -530,20 +530,20 @@ class WKdm:
         )
         while next_input_word < num_input_words:
             input_word = src_buf[next_input_word]
-            dict_location = hashLookupTable[(input_word >> 10) & 0xFF] / 4
+            dict_location = hashLookupTable[(input_word >> 10) & 0xFF] // 4
             dict_word = dictionary[dict_location]
 
             if input_word == dict_word:
-                tempTagsArray[next_tag / 4] |= self.EXACT_TAG << (
+                tempTagsArray[next_tag // 4] |= self.EXACT_TAG << (
                     ((next_tag) % 4) * 8
                 )
                 next_tag += 1
-                tempQPosArray[next_qp / 4] |= dict_location << (
+                tempQPosArray[next_qp // 4] |= dict_location << (
                     ((next_qp) % 4) * 8
                 )
                 next_qp += 1
             elif input_word == 0:
-                tempTagsArray[next_tag / 4] |= self.ZERO_TAG << (
+                tempTagsArray[next_tag // 4] |= self.ZERO_TAG << (
                     ((next_tag) % 4) * 8
                 )
                 next_tag += 1
@@ -551,11 +551,11 @@ class WKdm:
                 input_high_bits = input_word >> self.NUM_LOW_BITS
                 dict_word_high_bits = dict_word >> self.NUM_LOW_BITS
                 if input_high_bits == dict_word_high_bits:
-                    tempTagsArray[next_tag / 4] |= self.PARTIAL_TAG << (
+                    tempTagsArray[next_tag // 4] |= self.PARTIAL_TAG << (
                         ((next_tag) % 4) * 8
                     )
                     next_tag += 1
-                    tempQPosArray[next_qp / 4] |= dict_location << (
+                    tempQPosArray[next_qp // 4] |= dict_location << (
                         ((next_qp) % 4) * 8
                     )
                     next_qp += 1
@@ -570,7 +570,7 @@ class WKdm:
                     if compression_budget < 0:
                         return -1
 
-                    tempTagsArray[next_tag / 4] |= self.MISS_TAG << (
+                    tempTagsArray[next_tag // 4] |= self.MISS_TAG << (
                         ((next_tag) % 4) * 8
                     )
                     next_tag += 1
@@ -589,7 +589,7 @@ class WKdm:
 
         boundary_tmp = self.WK_pack_2bits(
             tempTagsArray,
-            next_tag / 4,
+            next_tag // 4,
             dest_buf,
             self.TAGS_AREA_OFFSET_IN_WORDS,
         )
@@ -609,7 +609,7 @@ class WKdm:
             next_qp += 1
 
         # check compression budget and fail immediately if exhausted
-        compression_budget -= (endQPosArray / 2) * self.WORD_SIZE_IN_BYTES
+        compression_budget -= (endQPosArray // 2) * self.WORD_SIZE_IN_BYTES
         if compression_budget < 0:
             return -1
 
@@ -636,7 +636,7 @@ class WKdm:
             next_low_bits += 1
 
         # check compression budget and fail immediately if exhausted
-        compression_budget -= (endLowBitsArray / 3) * self.WORD_SIZE_IN_BYTES
+        compression_budget -= (endLowBitsArray // 3) * self.WORD_SIZE_IN_BYTES
         if compression_budget < 0:
             return -1
 
@@ -698,7 +698,7 @@ class WKdm:
 
             while next_tag < tags_area_end:
                 tag = (
-                    tempTagsArray[next_tag / 4]
+                    tempTagsArray[next_tag // 4]
                     & self.SINGLE_BYTE_MASKS[next_tag % 4]
                 ) >> (((next_tag) % 4) * 8)
 
@@ -706,14 +706,14 @@ class WKdm:
                     dest_buf[next_output] = 0
                 elif tag == self.EXACT_TAG:
                     dict_location = (
-                        tempQPosArray[next_qp / 4]
+                        tempQPosArray[next_qp // 4]
                         & self.SINGLE_BYTE_MASKS[next_qp % 4]
                     ) >> (((next_qp) % 4) * 8)
                     next_qp += 1
                     dest_buf[next_output] = dictionary[dict_location]
                 elif tag == self.PARTIAL_TAG:
                     dict_location = (
-                        tempQPosArray[next_qp / 4]
+                        tempQPosArray[next_qp // 4]
                         & self.SINGLE_BYTE_MASKS[next_qp % 4]
                     ) >> (((next_qp) % 4) * 8)
                     temp = dictionary[dict_location]
@@ -730,7 +730,7 @@ class WKdm:
                     missed_word = src_buf[next_full_word]
                     next_full_word += 1
                     dict_location = (
-                        hashLookupTable[(missed_word >> 10) & 0xFF] / 4
+                        hashLookupTable[(missed_word >> 10) & 0xFF] // 4
                     )
                     dictionary[dict_location] = missed_word
                     dest_buf[next_output] = missed_word
@@ -785,7 +785,7 @@ def main():
 
     print(
         "Python timing: "
-        + str(NUMBER_OF_ITERATIONS / total)
+        + str(NUMBER_OF_ITERATIONS // total)
         + " compression / decompression pairs per second."
     )
 

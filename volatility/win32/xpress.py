@@ -94,7 +94,7 @@ def xpress_decode(inputBuffer):
                 return recombine(outputBuffer)
 
             inputIndex += 2
-            offset = length / 8
+            offset = length // 8
             length = length % 8
             if length == 7:
                 if nibbleIndex == 0:
@@ -105,7 +105,7 @@ def xpress_decode(inputBuffer):
                     # get the high nibble of the last place a nibble sized
                     # length was used thus we don't waste that extra half
                     # byte :p
-                    length = ord(inputBuffer[nibbleIndex]) / 16
+                    length = ord(inputBuffer[nibbleIndex]) // 16
                     nibbleIndex = 0
 
                 if length == 15:

@@ -241,7 +241,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
             f"{bad_blocks_reg} blocks not loaded by CM, {bad_blocks_mem} blocks paged out, {total_blocks} total blocks."
         )
         if total_blocks:
-            ratio = ((bad_blocks_reg + bad_blocks_mem) / total_blocks) * 100
+            ratio = ((bad_blocks_reg + bad_blocks_mem) // total_blocks) * 100
             print(f"Total of {ratio:.2f}% of hive unreadable.")
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)

@@ -486,7 +486,7 @@ class elf_hdr(elf):
         self.cached_strtab = dt_strtab
 
         if dt_symtab.v() < dt_strtab.v():
-            self.cached_numsyms = (dt_strtab.v() - dt_symtab.v()) / dt_strent
+            self.cached_numsyms = (dt_strtab.v() - dt_symtab.v()) // dt_strent
         else:
             self.cached_numsyms = 1024
 
@@ -577,9 +577,9 @@ class elf_hdr(elf):
             else:
                 print("unknown relocation type: %d" % dt_pltrel)
 
-            # arr = obj.Object(theType="Array", targetType=struct_name, parent = self, count = dt_pltrelsz / struct_size, offset = dt_jmprel, vm = self.obj_vm)
+            # arr = obj.Object(theType="Array", targetType=struct_name, parent = self, count = dt_pltrelsz // struct_size, offset = dt_jmprel, vm = self.obj_vm)
 
-            count = dt_pltrelsz / struct_size
+            count = dt_pltrelsz // struct_size
 
             for idx in range(count + 24):
                 offset = dt_jmprel + (idx * struct_size)

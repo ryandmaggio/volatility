@@ -279,9 +279,9 @@ class volshell(common.AbstractWindowsCommand):
                 dwords.append(dw)
 
             if len(dwords) % 4 == 0:
-                lines = len(dwords) / 4
+                lines = len(dwords) // 4
             else:
-                lines = len(dwords) / 4 + 1
+                lines = len(dwords) // 4 + 1
 
             for i in range(lines):
                 ad = address + i * 0x10
@@ -314,7 +314,7 @@ class volshell(common.AbstractWindowsCommand):
                 "Array",
                 targetType="unsigned long long",
                 offset=address,
-                count=length / 8,
+                count=length // 8,
                 vm=space,
             )
 
