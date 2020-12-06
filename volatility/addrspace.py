@@ -120,7 +120,7 @@ class BaseAddressSpace(object):
             )
         return ret
 
-    def is_valid_profile(self, profile):  # pylint: disable-msg=W0613
+    def is_valid_profile(self, profile) -> bool:  # pylint: disable-msg=W0613
         """Determines whether a selected profile is compatible with this address space"""
         return True
 
@@ -145,10 +145,10 @@ class BaseAddressSpace(object):
     def __ne__(self, other):
         return not self == other
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         """ Read some data from a certain offset """
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         """ Read data from a certain offset padded with \x00 where data is not available """
 
     def get_available_addresses(self):
@@ -159,11 +159,11 @@ class BaseAddressSpace(object):
         """
         return  # previously raise StopIteration
 
-    def is_valid_address(self, _addr):
+    def is_valid_address(self, _addr: int) -> bool:
         """ Tell us if the address is valid """
         return True
 
-    def write(self, _addr, _buf):
+    def write(self, _addr: int, _buf: bytes):
         if not self._config.WRITE:
             return False
         raise NotImplementedError(
@@ -256,7 +256,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
                 f"Alignment of {self.__class__.__name__}  is too small, plugins will be extremely slow"
             )
 
-    def _read(self, addr, length, pad=False):
+    def _read(self, addr: int, length: int, pad: bool=False) -> bytes:
         """Reads length bytes at the address addr
 
         If pad is False, this can return None if some of the address space is empty
@@ -310,14 +310,14 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
             ), f"Position - address != len(buff) ({str(position - addr)} != {str(lenbuff)}) in {self.base.__class__.__name__}"
         return b''.join(buff)
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         """
         This method reads 'length' bytes from the specified 'addr'.
         If any range is unavailable it returns None.
         """
         return self._read(addr, length, False)
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         """
         This method reads 'length' bytes from the specified 'addr'.
         If any range is unavailable it pads the region with zeros.
@@ -347,7 +347,7 @@ class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
         """Get the header info"""
         return self.header
 
-    def translate(self, addr):
+    def translate(self, addr: int):
         """Find the offset in the file where a memory address can be found.
 
         @param addr: a memory address
@@ -373,7 +373,7 @@ class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
         # we can reuse the output from available_allocs
         return self.get_available_allocs()
 
-    def is_valid_address(self, phys_addr):
+    def is_valid_address(self, phys_addr: int):
         """Check if a physical address is in the file.
 
         @param phys_addr: a physical address
@@ -388,7 +388,7 @@ class AbstractRunBasedMemory(AbstractDiscreteAllocMemory):
         (start, _, _) = self.runs[0]
         return [start, size]
 
-    def write(self, phys_addr, buf):
+    def write(self, phys_addr: int, buf: bytes):
         """This is mostly for support of raw2dmp so that
         it can modify the kernel CONTEXT after the crash
         dump has been written to disk"""
@@ -435,25 +435,25 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = data
         self.base_offset = base_offset
 
-    def assign_buffer(self, data, base_offset=0):
+    def assign_buffer(self, data: bytes, base_offset: int=0):
         self.base_offset = base_offset
         self.data = data
 
-    def is_valid_address(self, addr):
+    def is_valid_address(self, addr: int) -> bool:
         if self.data == None:
             return False
         return not (
             addr < self.base_offset or addr > self.base_offset + len(self.data)
         )
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         offset = addr - self.base_offset
         return self.data[offset : offset + length]
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         return self.read(addr, length)
 
-    def write(self, addr, data):
+    def write(self, addr: int, data: bytes) -> bool:
         if not self._config.WRITE:
             return False
         self.data = self.data[:addr] + data + self.data[addr + len(data) :]

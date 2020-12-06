@@ -107,11 +107,11 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
             callback=write_callback,
         )
 
-    def fread(self, length):
+    def fread(self, length: int) -> bytes:
         length = int(length)
         return self.fhandle.read(length)
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         addr, length = int(addr), int(length)
         try:
             self.fhandle.seek(addr)
@@ -122,7 +122,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
             return None
         return data
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         data = self.read(addr, length)
         if data is None:
             data = b'\x00' * length
@@ -130,7 +130,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
             data += b'\x00' * (length - len(data))
         return data
 
-    def read_long(self, addr):
+    def read_long(self, addr: int) -> int:
         string = self.read(addr, 4)
         (longval,) = self._long_struct.unpack(string)
         return longval
@@ -140,7 +140,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
         # not the end location, it must be set to fsize, not fsize - 1
         yield (0, self.fsize)
 
-    def is_valid_address(self, addr):
+    def is_valid_address(self, addr: int) -> bool:
         if addr == None:
             return False
         return 0 <= addr < self.fsize
@@ -148,7 +148,7 @@ class FileAddressSpace(addrspace.BaseAddressSpace):
     def close(self):
         self.fhandle.close()
 
-    def write(self, addr, data):
+    def write(self, addr: int, data: bytes):
         if not self._config.WRITE:
             return False
         try:

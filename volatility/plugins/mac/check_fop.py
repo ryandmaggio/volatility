@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import volatility.obj as obj
 import volatility.utils as utils
@@ -64,13 +64,13 @@ class mac_check_fop(common.AbstractMacCommand):
 
             name = self.addr_space.read(vfs.vfc_name.obj_offset, 16)
             if name:
-                idx = name.find("\x00")
+                idx = name.find(b"\x00")
                 if idx != -1:
                     name = name[:idx]
             else:
-                name = "<INVALID NAME>"
+                name = b"<INVALID NAME>"
 
-            if name == "<unassigned>":
+            if name == b"<unassigned>":
                 break
 
             ops = vfs.vfc_vfsops
@@ -127,13 +127,13 @@ class mac_check_fop(common.AbstractMacCommand):
 
                 name = self.addr_space.read(vdesc.opve_op.vdesc_name.v(), 64)
                 if name:
-                    idx = name.find("\x00")
+                    idx = name.find(b"\x00")
                     if idx != -1:
                         name = name[:idx]
                 else:
-                    name = "<INVALID NAME>"
+                    name = b"<INVALID NAME>"
 
-                name = table_name + "/" + name
+                name = table_name + "/" + name.decode('ascii')
 
                 (module, handler_sym) = common.get_handler_name(
                     kaddr_info, ptr

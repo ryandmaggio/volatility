@@ -36,10 +36,10 @@ from struct import error as StructError
 
 
 def recombine(outbuf):
-    return "".join(outbuf[k] for k in sorted(outbuf.keys()))
+    return b"".join(outbuf[k] for k in sorted(outbuf.keys()))
 
 
-def xpress_decode(inputBuffer):
+def xpress_decode(inputBuffer: bytes) -> bytes:
     outputBuffer = {}
     outputIndex = 0
     inputIndex = 0
@@ -99,17 +99,17 @@ def xpress_decode(inputBuffer):
             if length == 7:
                 if nibbleIndex == 0:
                     nibbleIndex = inputIndex
-                    length = ord(inputBuffer[inputIndex]) % 16
+                    length = inputBuffer[inputIndex] % 16
                     inputIndex += 1
                 else:
                     # get the high nibble of the last place a nibble sized
                     # length was used thus we don't waste that extra half
                     # byte :p
-                    length = ord(inputBuffer[nibbleIndex]) // 16
+                    length = inputBuffer[nibbleIndex] // 16
                     nibbleIndex = 0
 
                 if length == 15:
-                    length = ord(inputBuffer[inputIndex])
+                    length = inputBuffer[inputIndex]
                     inputIndex += 1
                     if length == 255:
                         try:
@@ -146,6 +146,5 @@ except ImportError:
 
 if __name__ == "__main__":
     import sys
-
-    dec_data = xpress_decode(open(sys.argv[1]).read())
+    dec_data = xpress_decode(open(sys.argv[1], 'rb').read())
     sys.stdout.write(dec_data)

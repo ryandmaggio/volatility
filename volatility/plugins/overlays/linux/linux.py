@@ -1238,13 +1238,13 @@ class module_struct(obj.CType):
 
             s = self.obj_vm.read(self.name.obj_offset, 64)
             if s:
-                idx = s.find("\x00")
+                idx = s.find(b"\x00")
 
                 if idx > 1:
                     good = True
                     name = s[:idx]
                     for n in name:
-                        if not (32 < ord(n) < 127):
+                        if not (32 < n < 127):
                             good = False
                             break
 

@@ -138,7 +138,7 @@ class mac_interest_handlers(common.AbstractMacCommand):
             )
             buf = self.addr_space.read(serv.pwrMgt.Name, 128)
             if buf:
-                idx = buf.find("\x00")
+                idx = buf.find(b"\x00")
                 if idx != -1:
                     buf = buf[:idx]
 

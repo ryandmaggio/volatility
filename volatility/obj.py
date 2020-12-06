@@ -1183,11 +1183,11 @@ class Profile(object):
             profile = self
             name = 'dummy'
 
-            def is_valid_address(self, _offset):
+            def is_valid_address(self, _offset: int) -> bool:
                 """States that every address is valid, since we tend not to care"""
                 return True
 
-            def read(self, _addr, _length):
+            def read(self, _addr: int, _length: int) -> bytes:
                 """Returns no data when reading"""
                 return None
 

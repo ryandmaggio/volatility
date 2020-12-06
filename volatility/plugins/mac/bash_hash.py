@@ -108,12 +108,12 @@ class bash_funcs(obj.CType):
         addr = self.m("path").obj_offset
         addr = self.read_ptr(addr)
 
-        ret = ""
+        ret = b""
 
         if addr:
             ret = self.obj_vm.read(addr, 256)
             if ret:
-                idx = ret.find("\x00")
+                idx = ret.find(b"\x00")
                 if idx != -1:
                     ret = ret[:idx]
 
@@ -135,16 +135,16 @@ class bash_funcs(obj.CType):
         addr = self.m("key").obj_offset
         addr = self.read_ptr(addr)
 
-        ret = ""
+        ret = b""
 
         if addr:
             ret = self.obj_vm.read(addr, 256)
             if ret:
-                idx = ret.find("\x00")
+                idx = ret.find(b"\x00")
                 if idx != -1:
                     ret = ret[:idx]
             else:
-                ret = ""
+                ret = b""
 
         return ret
 

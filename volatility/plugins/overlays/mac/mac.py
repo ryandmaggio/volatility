@@ -520,11 +520,11 @@ class fileglob(obj.CType):
 
 class kauth_scope(obj.CType):
     @property
-    def ks_identifier(self):
+    def ks_identifier(self) -> bytes:
         ident_ptr = self.m("ks_identifier")
         ident = self.obj_vm.read(ident_ptr, 256)
         if ident:
-            idx = ident.find("\x00")
+            idx = ident.find(b"\x00")
             if idx != -1:
                 ident = ident[:idx]
 
@@ -843,9 +843,9 @@ class proc(obj.CType):
                         buf = proc_as.read(firstaddr, 64)
                         if not buf:
                             continue
-                        eqidx = buf.find("=")
+                        eqidx = buf.find(b"=")
                         if eqidx > 0:
-                            nullidx = buf.find("\x00")
+                            nullidx = buf.find(b"\x00")
                             # single char name, =
                             if nullidx >= eqidx:
                                 env_start = addr
@@ -879,8 +879,8 @@ class proc(obj.CType):
                 if not varstr:
                     break
 
-                eqidx = varstr.find("=")
-                idx = varstr.find("\x00")
+                eqidx = varstr.find(b"=")
+                idx = varstr.find(b"\x00")
 
                 if idx == -1 or eqidx == -1 or idx < eqidx:
                     continue
@@ -993,9 +993,9 @@ class proc(obj.CType):
 
         vars_buf = proc_as.read(start + skip, to_read)
         if vars_buf:
-            ents = vars_buf.split("\x00")
+            ents = vars_buf.split(b"\x00")
             for varstr in ents:
-                eqidx = varstr.find("=")
+                eqidx = varstr.find(b"=")
 
                 if eqidx == -1:
                     continue
@@ -2095,16 +2095,16 @@ class dyld32_image_info(obj.CType):
         return ret
 
     @property
-    def imageFilePath(self):
+    def imageFilePath(self) -> bytes:
         addr = self.m("imageFilePath").obj_offset
         addr = self._read_ptr(addr)
 
         if addr == None:
-            return ""
+            return b""
 
         buf = self.obj_vm.zread(addr, 256)
         if buf:
-            idx = buf.find("\x00")
+            idx = buf.find(b"\x00")
             if idx != -1:
                 buf = buf[:idx]
 
@@ -2131,16 +2131,16 @@ class dyld64_image_info(obj.CType):
         return ret
 
     @property
-    def imageFilePath(self):
+    def imageFilePath(self) -> bytes:
         addr = self.m("imageFilePath").obj_offset
         addr = self._read_ptr(addr)
 
         if addr == None:
-            return ""
+            return b""
 
         buf = self.obj_vm.zread(addr, 256)
         if buf:
-            idx = buf.find("\x00")
+            idx = buf.find(b"\x00")
             if idx != -1:
                 buf = buf[:idx]
 
@@ -2177,7 +2177,7 @@ def parse_dsymutil(data, module):
         ents = line.split()
 
         match = re.search(
-            "\[.*?\(([^\)]+)\)\s+[0-9A-Fa-z]+\s+\d+\s+([0-9A-Fa-f]+)\s'(\w+)'",
+            r"\[.*?\(([^\)]+)\)\s+[0-9A-Fa-z]+\s+\d+\s+([0-9A-Fa-f]+)\s'(\w+)'",
             line,
         )
 

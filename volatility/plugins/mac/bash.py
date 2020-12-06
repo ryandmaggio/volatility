@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import struct, string
@@ -70,20 +70,20 @@ class _mac_hist_entry(obj.CType):
         if not ts:
             return False
 
-        idx = ts.find("\x00")
+        idx = ts.find(b"\x00")
         if idx != -1:
             ts = ts[:idx]
 
         # At this point in time, the epoc integer size will
         # never be less than 10 characters, and the stamp is
         # always preceded by a pound/hash character.
-        if len(ts) < 10 or str(ts)[0] != "#":
+        if len(ts) < 10 or ts[0] != ord("#"):
             return False
 
         # The final check is to make sure the entire string
         # is composed of numbers. Try to convert to an int.
         try:
-            int(str(ts)[1:])
+            int(ts.decode('utf-8')[1:])
         except ValueError:
             return False
 
@@ -93,13 +93,13 @@ class _mac_hist_entry(obj.CType):
         line_addr = self.line_ptr()
         buf = self.obj_vm.read(line_addr, 256)
         if buf:
-            idx = buf.find("\x00")
+            idx = buf.find(b"\x00")
             if idx != -1:
                 buf = buf[:idx]
 
-            ret = "".join([c for c in buf if c in string.printable])
+            ret = bytes([c for c in buf if c in list(string.printable.encode('ascii'))])
         else:
-            ret = ""
+            ret = b''
 
         return ret
 
@@ -109,12 +109,12 @@ class _mac_hist_entry(obj.CType):
         time_addr = self.time_ptr()
         ts = self.obj_vm.read(time_addr, 256)
         ts = ts[1:]
-        idx = ts.find("\x00")
+        idx = ts.find(b"\x00")
         if idx != -1:
             ts = ts[:idx]
 
         # Convert the string into an integer (number of seconds)
-        return int(ts)
+        return int(ts.decode('ascii'))
 
     def time_object(self):
         nsecs = self.time_as_integer

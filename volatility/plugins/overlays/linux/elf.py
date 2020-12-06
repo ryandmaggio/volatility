@@ -522,15 +522,15 @@ class elf_hdr(elf):
 
         return ret
 
-    def symbol_name(self, sym):
+    def symbol_name(self, sym) -> bytes:
         addr = self.cached_strtab + sym.st_name
         name = self.obj_vm.read(addr, 255)
         if name:
-            idx = name.find("\x00")
+            idx = name.find(b"\x00")
             if idx != -1:
                 name = name[:idx]
         else:
-            name = "N/A"
+            name = b"N/A"
         return name
 
     def relocation_symbol(self, reloc):
@@ -891,13 +891,13 @@ class elf_link_map(elf):
         )
 
     @property
-    def l_name(self):
+    def l_name(self) -> bytes:
         saddr = self.__getattr__("l_name")
         buf = self.obj_vm.zread(saddr, 256)
-        idx = buf.find("\x00")
+        idx = buf.find(b"\x00")
         if idx != -1:
             buf = buf[:idx]
-        return str(buf)
+        return buf
 
     @property
     def l_next(self):

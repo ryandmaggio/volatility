@@ -37,7 +37,7 @@ class ArmAddressSpace(paged.AbstractWritablePagedMemory):
     alignment_gcd = 0x1000
     _long_struct = struct.Struct("<I")
 
-    def read_long_phys(self, addr):
+    def read_long_phys(self, addr: int) -> int:
         """
         Returns an unsigned 32-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.

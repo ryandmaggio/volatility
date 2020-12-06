@@ -236,7 +236,7 @@ class linux_check_inline_kernel(linux_common.AbstractLinuxCommand):
                 + "/"
                 + self.addr_space.read(cur.name.obj_offset, cur.namelen + 1)
             )
-            idx = name.find("\x00")
+            idx = name.find(b"\x00")
             if idx != -1:
                 name = name[:idx]
 

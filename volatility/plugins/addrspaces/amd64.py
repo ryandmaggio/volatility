@@ -220,7 +220,7 @@ class AMD64PagedMemory(paged.AbstractWritablePagedMemory):
                     retVal = self.get_paddr(vaddr, pte)
         return retVal
 
-    def read_long_long_phys(self, addr):
+    def read_long_long_phys(self, addr: int) -> int:
         """
         This method returns a 64-bit little endian
         unsigned integer from the specified address in the

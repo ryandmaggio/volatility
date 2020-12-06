@@ -80,7 +80,7 @@ class WindowsCrashDumpSpace32(addrspace.AbstractRunBasedMemory):
     def get_base(self):
         return self.base
 
-    def read_long(self, addr):
+    def read_long(self, addr: int) -> int:
         _baseaddr = self.translate(addr)
         string = self.read(addr, 4)
         if not string:

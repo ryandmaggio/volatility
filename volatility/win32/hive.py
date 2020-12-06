@@ -107,7 +107,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
 
         return block + ci_off + 4
 
-    def read(self, vaddr, length, zero=False):
+    def read(self, vaddr: int, length: int, zero: bool=False) -> bytes:
         length = int(length)
         vaddr = int(vaddr)
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
@@ -166,15 +166,15 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
                 stuff_read = stuff_read + new_stuff
         return stuff_read
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         return self.read(addr, length, True)
 
-    def read_long_phys(self, addr):
+    def read_long_phys(self, addr: int) -> int:
         string = self.base.read(addr, 4)
         (longval,) = struct.unpack('=I', string)
         return longval
 
-    def is_valid_address(self, addr):
+    def is_valid_address(self, addr: int) -> bool:
         if not addr:
             return False
         vaddr = self.vtop(addr)
@@ -255,7 +255,7 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
     def vtop(self, vaddr):
         return vaddr + BLOCK_SIZE + 4
 
-    def read(self, vaddr, length, zero=False):
+    def read(self, vaddr: int, length: int, zero: bool=False) -> bytes:
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
         full_blocks = ((length + (vaddr % BLOCK_SIZE)) // BLOCK_SIZE) - 1
         left_over = (length + vaddr) % BLOCK_SIZE
@@ -307,15 +307,15 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
                 stuff_read = stuff_read + self.base.read(paddr, left_over)
         return stuff_read
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         return self.read(addr, length, True)
 
-    def read_long_phys(self, addr):
+    def read_long_phys(self, addr: int) -> int:
         string = self.base.read(addr, 4)
         (longval,) = struct.unpack('=I', string)
         return longval
 
-    def is_valid_address(self, vaddr):
+    def is_valid_address(self, vaddr: int) -> bool:
         paddr = self.vtop(vaddr)
         if not paddr:
             return False

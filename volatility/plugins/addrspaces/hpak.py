@@ -96,19 +96,19 @@ class HPAKAddressSpace(standard.FileAddressSpace):
             self.physmem is not None, "Cannot find the PHYSDUMP section"
         )
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         return self.base.read(addr + self.physmem.Offset, length)
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         return self.base.zread(addr + self.physmem.Offset, length)
 
-    def is_valid_address(self, addr):
+    def is_valid_address(self, addr: int) -> bool:
         return self.base.is_valid_address(addr + self.physmem.Offset)
 
     def get_header(self):
         return self.header
 
-    def convert_to_raw(self, outfd):
+    def convert_to_raw(self, outfd) -> bool:
         """The standard imageinfo plugin won't work on
         hpak images so we provide this method. It wraps
         the zlib compression if necessary"""

@@ -277,7 +277,7 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
         XpressHeaderOffset, _XpressBlockSize, _XpressPage = self.get_addr(addr)
         return XpressHeaderOffset != None
 
-    def read_xpress(self, baddr, BlockSize):
+    def read_xpress(self, baddr: int, BlockSize: int) -> bytes:
         try:
             return self.PageCache.get(baddr)
         except KeyError:
@@ -291,7 +291,7 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
             return data_uz
 
-    def _partial_read(self, addr, len):
+    def _partial_read(self, addr: int, len: int) -> bytes:
         """A function which reads as much as possible from the current page.
 
         May return a short read.
@@ -316,8 +316,8 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
         return data[offset : offset + available]
 
-    def read(self, addr, length, zread=False):
-        result = ''
+    def read(self, addr: int, length: int, zread: bool=False) -> bytes:
+        result = b''
         while length > 0:
             data = self._partial_read(addr, length)
             if not data:
@@ -327,27 +327,24 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
             length -= len(data)
             result += data
 
-        if result == '':
+        if result == b'':
             if zread:
-                return '\0' * length
+                return b'\x00' * length
             result = obj.NoneObject(
-                "Unable to read data at "
-                + str(addr)
-                + " for length "
-                + str(length)
+                f"Unable to read data at {addr} for length {length}"
             )
 
         return result
 
-    def zread(self, addr, length):
+    def zread(self, addr: int, length: int) -> bytes:
         stuff_read = self.read(addr, length, zread=True)
         return stuff_read
 
-    def read_long(self, addr):
+    def read_long(self, addr: int) -> int:
         _baseaddr = self.get_addr(addr)
         string = self.read(addr, 4)
         if not string:
-            return obj.NoneObject("Could not read long at " + str(addr))
+            return obj.NoneObject(f"Could not read long at {addr}")
         (longval,) = self._long_struct.unpack(string)
         return longval
 

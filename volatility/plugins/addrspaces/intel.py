@@ -192,7 +192,7 @@ class IA32PagedMemory(paged.AbstractWritablePagedMemory):
                     retVal = self.get_paddr(vaddr, pte)
         return retVal
 
-    def read_long_phys(self, addr):
+    def read_long_phys(self, addr: int) -> int:
         try:
             string = self.base.read(addr, 4)
         except IOError:

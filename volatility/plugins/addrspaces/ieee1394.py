@@ -54,21 +54,17 @@ class FWRaw1394(object):
         except IndexError:
             return (
                 False,
-                "Firewire node "
-                + str(self.node)
-                + " on bus "
-                + str(self.bus)
-                + " was not accessible",
+                f"Firewire node {self.node} on bus {self.bus} was not accessible",
             )
         except IOError as e:
-            return False, "Firewire device IO error - " + str(e)
+            return False, f"Firewire device IO error - {e}"
         return False, "Unknown Error occurred"
 
-    def read(self, addr, length):
+    def read(self, addr: int, length: int) -> bytes:
         """Reads bytes from the specified address"""
         return self._node.read(addr, length)
 
-    def write(self, addr, buf):
+    def write(self, addr: int, buf: bytes):
         """Writes buf bytes at addr"""
         return self._node.write(addr, buf)
 
@@ -97,7 +93,7 @@ class FWForensic1394(object):
             return True, "Valid"
         except IOError as e:
             print(repr(e))
-            return False, "Forensic1394 returned an exception: " + str(e)
+            return False, f"Forensic1394 returned an exception: {e}"
         return False, "Unknown Error occurred"
 
     def read(self, addr, length):
@@ -130,12 +126,12 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
             self._fwimpl = FirewireRW(netloc, path)
         except (AttributeError, ValueError):
             self.as_assert(
-                False, "Unable to parse {0} as a URL".format(config.LOCATION)
+                False, f"Unable to parse {config.LOCATION} as a URL"
             )
         addrspace.BaseAddressSpace.__init__(self, base, config, **kargs)
         self.as_assert(
             self._fwimpl is not None,
-            "Unable to locate {0} implementation.".format(netloc),
+            f"Unable to locate {netloc} implementation.",
         )
         valid, reason = self._fwimpl.is_valid()
         self.as_assert(valid, reason)
@@ -147,7 +143,7 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
             [(0xA0000, 0xFFFFF - 0xA0000, "Upper Memory Area")]
         )
 
-        self.name = "Firewire using " + str(netloc) + " at " + str(path)
+        self.name = f"Firewire using {netloc} at {path}"
         # We have no way of knowing how big a firewire space is...
         # Set it to the maximum for the moment
         # TODO: Find a way of determining the size safely and reliably from the space itself
@@ -197,7 +193,7 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
                 # Covers the end of the remaining length
                 return accumulator + [(start, estart - start)]
 
-    def read(self, offset, length):
+    def read(self, offset: int, length: int) -> bytes:
         """Reads a specified size in bytes from the current offset
 
         Fills any excluded holes with zeros (so in that sense, similar to zread)
@@ -225,13 +221,13 @@ class FirewireAddressSpace(addrspace.BaseAddressSpace):
         )
         return output
 
-    def zread(self, offset, length):
+    def zread(self, offset: int, length: int) -> bytes:
         """Delegate padded reads to normal read, since errors reading
         the physical address should probably be reported back to the user
         """
         return self.read(offset, length)
 
-    def write(self, offset, data):
+    def write(self, offset: int, data: bytes):
         """Writes a specified size in bytes"""
         if not self._config.WRITE:
             return False

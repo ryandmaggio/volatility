@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 
 import volatility.obj as obj
@@ -79,13 +79,13 @@ class mac_orphan_threads(pstasks.mac_tasks):
                 else:
                     status = "UNKNOWN"
 
-                name = ""
+                name = b""
                 if thread.uthread:
                     name_buf = self.addr_space.read(
                         thread.uthread.dereference_as("uthread").pth_name, 256
                     )
                     if name_buf:
-                        idx = name_buf.find("\x00")
+                        idx = name_buf.find(b"\x00")
                         if idx != -1:
                             name_buf = name_buf[:idx]
 
@@ -143,13 +143,13 @@ class mac_orphan_threads(pstasks.mac_tasks):
                 if good:
                     status = "OK"
 
-                name = ""
+                name = b""
                 if thread.uthread:
                     name_buf = self.addr_space.read(
                         thread.uthread.dereference_as("uthread").pth_name, 256
                     )
                     if name_buf:
-                        idx = name_buf.find("\x00")
+                        idx = name_buf.find(b"\x00")
                         if idx != -1:
                             name_buf = name_buf[:idx]
 

@@ -21,7 +21,7 @@
 @author:       Andrew Case
 @license:      GNU General Public License 2.0
 @contact:      atcuno@gmail.com
-@organization: 
+@organization:
 """
 import volatility.obj as obj
 import volatility.debug as debug
@@ -77,7 +77,7 @@ class mac_vfsevents(common.AbstractMacCommand):
 
             name = self.addr_space.read(watcher.proc_name.obj_offset, 33)
             if name:
-                idx = name.find("\x00")
+                idx = name.find(b"\x00")
                 if idx != -1:
                     name = name[:idx]
 
