@@ -30,9 +30,9 @@
 # pylint: disable-msg=C0111
 import sys
 
-if sys.version_info < (2, 6, 0):
+if sys.version_info < (3, 6, 0):
     sys.stderr.write(
-        "Volatility requires python version 2.6, please upgrade your python installation."
+        "Volatility requires python version 3.6 or later, please upgrade your python installation."
     )
     sys.exit(1)
 
