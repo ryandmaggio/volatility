@@ -655,7 +655,7 @@ class TimeLiner(common.AbstractWindowsCommand):
                 if tp == 'REG_BINARY':
                     dat_raw = dat
                     try:
-                        subname = subname.encode('rot_13')
+                        subname = codecs.encode(subname, 'rot_13')
                     except UnicodeDecodeError:
                         pass
                     if win7:

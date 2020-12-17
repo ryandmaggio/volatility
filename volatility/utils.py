@@ -80,18 +80,18 @@ def Hexdump(data, width=16):
     """ Hexdump function shared by various plugins """
     for offset in range(0, len(data), width):
         row_data = data[offset : offset + width]
-        translated_data = [
-            x if ord(x) < 127 and ord(x) > 32 else "." for x in row_data
-        ]
-        hexdata = " ".join([f"{ord(x):02x}" for x in row_data])
+        translated_data = bytes([
+            x if x < 127 and x > 32 else ord('.') for x in row_data
+        ]).decode('ascii')
+        hexdata = " ".join([f"{x:02x}" for x in row_data])
 
         yield offset, hexdata, translated_data
 
 
-def remove_unprintable(str):
-    return ''.join(
-        [c for c in str if (ord(c) > 31 or ord(c) == 9) and ord(c) <= 126]
-    )
+def remove_unprintable(data):
+    return bytes(
+        [c for c in data if (c > 31 or c == 9) and c <= 126]
+    ).decode('ascii')
 
 
 # Compensate for Windows python not supporting socket.inet_ntop and some

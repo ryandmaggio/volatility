@@ -35,6 +35,7 @@ import volatility.plugins.overlays.basic as basic
 import volatility.timefmt as timefmt
 from volatility.renderers import TreeGrid
 import struct
+import codecs
 import datetime
 
 '''
@@ -462,9 +463,9 @@ class _VOLUSER_ASSIST_TYPES(obj.CType):
         fc = "N/A"
         tf = "N/A"
         if hasattr(self, "ID"):
-            ID = "{0}".format(self.ID)
+            ID = f"{self.ID}"
         if hasattr(self, "Count"):
-            count = "{0}".format(self.Count)
+            count = f"{self.Count}"
         else:
             count = "{0}".format(
                 self.CountStartingAtFive
@@ -478,8 +479,8 @@ class _VOLUSER_ASSIST_TYPES(obj.CType):
                 if seconds > 0
                 else self.FocusTime
             )
-            fc = "{0}".format(self.FocusCount)
-            tf = "{0}".format(time)
+            fc = f"{self.FocusCount}"
+            tf = f"{time}"
 
         subname = subname.replace("|", "%7c")
 
@@ -577,18 +578,18 @@ class NullString(basic.String):
     def __str__(self):
         result = (
             self.obj_vm.zread(self.obj_offset, self.length)
-            .split("\x00\x00")[0]
-            .replace("\x00", "")
+            .split(b"\x00\x00")[0]
+            .replace(b"\x00", b"")
         )
         if not result:
-            result = ""
-        return result
+            result = b""
+        return result.decode('ascii')
 
     def v(self):
         result = (
             self.obj_vm.zread(self.obj_offset, self.length)
-            .split("\x00\x00")[0]
-            .replace("\x00", "")
+            .split(b"\x00\x00")[0]
+            .replace(b"\x00", b"")
         )
         if not result:
             return obj.NoneObject(
@@ -1100,11 +1101,12 @@ class ShellBags(common.AbstractWindowsCommand):
                             "_VOLUSER_ASSIST_TYPES", offset=0, vm=bufferas
                         )
                         try:
-                            value = value.encode('rot_13')
+                            value = codecs.encode(value, 'rot_13')
                         except UnicodeDecodeError:
                             pass
                     else:
-                        if bufferas.profile.get_obj_size(thetype) > len(data):
+                        obj_sz = bufferas.profile.get_obj_size(thetype)
+                        if obj_sz and obj_sz > len(data):
                             continue
                         item = obj.Object(thetype, offset=0, vm=bufferas)
                     if hasattr(item, "DataSize") and item.DataSize <= 0:
@@ -1115,9 +1117,7 @@ class ShellBags(common.AbstractWindowsCommand):
                             temp = str(item.Attributes.UnicodeFilename)
                         elif hasattr(item, "Name"):
                             temp = str(item.Name)
-                        self.paths[
-                            reg + ":" + thekey + ":" + str(value)
-                        ] = temp
+                        self.paths[f"{reg}:{thekey}:{str(value)}"] = temp
                         items[str(value)] = []
                         items[str(value)].append(item)
         return items
@@ -1130,7 +1130,7 @@ class ShellBags(common.AbstractWindowsCommand):
         )
 
         if self._config.MACHINE != "":
-            self._config.update("MACHINE", "{0} ".format(self._config.MACHINE))
+            self._config.update("MACHINE", f"{self._config.MACHINE} ")
         # set our current registry of interest and get its path
         regapi = registryapi.RegistryApi(self._config)
         regapi.reset_current()
@@ -1145,16 +1145,16 @@ class ShellBags(common.AbstractWindowsCommand):
         for bk in BAG_KEYS:
             for cat, current_path in regapi.reg_yield_key("ntuser.dat", bk):
                 keys = [
-                    (k, bk + "\\" + k.Name)
+                    (k, f"{bk}\\{k.Name}")
                     for k in regapi.reg_get_all_subkeys(
                         "ntuser.dat", key=None, given_root=cat
                     )
                 ]
                 for key, start in keys:
                     if key.Name:
-                        if seen.get(start + "\\" + k.Name, None) != None:
+                        if seen.get(f"{start}\\{key.Name}", None) != None:
                             continue
-                        seen[start + "\\" + k.Name] = key.obj_offset
+                        seen[f"{start}\\{key.Name}"] = key.obj_offset
                         subkeys = [
                             k
                             for k in regapi.reg_get_all_subkeys(
@@ -1162,7 +1162,7 @@ class ShellBags(common.AbstractWindowsCommand):
                             )
                         ]
                         for k in subkeys:
-                            keys.append((k, start + "\\" + k.Name))
+                            keys.append((k, f"{start}\\{k.Name}"))
                         items = self.parse_key(
                             regapi, current_path, start, given_root=key
                         )
@@ -1179,16 +1179,16 @@ class ShellBags(common.AbstractWindowsCommand):
                     "UsrClass.dat", bk
                 ):
                     keys = [
-                        (k, bk + "\\" + k.Name)
+                        (k, f"{bk}\\{k.Name}")
                         for k in regapi.reg_get_all_subkeys(
                             "UsrClass.dat", key=None, given_root=cat
                         )
                     ]
                     for key, start in keys:
                         if key.Name:
-                            if seen.get(start + "\\" + k.Name, None) != None:
+                            if seen.get(f"{start}\\{key.Name}", None) != None:
                                 continue
-                            seen[start + "\\" + k.Name] = key.obj_offset
+                            seen[f"{start}\\{key.Name}"] = key.obj_offset
                             subkeys = [
                                 k
                                 for k in regapi.reg_get_all_subkeys(
@@ -1196,7 +1196,7 @@ class ShellBags(common.AbstractWindowsCommand):
                                 )
                             ]
                             for k in subkeys:
-                                keys.append((k, start + "\\" + k.Name))
+                                keys.append((k, f"{start}\\{k.Name}"))
                             items = self.parse_key(
                                 regapi, current_path, start, given_root=key
                             )
@@ -1216,12 +1216,10 @@ class ShellBags(common.AbstractWindowsCommand):
             return path
         while key != "":
             parent = self.rreplace(key, "\\" + key.split("\\")[-1], "", 1)
-            prev = self.paths.get(
-                reg + ":" + parent + ":" + key.split("\\")[-1], ""
-            )
+            prev = self.paths.get(f"{reg}:{parent}:" + key.split("\\")[-1], "")
             if prev == "":
                 break
-            path = prev + "\\" + path
+            path = f"{prev}\\{path}"
             key = parent
         return path
 
@@ -1321,12 +1319,10 @@ class ShellBags(common.AbstractWindowsCommand):
                             "\\\\", "\\"
                         )
                     if first:
-                        outfd.write(border + "\n")
-                        outfd.write("Registry: " + reg + "\n")
-                        outfd.write("Key: " + name + "\n")
-                        outfd.write(
-                            "Last updated: {0}\n".format(key.LastWriteTime)
-                        )
+                        outfd.write(f"{border}\n")
+                        outfd.write(f"Registry: {reg}\n")
+                        outfd.write(f"Key: {name}\n")
+                        outfd.write(f"Last updated: {key.LastWriteTime}\n")
                         curheader = shell.get_header()
                         self.table_header(outfd, mruheader + curheader)
                         first = False
@@ -1336,15 +1332,9 @@ class ShellBags(common.AbstractWindowsCommand):
                         self.table_header(outfd, mruheader + curheader)
                     if mru:
                         outfd.write(
-                            "{0:7} {1:<5} {2} {3}\n".format(
-                                item, mru[int(item)], str(shell), full_path
-                            )
+                            f"{item:7} {mru[int(item)]:<5} {str(shell)} {full_path}\n"
                         )
                     else:
-                        outfd.write(
-                            "{0:25} {1} {2}\n".format(
-                                item, str(shell), full_path
-                            )
-                        )
+                        outfd.write(f"{item:25} {str(shell)} {full_path}\n")
             if not first:
                 outfd.write(border + "\n\n")

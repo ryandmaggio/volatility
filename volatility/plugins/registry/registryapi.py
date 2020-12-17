@@ -165,7 +165,7 @@ class RegistryApi(object):
         path = key.Name
         while key.Parent and key.Parent & 0xFFFFFFFF > 0x20:
             key = key.Parent.dereference()
-            if utils.remove_unprintable(str(key.Name)) != "":
+            if utils.remove_unprintable(key.Name.v()) != "":
                 path = f"{key.Name}\\{path}"
         return path
 
