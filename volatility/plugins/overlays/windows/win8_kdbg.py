@@ -71,7 +71,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
         # just take the maximum. if we decode a tiny bit of
         # extra data in some cases, its totally fine.
         kdbg_size = max(self.unique_sizes())
-        buffer = ""
+        buf = b""
 
         entries = obj.Object(
             "Array",
@@ -86,9 +86,9 @@ class VolatilityKDBG(obj.VolatilityMagic):
             entry = patchguard.rol(entry ^ wait_never, low_byte)
             swap_xor = block_encoded.obj_offset | 0xFFFF000000000000
             entry = patchguard.bswap(entry ^ swap_xor)
-            buffer += struct.pack("Q", entry ^ wait_always)
+            buf += struct.pack("Q", entry ^ wait_always)
 
-        return buffer
+        return buf
 
     def unique_sizes(self):
         """Determine the possible KDBG sizes to scan for, across all
@@ -317,7 +317,7 @@ class VolatilityKDBG(obj.VolatilityMagic):
 
                 data = addr_space.zread(current_offset, l)
 
-                for addr in utils.iterfind(data, "\x80\x3D"):
+                for addr in utils.iterfind(data, b"\x80\x3D"):
                     full_addr = addr + current_offset
                     result = self.copy_data_block(full_addr)
                     if result:

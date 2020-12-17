@@ -311,7 +311,7 @@ class ObHeaderCookieStore(object):
             return False
 
         if not nt_mod.obj_vm.is_valid_address(addr):
-            debug.warning("nt!ObHeaderCookie at {0} is not valid".format(addr))
+            debug.warning(f"nt!ObHeaderCookie at {addr} is not valid")
             return False
 
         cookie = obj.Object("unsigned int", offset=addr, vm=nt_mod.obj_vm)

@@ -176,9 +176,7 @@ class _OBJECT_HEADER(windows._OBJECT_HEADER):
                 )
             else:
                 o = obj.NoneObject(
-                    "Header {0} not set for object at {1:#x}".format(
-                        name, offset
-                    )
+                    f"Header {name} not set for object at {offset:#x}"
                 )
 
             self.newattr(name, o)
