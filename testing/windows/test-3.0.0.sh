@@ -49,7 +49,7 @@ run-test dlllist
 run-test driverirp
 run-test drivermodule
 run-test driverscan
-run-test dumpcerts
+run-test dumpcerts -D "${DUMP_DIR}"
 run-test dumpfiles -Q "${DUMPFIL_OFT}" -D "${DUMP_DIR}"
 run-test dumpregistry -o "${DUMPREG_OFT}" -D "${DUMP_DIR}"
 run-test editbox
@@ -78,7 +78,6 @@ run-test joblinks
 #run-test kdbgscan
 #run-test kpcrscan
 run-test ldrmodules
-run-test limeinfo
 run-test lsadump
 run-test machoinfo
 run-test malfind
