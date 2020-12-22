@@ -449,5 +449,6 @@ class DWARFParser(object):
 
 if __name__ == '__main__':
     import sys
+
     dp = DWARFParser(open(sys.argv[1], "r").read())
     dp.print_output()

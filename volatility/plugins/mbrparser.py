@@ -172,14 +172,17 @@ class PARTITION_ENTRY(obj.CType):
 
     def __str__(self):
         bootable = self.get_value(self.BootableFlag)
-        return '\n'.join([
-            f"Boot flag: {bootable:#x} {'(Bootable)' if self.is_bootable() else ''}",
-            f"Partition type: {self.get_value(self.PartitionType):#x} ({self.get_type()})",
-            f"Starting Sector (LBA): {self.StartingLBA:#x} ({self.StartingLBA})",
-            f"Starting CHS: Cylinder: {self.StartingCylinder()} Head: {self.StartingCHS[0]} Sector: {self.StartingSector()}",
-            f"Ending CHS: Cylinder: {self.EndingCylinder()} Head: {self.EndingCHS[0]} Sector: {self.EndingSector()}",
-            f"Size in sectors: {self.SizeInSectors:#x} ({self.SizeInSectors})\n\n",
-        ])
+        return '\n'.join(
+            [
+                f"Boot flag: {bootable:#x} {'(Bootable)' if self.is_bootable() else ''}",
+                f"Partition type: {self.get_value(self.PartitionType):#x} ({self.get_type()})",
+                f"Starting Sector (LBA): {self.StartingLBA:#x} ({self.StartingLBA})",
+                f"Starting CHS: Cylinder: {self.StartingCylinder()} Head: {self.StartingCHS[0]} Sector: {self.StartingSector()}",
+                f"Ending CHS: Cylinder: {self.EndingCylinder()} Head: {self.EndingCHS[0]} Sector: {self.EndingSector()}",
+                f"Size in sectors: {self.SizeInSectors:#x} ({self.SizeInSectors})\n\n",
+            ]
+        )
+
 
 class MbrObjectTypes(obj.ProfileModification):
     def modification(self, profile):

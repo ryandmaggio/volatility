@@ -317,7 +317,7 @@ class elf(obj.CType):
         offset,
         vm,
         name=None,
-        **kwargs
+        **kwargs,
     ):
         self.name32 = name32
         self.name64 = name64
@@ -395,7 +395,7 @@ class elf_hdr(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     def is_valid(self):
@@ -604,7 +604,7 @@ class elf_shdr(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -631,7 +631,7 @@ class elf_rel(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     def relocation_type(self):
@@ -676,7 +676,7 @@ class elf_rela(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     def relocation_type(self):
@@ -721,7 +721,7 @@ class elf_phdr(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     def is_valid(self):
@@ -786,7 +786,7 @@ class elf_sym(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -813,7 +813,7 @@ class elf_dyn(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -840,7 +840,7 @@ class elf_note(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     def cast_descsz(self, obj_type):
@@ -887,7 +887,7 @@ class elf_link_map(elf):
             offset,
             vm,
             name,
-            **kwargs
+            **kwargs,
         )
 
     @property

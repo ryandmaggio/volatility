@@ -227,7 +227,11 @@ class AmCache(common.AbstractWindowsCommand):
                 )
                 outfd.write(f"Value Name: {result['valuename']}\n")
                 outfd.write(f"Description: {result['description']}\n")
-                value = result["timestamp"] if result["timestamp"] else result["value"]
+                value = (
+                    result["timestamp"]
+                    if result["timestamp"]
+                    else result["value"]
+                )
                 outfd.write(f"Value: {value}\n\n")
         if not keyfound:
             outfd.write(

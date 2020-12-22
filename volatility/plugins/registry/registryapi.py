@@ -341,11 +341,7 @@ class RegistryApi(object):
                         keys.append([s, reg_name, f'{name}\\{s.Name}'])
         else:
             for k, name in keys:
-                time = (
-                    f"{k.LastWriteTime}"
-                    if not rawtime
-                    else k.LastWriteTime
-                )
+                time = f"{k.LastWriteTime}" if not rawtime else k.LastWriteTime
                 if start and end and str(time) >= start and str(time) <= end:
                     yield (time, name)
                 elif start == None and end == None:

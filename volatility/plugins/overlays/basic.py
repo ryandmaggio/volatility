@@ -102,7 +102,7 @@ class String(obj.BaseObject):
             return ""
         decoded = value.decode(self.encoding, 'replace')
         if '\x00' in decoded:
-            decoded = decoded[:decoded.find('\x00')]
+            decoded = decoded[: decoded.find('\x00')]
         if '�' in decoded:
             decoded = decoded.replace('�', '?')
         return decoded

@@ -216,13 +216,17 @@ class CrashInfo(common.AbstractWindowsCommand):
         outfd.write(f" DirectoryTableBase    0x{hdr.DirectoryTableBase:08x}\n")
         outfd.write(f" PfnDataBase           0x{hdr.PfnDataBase:08x}\n")
         outfd.write(f" PsLoadedModuleList    0x{hdr.PsLoadedModuleList:08x}\n")
-        outfd.write(f" PsActiveProcessHead   0x{hdr.PsActiveProcessHead:08x}\n")
+        outfd.write(
+            f" PsActiveProcessHead   0x{hdr.PsActiveProcessHead:08x}\n"
+        )
         outfd.write(f" MachineImageType      0x{hdr.MachineImageType:08x}\n")
         outfd.write(f" NumberProcessors      0x{hdr.NumberProcessors:08x}\n")
         outfd.write(f" BugCheckCode          0x{hdr.BugCheckCode:08x}\n")
         if hdr.obj_name != "_DMP_HEADER64":
             outfd.write(f" PaeEnabled            0x{hdr.PaeEnabled:08x}\n")
-        outfd.write(f" KdDebuggerDataBlock   0x{hdr.KdDebuggerDataBlock:08x}\n")
+        outfd.write(
+            f" KdDebuggerDataBlock   0x{hdr.KdDebuggerDataBlock:08x}\n"
+        )
         outfd.write(f" ProductType           0x{hdr.ProductType:08x}\n")
         outfd.write(f" SuiteMask             0x{hdr.SuiteMask:08x}\n")
         outfd.write(f" WriterStatus          0x{hdr.WriterStatus:08x}\n")

@@ -648,7 +648,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.CType):
         try:
             data_dir = self.import_dir()
         except ValueError as why:
-            return # previously raise StopIteration
+            return  # previously raise StopIteration
 
         i = 0
 
@@ -1169,14 +1169,16 @@ class _VS_FIXEDFILEINFO(obj.CType):
 
     def v(self):
         """Returns the value of the structure"""
-        return '\n'.join([
-            f"File version    : {self.file_version()}",
-            f"Product version : {self.product_version()}",
-            f"Flags           : {self.flags()}",
-            f"OS              : {self.FileOS}",
-            f"File Type       : {self.file_type()}",
-            f"File Date       : {self.FileDate or ''}",
-        ])
+        return '\n'.join(
+            [
+                f"File version    : {self.file_version()}",
+                f"Product version : {self.product_version()}",
+                f"Flags           : {self.flags()}",
+                f"OS              : {self.FileOS}",
+                f"File Type       : {self.file_type()}",
+                f"File Date       : {self.FileDate or ''}",
+            ]
+        )
 
 
 class _IMAGE_RESOURCE_DIR_STRING_U(obj.CType):

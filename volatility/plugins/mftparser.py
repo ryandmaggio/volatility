@@ -693,12 +693,14 @@ class OBJECT_ID(obj.CType):
         )
 
     def __str__(self):
-        return '\n'.join([
-            f"Object ID: {self.FmtObjectID(self.ObjectID)}",
-            f"Birth Volume ID: {self.FmtObjectID(self.BirthVolumeID)}",
-            f"Birth Object ID: {self.FmtObjectID(self.BirthObjectID)}",
-            f"Birth Domain ID: {self.FmtObjectID(self.BirthDomainID)}",
-        ])
+        return '\n'.join(
+            [
+                f"Object ID: {self.FmtObjectID(self.ObjectID)}",
+                f"Birth Volume ID: {self.FmtObjectID(self.BirthVolumeID)}",
+                f"Birth Object ID: {self.FmtObjectID(self.BirthObjectID)}",
+                f"Birth Domain ID: {self.FmtObjectID(self.BirthDomainID)}",
+            ]
+        )
 
 
 # Using structures defined in File System Forensic Analysis pg 353+

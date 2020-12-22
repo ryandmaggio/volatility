@@ -107,7 +107,7 @@ class HiveAddressSpace(addrspace.BaseAddressSpace):
 
         return block + ci_off + 4
 
-    def read(self, vaddr: int, length: int, zero: bool=False) -> bytes:
+    def read(self, vaddr: int, length: int, zero: bool = False) -> bytes:
         length = int(length)
         vaddr = int(vaddr)
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
@@ -255,7 +255,7 @@ class HiveFileAddressSpace(addrspace.BaseAddressSpace):
     def vtop(self, vaddr):
         return vaddr + BLOCK_SIZE + 4
 
-    def read(self, vaddr: int, length: int, zero: bool=False) -> bytes:
+    def read(self, vaddr: int, length: int, zero: bool = False) -> bytes:
         first_block = BLOCK_SIZE - vaddr % BLOCK_SIZE
         full_blocks = ((length + (vaddr % BLOCK_SIZE)) // BLOCK_SIZE) - 1
         left_over = (length + vaddr) % BLOCK_SIZE

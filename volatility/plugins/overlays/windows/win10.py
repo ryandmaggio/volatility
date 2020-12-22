@@ -98,10 +98,12 @@ class Win10x64DTB(obj.ProfileModification):
     def modification(self, profile):
         build = profile.metadata.get("build", 0)
 
-        if build >= 18362:
-            signature = b"\x03\x00\xb8\x00"
+        if build >= 19041:
+            signature = b'\x03\x00\x00\x00'
+        elif build >= 18362:
+            signature = b'\x03\x00\xb8\x00'
         else:
-            signature = b"\x03\x00\xb6\x00"
+            signature = b'\x03\x00\xb6\x00'
 
         profile.merge_overlay(
             {
@@ -132,10 +134,12 @@ class Win10x86DTB(obj.ProfileModification):
     def modification(self, profile):
         build = profile.metadata.get("build", 0)
 
-        if build >= 15063:
-            signature = b"\x03\x00\x2C\x00"
+        if build >= 19041:
+            signature = b'\x03\x00\x00\x00'
+        elif build >= 15063:
+            signature = b'\x03\x00\x2c\x00'
         else:
-            signature = b"\x03\x00\x2A\x00"
+            signature = b'\x03\x00\x2a\x00'
 
         profile.merge_overlay(
             {
@@ -1303,6 +1307,20 @@ class Win10x86_18362(obj.Profile):
     _md_product = ["NtProductWinNt"]
 
 
+class Win10x86_19041(obj.Profile):
+    """ A Profile for Windows 10 x86 (10.0.19041.0 / 2020-04-17) """
+
+    _md_memory_model = '32bit'
+    _md_os = 'windows'
+    _md_major = 6
+    _md_minor = 4
+    _md_build = 19041
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win10_x86_19041_vtypes'
+    )
+    _md_product = ["NtProductWinNt"]
+
+
 class Win10x64_15063(obj.Profile):
     """ A Profile for Windows 10 x64 (10.0.15063.0 / 2017-04-04) """
 
@@ -1369,5 +1387,19 @@ class Win10x64_18362(obj.Profile):
     _md_build = 18362
     _md_vtype_module = (
         'volatility.plugins.overlays.windows.win10_x64_18362_vtypes'
+    )
+    _md_product = ["NtProductWinNt"]
+
+
+class Win10x64_19041(obj.Profile):
+    """ A Profile for Windows 10 x64 (10.0.19041.0 / 2020-04-17) """
+
+    _md_memory_model = '64bit'
+    _md_os = 'windows'
+    _md_major = 6
+    _md_minor = 4
+    _md_build = 19041
+    _md_vtype_module = (
+        'volatility.plugins.overlays.windows.win10_x64_19041_vtypes'
     )
     _md_product = ["NtProductWinNt"]

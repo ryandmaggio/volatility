@@ -146,5 +146,6 @@ except ImportError:
 
 if __name__ == "__main__":
     import sys
+
     dec_data = xpress_decode(open(sys.argv[1], 'rb').read())
     sys.stdout.write(dec_data)

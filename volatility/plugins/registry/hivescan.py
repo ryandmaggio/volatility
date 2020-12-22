@@ -72,7 +72,9 @@ class HiveScan(common.AbstractScanCommand):
         arch = metadata.get("memory_model", "32bit")
 
         if version >= (6, 3) and arch == "64bit":
-            for pool in bigpools.BigPagePoolScanner(addr_space).scan([b"CM10"]):
+            for pool in bigpools.BigPagePoolScanner(addr_space).scan(
+                [b"CM10"]
+            ):
                 yield pool.Va.dereference_as("_CMHIVE")
         else:
             for result in self.scan_results(addr_space):

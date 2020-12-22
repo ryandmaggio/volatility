@@ -1320,9 +1320,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                 else:
                     file_re = re.compile(self._config.REGEX)
             except re.error as e:
-                debug.error(
-                    f"Error parsing regular expression: {e}"
-                )
+                debug.error(f"Error parsing regular expression: {e}")
 
         # Check to see if a specific physical address was specified for a
         # FILE_OBJECT. In particular, this is useful for FILE_OBJECTS that
@@ -1341,9 +1339,7 @@ class DumpFiles(common.AbstractWindowsCommand):
                     phys.append(file_obj)
                 procfiles.append((None, phys))
             except ValueError:
-                debug.error(
-                    f"Invalid PHYSOFFSET {self._config.PHYSOFFSET}"
-                )
+                debug.error(f"Invalid PHYSOFFSET {self._config.PHYSOFFSET}")
 
         # Iterate through the process list and collect all references to
         # FILE_OBJECTS from both the VAD and HandleTable. Each open handle to a file
@@ -1462,7 +1458,9 @@ class DumpFiles(common.AbstractWindowsCommand):
                                 control_area_list.append(control_area)
 
                                 # The format of the filenames: file.<pid>.<control_area>.[img|dat]
-                                ca_offset_string = f"0x{control_area.obj_offset:x}"
+                                ca_offset_string = (
+                                    f"0x{control_area.obj_offset:x}"
+                                )
                                 if self._config.NAME and name != None:
                                     fname = name.split("\\")
                                     ca_offset_string += f".{fname[-1]}"
@@ -1509,7 +1507,9 @@ class DumpFiles(common.AbstractWindowsCommand):
                                 control_area_list.append(control_area)
 
                                 # The format of the filenames: file.<pid>.<control_area>.[img|dat]
-                                ca_offset_string = f"0x{control_area.obj_offset:x}"
+                                ca_offset_string = (
+                                    f"0x{control_area.obj_offset:x}"
+                                )
                                 if self._config.NAME and name != None:
                                     fname = name.split("\\")
                                     ca_offset_string += f".{fname[-1]}"
@@ -1567,7 +1567,9 @@ class DumpFiles(common.AbstractWindowsCommand):
                         else:
                             continue
 
-                        shared_cache_map_string = f".0x{shared_cache_map.obj_offset:x}"
+                        shared_cache_map_string = (
+                            f".0x{shared_cache_map.obj_offset:x}"
+                        )
                         if self._config.NAME and name != None:
                             fname = name.split("\\")
                             shared_cache_map_string += f".{fname[-1]}"

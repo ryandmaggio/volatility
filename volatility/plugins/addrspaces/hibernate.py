@@ -316,7 +316,7 @@ class WindowsHiberFileSpace32(addrspace.BaseAddressSpace):
 
         return data[offset : offset + available]
 
-    def read(self, addr: int, length: int, zread: bool=False) -> bytes:
+    def read(self, addr: int, length: int, zread: bool = False) -> bytes:
         result = b''
         while length > 0:
             data = self._partial_read(addr, length)

@@ -256,7 +256,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
                 f"Alignment of {self.__class__.__name__}  is too small, plugins will be extremely slow"
             )
 
-    def _read(self, addr: int, length: int, pad: bool=False) -> bytes:
+    def _read(self, addr: int, length: int, pad: bool = False) -> bytes:
         """Reads length bytes at the address addr
 
         If pad is False, this can return None if some of the address space is empty
@@ -435,7 +435,7 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = data
         self.base_offset = base_offset
 
-    def assign_buffer(self, data: bytes, base_offset: int=0):
+    def assign_buffer(self, data: bytes, base_offset: int = 0):
         self.base_offset = base_offset
         self.data = data
 

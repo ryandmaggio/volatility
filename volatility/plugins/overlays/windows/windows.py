@@ -480,10 +480,12 @@ class DosDate(obj.NativeType):
         dosdate is already in UTC: http://download.polytechnic.edu.na/pub4/download.sourceforge.net/pub/sourceforge/l/project/li/liblnk/Documentation/Windows%20Shell%20Item%20format/Windows%20Shell%20Item%20format.pdf
         """
         date = struct.unpack(
-            ">H", bytes([(dosdate >> 8) & 0xFF, (dosdate & 0xFF)]),
+            ">H",
+            bytes([(dosdate >> 8) & 0xFF, (dosdate & 0xFF)]),
         )[0]
         time = struct.unpack(
-            ">H", bytes([(dosdate >> 24) & 0xFF, (dosdate >> 16) & 0xFF]),
+            ">H",
+            bytes([(dosdate >> 24) & 0xFF, (dosdate >> 16) & 0xFF]),
         )[0]
         seconds = (time & 0x1F) * 2
         minutes = (time & 0x7E0) >> 5
@@ -1260,7 +1262,7 @@ class _EX_FAST_REF(obj.CType):
             self.Object.v() & ~self.MAX_FAST_REF,
             self.obj_native_vm,
             parent=parent or self,
-            **kwargs
+            **kwargs,
         )
 
 

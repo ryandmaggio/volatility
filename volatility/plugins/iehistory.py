@@ -340,12 +340,8 @@ class IEHistory(taskmods.DllList):
                     outfd.write(
                         f"Cache type \"{record.Signature}\" at {record.obj_offset:#x}\n"
                     )
-                    outfd.write(
-                        f"Last modified: {record.LastModified}\n"
-                    )
-                    outfd.write(
-                        f"Last accessed: {record.LastAccessed}\n"
-                    )
+                    outfd.write(f"Last modified: {record.LastModified}\n")
+                    outfd.write(f"Last accessed: {record.LastAccessed}\n")
                     outfd.write(f"URL: {url}\n")
                     if len(title) > 4:
                         outfd.write(f"Title: {title}\n")

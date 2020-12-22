@@ -489,9 +489,7 @@ class MemDump(MemMap):
                 f"Writing {task.ImageFileName} [{pid:6}] to {pid}.dmp\n"
             )
 
-            f = open(
-                os.path.join(self._config.DUMP_DIR, f"{pid}.dmp"), 'wb'
-            )
+            f = open(os.path.join(self._config.DUMP_DIR, f"{pid}.dmp"), 'wb')
             if pagedata:
                 for p in pagedata:
                     data = task_space.read(p[0], p[1])

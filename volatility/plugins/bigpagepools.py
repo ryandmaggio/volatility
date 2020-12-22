@@ -32,12 +32,22 @@ class PoolTrackTypeOverlay(obj.ProfileModification):
 
     # This ensures _POOL_DESCRIPTOR will be available,
     # so we can copy the PoolType enumeration
+    # Win10 19041 (May 2020) removed _POOL_DESCRIPTOR, so switch to
+    # _OBJECT_TYPE_INITIALIZER instead
     before = ['WindowsVTypes']
 
     # PoolType didn't exist until Vista
     conditions = {'os': lambda x: x == 'windows', 'major': lambda x: x >= 6}
 
     def modification(self, profile):
+        minor = profile.metadata.get("minor", 0)
+        build = profile.metadata.get("build", 0)
+
+        if minor < 4 or (minor == 4 and build < 19041):
+            pool_type_name = "_POOL_DESCRIPTOR"
+        else:
+            pool_type_name = "_OBJECT_TYPE_INITIALIZER"
+
         profile.merge_overlay(
             {
                 '_POOL_TRACKER_BIG_PAGES': [
@@ -45,9 +55,7 @@ class PoolTrackTypeOverlay(obj.ProfileModification):
                     {
                         'PoolType': [
                             None,
-                            profile.vtypes['_POOL_DESCRIPTOR'][1]['PoolType'][
-                                1
-                            ],
+                            profile.vtypes[pool_type_name][1]['PoolType'][1],
                         ],
                         'Key': [None, ['String', dict(length=4)]],
                     },
@@ -81,6 +89,7 @@ class BigPageTableMagic(obj.ProfileModification):
             (6, 2, '64bit'): [[-5200, -5224]],
             (6, 3, '32bit'): [[116, 120]],
             (6, 4, '64bit'): [
+                [-72, -64],
                 [-48, -10328],
                 [208, 184],
                 [168, 192],

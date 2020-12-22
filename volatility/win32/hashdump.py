@@ -341,24 +341,28 @@ def bytes_to_key(s):
 
 
 def sid_to_key(sid):
-    s1 = bytes([
-        sid & 0xFF,
-        (sid >> 8) & 0xFF,
-        (sid >> 16) & 0xFF,
-        (sid >> 24) & 0xFF,
-        sid & 0xFF,
-        (sid >> 8) & 0xFF,
-        (sid >> 16) & 0xFF,
-    ])
-    s2 = bytes([
-        s1[3],
-        s1[0],
-        s1[1],
-        s1[2],
-        s1[3],
-        s1[0],
-        s1[1],
-    ])
+    s1 = bytes(
+        [
+            sid & 0xFF,
+            (sid >> 8) & 0xFF,
+            (sid >> 16) & 0xFF,
+            (sid >> 24) & 0xFF,
+            sid & 0xFF,
+            (sid >> 8) & 0xFF,
+            (sid >> 16) & 0xFF,
+        ]
+    )
+    s2 = bytes(
+        [
+            s1[3],
+            s1[0],
+            s1[1],
+            s1[2],
+            s1[3],
+            s1[0],
+            s1[1],
+        ]
+    )
     return bytes_to_key(s1), bytes_to_key(s2)
 
 

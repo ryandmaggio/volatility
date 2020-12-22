@@ -60,7 +60,7 @@ def load_as(config, astype='virtual', **kwargs):
                 debug.debug(f"Failed instantiating {cls.__name__}: {e}", 2)
                 error.append_reason(cls.__name__, e)
                 continue
-            #except Exception as e:
+            # except Exception as e:
             #    debug.debug(f"Failed instantiating (exception): {e}")
             #    error.append_reason(f"{cls.__name__} - EXCEPTION", e)
             #    continue
@@ -80,18 +80,18 @@ def Hexdump(data, width=16):
     """ Hexdump function shared by various plugins """
     for offset in range(0, len(data), width):
         row_data = data[offset : offset + width]
-        translated_data = bytes([
-            x if x < 127 and x > 32 else ord('.') for x in row_data
-        ]).decode('ascii')
+        translated_data = bytes(
+            [x if x < 127 and x > 32 else ord('.') for x in row_data]
+        ).decode('ascii')
         hexdata = " ".join([f"{x:02x}" for x in row_data])
 
         yield offset, hexdata, translated_data
 
 
 def remove_unprintable(data):
-    return bytes(
-        [c for c in data if (c > 31 or c == 9) and c <= 126]
-    ).decode('ascii')
+    return bytes([c for c in data if (c > 31 or c == 9) and c <= 126]).decode(
+        'ascii'
+    )
 
 
 # Compensate for Windows python not supporting socket.inet_ntop and some

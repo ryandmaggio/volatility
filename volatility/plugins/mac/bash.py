@@ -97,7 +97,9 @@ class _mac_hist_entry(obj.CType):
             if idx != -1:
                 buf = buf[:idx]
 
-            ret = bytes([c for c in buf if c in list(string.printable.encode('ascii'))])
+            ret = bytes(
+                [c for c in buf if c in list(string.printable.encode('ascii'))]
+            )
         else:
             ret = b''
 

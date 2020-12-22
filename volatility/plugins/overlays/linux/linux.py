@@ -1070,7 +1070,9 @@ class module_struct(obj.CType):
             self.obj_vm.profile.get_symbol("param_get_ulong"): "unsigned long",
             self.obj_vm.profile.get_symbol("param_get_long"): "long",
             self.obj_vm.profile.get_symbol("param_get_uint"): "unsigned int",
-            self.obj_vm.profile.get_symbol("param_get_ushort"): "unsigned short",
+            self.obj_vm.profile.get_symbol(
+                "param_get_ushort"
+            ): "unsigned short",
             self.obj_vm.profile.get_symbol("param_get_short"): "short",
             self.obj_vm.profile.get_symbol("param_get_byte"): "char",
         }
@@ -1677,7 +1679,9 @@ class task_struct(obj.CType):
                     if vma.vm_file:
                         hookdesc = linux_common.get_path(task, vma.vm_file)
                     else:
-                        hookdesc = f'[{vma.vm_start:x}:{vma.vm_end:x},{vma.vm_flags}]'
+                        hookdesc = (
+                            f'[{vma.vm_start:x}:{vma.vm_end:x},{vma.vm_flags}]'
+                        )
 
                 if hookdesc == "":
                     hookdesc = 'invalid memory'
@@ -2392,7 +2396,6 @@ class task_struct(obj.CType):
             if not soname or len(soname) == 0:
                 soname = linux_common.get_path(self, vma.vm_file)
 
-
             if pt_loads:
                 (elf_start, elf_end) = (
                     min(s[0] for s in pt_loads),
@@ -2537,7 +2540,12 @@ class task_struct(obj.CType):
 
                 if argv:
                     # split the \x00 buffer into args
-                    name = " ".join([arg.decode('utf-8', 'replace') for arg in argv.split(b"\x00")])
+                    name = " ".join(
+                        [
+                            arg.decode('utf-8', 'replace')
+                            for arg in argv.split(b"\x00")
+                        ]
+                    )
                 else:
                     name = ""
         else:
