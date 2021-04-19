@@ -115,7 +115,7 @@ class linux_netscan(linux_common.AbstractLinuxCommand):
 
         vals = struct.pack(pack_fmt, func_addr)
 
-        s = "{ " + " ".join(["%.02x" % ord(v) for v in vals]) + " }"
+        s = "{ " + " ".join(["%.02x" % v for v in vals]) + " }"
 
         rules = yara.compile(
             sources={'n': 'rule r1 {strings: $a = ' + s + ' condition: $a}'}
