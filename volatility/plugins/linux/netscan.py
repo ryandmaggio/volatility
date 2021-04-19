@@ -43,6 +43,8 @@ class linux_netscan(linux_common.AbstractLinuxCommand):
     """Carves for network connection structures"""
 
     def check_socket_back_pointer(self, i):
+        if not i.sk.sk_socket.is_valid():
+            return False
         scomp = (
             self.addr_space.address_compare(i.sk.v(), i.sk.sk_socket.sk.v())
             == 0
