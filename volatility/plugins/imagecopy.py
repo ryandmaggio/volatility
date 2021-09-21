@@ -89,7 +89,7 @@ class ImageCopy(commands.Command):
                 "Refusing to overwrite an existing file, please remove it before continuing"
             )
 
-        f = file(self._config.OUTPUT_IMAGE, "wb+")
+        f = open(self._config.OUTPUT_IMAGE, "wb+")
         progress = 0
         try:
             # Big if block to reduce number of ifs in for loop. Think Big-O.
