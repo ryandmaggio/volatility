@@ -1848,7 +1848,7 @@ class task_struct(obj.CType):
         bang_addrs = []
 
         # Look for strings that begin with pound/hash on the process heap
-        for ptr_hash in self.search_process_memory(["#"], heap_only=True):
+        for ptr_hash in self.search_process_memory([b"#"], heap_only=True):
             # Find pointers to this strings address, also on the heap
             bang_addrs.append(struct.pack(pack_format, ptr_hash))
 
