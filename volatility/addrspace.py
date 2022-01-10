@@ -33,7 +33,7 @@
 
 # pylint: disable-msg=C0111
 
-import fractions
+import math
 import volatility.obj as obj
 import volatility.registry as registry
 import volatility.debug as debug
@@ -248,7 +248,7 @@ class AbstractDiscreteAllocMemory(BaseAddressSpace):
             if accumulator is None and start > 1:
                 accumulator = start
             if accumulator and start > 0:
-                accumulator = fractions.gcd(accumulator, start)
+                accumulator = math.gcd(accumulator, start)
         self.alignment_gcd = int(accumulator)
         # Pick an arbitrary cut-off that'll lead to too many reads
         if self.alignment_gcd < 0x4:
