@@ -444,9 +444,9 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
                 phys_as = utils.load_as(self._config, astype='physical')
                 data = phys_as.zread(phys_offset, 4096)
             else:
-                data = "\x00" * 4096
+                data = b"\x00" * 4096
         else:
-            data = "\x00" * 4096
+            data = b"\x00" * 4096
 
         return data
 
@@ -462,7 +462,7 @@ class linux_find_file(linux_common.AbstractLinuxCommand):
         else:
             self.ptr_size = 8
 
-        data = ""
+        data = b""
         file_size = inode.i_size
 
         if not inode.is_valid() or file_size == None:
