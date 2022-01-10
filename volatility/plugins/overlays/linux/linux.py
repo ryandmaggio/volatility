@@ -1428,7 +1428,7 @@ class task_struct(obj.CType):
 
     def get_elf(self, elf_addr):
         sects = {}
-        ret = ""
+        ret = b""
 
         proc_as = self.get_process_address_space()
 
@@ -1438,7 +1438,7 @@ class task_struct(obj.CType):
         elf_hdr = obj.Object("elf_hdr", offset=elf_addr, vm=proc_as)
 
         if not elf_hdr.is_valid():
-            return ""
+            return b""
 
         for phdr in elf_hdr.program_headers():
             if str(phdr.p_type) != 'PT_LOAD':
