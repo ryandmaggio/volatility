@@ -14,7 +14,7 @@ class TreePopulationError(Exception):
     pass
 
 
-class TreeNode(collections.Sequence):
+class TreeNode(collections.abc.Sequence):
     """Class representing a particular node in a tree grid"""
 
     def __init__(self, path, treegrid, parent, values):
