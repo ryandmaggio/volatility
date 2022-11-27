@@ -493,7 +493,7 @@ class TrueCryptPassphrase(common.AbstractWindowsCommand):
                     continue
                 # All characters in the range must be ASCII
                 chars = [
-                    c for c in passphrase if ord(c) >= 0x20 and ord(c) <= 0x7F
+                    c for c in passphrase if c >= 0x20 and c <= 0x7F
                 ]
                 if len(chars) != length:
                     continue
