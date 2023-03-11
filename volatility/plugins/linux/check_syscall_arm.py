@@ -116,7 +116,7 @@ class linux_check_syscall_arm(linux_common.AbstractLinuxARMCommand):
             else:
                 sym_name = "HOOKED"
 
-            yield (0[Address(i), Address(call_addr), str(sym_name)])
+            yield (0, [Address(i), Address(call_addr), str(sym_name)])
 
     def render_text(self, outfd, data):
         self.table_header(
