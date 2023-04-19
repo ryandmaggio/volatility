@@ -984,19 +984,33 @@ class VolatilityMagic(BaseObject):
         since
         """
         if self.value:
+            sys.stderr.write("Talk about value\n")
+            sys.stderr.flush()
             yield self.value
         for x in self.generate_suggestions():
+            sys.stderr.write("Fucking struggling\n")
+            sys.stderr.flush()
             yield x
 
     def generate_suggestions(self):
+        sys.stderr.write("generating suggestions\n")
+        sys.stderr.flush()
         print("No suggestions available")
         return  # previously raise StopIteration()
 
     def get_best_suggestion(self):
         """Returns the best suggestion for a list of possible suggestsions"""
+        sys.stderr.write("Getting suggestings\n")
+        sys.stderr.flush()
+        #sys.stderr.write("Get suggestions: {0}\n".format(self.get_suggestions))
+        #sys.stderr.flush()
         for val in self.get_suggestions():
+            sys.stderr.write("In get sug loop\n")
+            sys.stderr.flush()
             return val
         else:
+            sys.stderr.write("All out of ideas?\n")
+            sys.stderr.flush()
             return NoneObject("No suggestions available")
 
 
