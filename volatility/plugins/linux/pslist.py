@@ -39,8 +39,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
         linux_common.AbstractLinuxCommand.__init__(
             self, config, *args, **kwargs
         )
-        sys.stderr.write("Inniting\n")
-        sys.stderr.flush()
         config.add_option(
             'PID',
             short_option='p',
@@ -52,8 +50,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
 
     @staticmethod
     def virtual_process_from_physical_offset(addr_space, offset):
-        sys.stderr.write("VPFPO\n")
-        sys.stderr.flush()
         pspace = utils.load_as(addr_space.get_config(), astype='physical')
         task = obj.Object("task_struct", vm=pspace, offset=offset)
         parent = obj.Object("task_struct", vm=addr_space, offset=task.parent)
@@ -67,8 +63,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
         )
 
     def allprocs(self):
-        sys.stderr.write("Allprocs\n")
-        sys.stderr.flush()
         linux_common.set_plugin_members(self)
 
         init_task_addr = self.addr_space.profile.get_symbol("init_task")
@@ -81,18 +75,12 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
             yield task
 
     def calculate(self):
-        sys.stderr.write("Calculating\n")
-        sys.stderr.flush()
         linux_common.set_plugin_members(self)
 
-        sys.stderr.write("Calculating 2\n")
-        sys.stderr.flush()
         pidlist = self._config.PID
         if pidlist:
             pidlist = [int(p) for p in self._config.PID.split(',')]
 
-        sys.stderr.write("looping over procs\n")
-        sys.stderr.flush()
         for task in self.allprocs():
             if not pidlist or task.pid in pidlist:
                 yield task
@@ -112,8 +100,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
         )
 
     def _get_task_vals(self, task):
-        sys.stderr.write("get task vals\n")
-        sys.stderr.flush()
         if task.parent.is_valid():
             ppid = str(task.parent.pid)
         else:
@@ -146,8 +132,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
         return task_offset, dtb, ppid, uid, gid, str(start_time)
 
     def generator(self, data):
-        sys.stderr.write("gotta keep em generated")
-        sys.stderr.flush()
         for task in data:
             task_offset, dtb, ppid, uid, gid, start_time = self._get_task_vals(
                 task
@@ -167,8 +151,6 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
             )
 
     def render_text(self, outfd, data):
-        sys.stderr.write("Render\n")
-        sys.stderr.flush()
         self.table_header(
             outfd,
             [

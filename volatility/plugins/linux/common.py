@@ -47,8 +47,6 @@ def set_plugin_members(obj_ref):
         debug.error(
             "Linux uses --virtual_shift and --physical_shift. Please run linux_aslr_shift to obtain the values."
         )
-    sys.stderr.write("set plugin member\n")
-    sys.stderr.flush()
     obj_ref.addr_space = utils.load_as(obj_ref._config)
     sys.stderr.write("Loaded\n")
     sys.stderr.flush()

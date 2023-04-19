@@ -1002,8 +1002,8 @@ class VolatilityMagic(BaseObject):
         """Returns the best suggestion for a list of possible suggestsions"""
         sys.stderr.write("Getting suggestings\n")
         sys.stderr.flush()
-        #sys.stderr.write("Get suggestions: {0}\n".format(self.get_suggestions))
-        #sys.stderr.flush()
+        sys.stderr.write("Get suggestions: {0}\n".format(self.get_suggestions))
+        sys.stderr.flush()
         for val in self.get_suggestions():
             sys.stderr.write("In get sug loop\n")
             sys.stderr.flush()
