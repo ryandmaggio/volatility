@@ -26,8 +26,6 @@ import volatility.debug as debug
 import socket
 import itertools
 
-import sys
-
 # pylint: disable-msg=C0111
 
 

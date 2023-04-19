@@ -24,7 +24,7 @@
 @contact:      atcuno@gmail.com
 @organization:
 """
-import os, re, sys
+import os, re
 
 import volatility.commands as commands
 import volatility.utils as utils
@@ -48,8 +48,6 @@ def set_plugin_members(obj_ref):
             "Linux uses --virtual_shift and --physical_shift. Please run linux_aslr_shift to obtain the values."
         )
     obj_ref.addr_space = utils.load_as(obj_ref._config)
-    sys.stderr.write("Loaded\n")
-    sys.stderr.flush()
     if not obj_ref.is_valid_profile(obj_ref.addr_space.profile):
         debug.error("This command does not support the selected profile.")
 

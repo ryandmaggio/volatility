@@ -22,7 +22,6 @@ import volatility.addrspace as addrspace
 import volatility.debug as debug
 import volatility.obj as obj
 
-
 class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
     """Class to handle all the details of a paged virtual address space
 

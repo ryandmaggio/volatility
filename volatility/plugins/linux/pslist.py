@@ -29,8 +29,6 @@ import volatility.utils as utils
 import volatility.plugins.linux.common as linux_common
 from volatility.renderers import TreeGrid
 from volatility.renderers.basic import Address
-import sys
-
 
 class linux_pslist(linux_common.AbstractLinuxCommand):
     """Gather active tasks by walking the task_struct->task list"""
